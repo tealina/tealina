@@ -1,0 +1,20 @@
+{
+  "name": "tealina-doc-types",
+  "version": "0.0.1",
+  "description": "The tealina gdoc output types",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "pnpm tsc . --noEmit"
+  },
+  "keywords": [
+    "tealina"
+  ],
+  "author": "Neo Yeo",
+  "license": "MIT"
+}

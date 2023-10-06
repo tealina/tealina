@@ -1,0 +1,34 @@
+{
+  "name": "tealina",
+  "version": "0.0.2",
+  "type": "module",
+  "main": "./dist/index.js",
+  "description": "A cli for develop APIs with end to end typesave, document generation",
+  "scripts": {
+    "gen-types": "tsc src/index.ts --declaration --emitDeclarationOnly --outDir dist",
+    "build": "rm -rf dist & tsc -p tsconfig.build.json & npm run gen-types",
+    "test": "vitest --dir ./test --run"
+  },
+  "bin": {
+    "tealina": "index.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "author": "Neo Yeo",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.1",
+    "cac": "^6.7.14"
+  },
+  "engines": {
+    "node": "^18.0.0 || >=20.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.2.0",
+    "fp-lite": "^1.2.0",
+    "fs-extra": "^11.1.1",
+    "tealina-doc-types": "workspace:*"
+  }
+}

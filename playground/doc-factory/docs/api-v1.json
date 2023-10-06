@@ -1,0 +1,240 @@
+{
+  "apis": {
+    "get": {
+      "health": {
+        "response": {
+          "kind": 4,
+          "id": 325
+        },
+        "headers": {
+          "kind": 4,
+          "id": 39
+        }
+      }
+    },
+    "post": {
+      "user/create": {
+        "body": {
+          "kind": 4,
+          "id": 1761
+        },
+        "response": {
+          "kind": 4,
+          "id": 1761
+        },
+        "headers": {
+          "kind": 4,
+          "id": 1762
+        }
+      },
+      "user/update": {
+        "body": {
+          "kind": 4,
+          "id": 1800
+        },
+        "response": {
+          "kind": 4,
+          "id": 1800
+        },
+        "headers": {
+          "kind": 4,
+          "id": 1762
+        }
+      }
+    }
+  },
+  "entityRefs": {
+    "39": {
+      "name": "{}",
+      "props": []
+    },
+    "325": {
+      "name": "{ status: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "status"
+        }
+      ]
+    },
+    "1761": {
+      "name": "UserCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "age"
+        },
+        {
+          "kind": 6,
+          "key": {
+            "kind": 0,
+            "type": "string"
+          },
+          "value": {
+            "kind": 0,
+            "type": "any"
+          },
+          "name": "extra"
+        }
+      ]
+    },
+    "1762": {
+      "name": "AuthHeaders",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "Authorization"
+        }
+      ]
+    },
+    "1800": {
+      "name": "UserCreateInput",
+      "props": [
+        {
+          "kind": 2,
+          "elements": [
+            {
+              "kind": 0,
+              "type": "number"
+            },
+            {
+              "kind": 0,
+              "type": "number"
+            },
+            {
+              "kind": 3,
+              "types": [
+                {
+                  "kind": 2,
+                  "elements": []
+                },
+                {
+                  "kind": 12,
+                  "id": 1813
+                }
+              ]
+            }
+          ],
+          "name": "recusiveTuple"
+        },
+        {
+          "kind": 2,
+          "elements": [
+            {
+              "kind": 4,
+              "id": 1820
+            },
+            {
+              "kind": 4,
+              "id": 1821
+            }
+          ],
+          "name": "deepRecusiveTuple"
+        },
+        {
+          "kind": 4,
+          "id": 1822,
+          "name": "recursiveEntity"
+        }
+      ]
+    },
+    "1820": {
+      "name": "One",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "one"
+        },
+        {
+          "kind": 12,
+          "id": 1819,
+          "name": "t"
+        }
+      ]
+    },
+    "1821": {
+      "name": "Two",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "two"
+        }
+      ]
+    },
+    "1822": {
+      "name": "NestOption",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "label"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "value"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 13,
+            "id": 1822
+          },
+          "name": "children"
+        }
+      ]
+    }
+  },
+  "enumRefs": {},
+  "tupleRefs": {
+    "1813": {
+      "name": "RecursiveTuple",
+      "elements": [
+        {
+          "kind": 0,
+          "type": "number"
+        },
+        {
+          "kind": 0,
+          "type": "number"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 2,
+              "elements": []
+            },
+            {
+              "kind": 12,
+              "id": 1813
+            }
+          ]
+        }
+      ]
+    },
+    "1819": {
+      "name": "DeepRecursiveTuple",
+      "elements": [
+        {
+          "kind": 4,
+          "id": 1820
+        },
+        {
+          "kind": 4,
+          "id": 1821
+        }
+      ]
+    }
+  }
+}

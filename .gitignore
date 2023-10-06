@@ -1,0 +1,9 @@
+.DS_Store
+.idea
+*.local
+*.log
+/.vscode/
+dist
+node_modules
+temp
+coverage
