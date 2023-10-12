@@ -58,7 +58,7 @@ const latestDocUI = async () => {
 const workflow = async () => {
   console.log('Intent to update version No. in templates:')
   const updates = await Promise.all([latestTealina(), latestDocUI()])
-  updateTeamplateDependance(updates)
+  await Promise.all(updateTeamplateDependance(updates))
   execSync('pnpm test packages/create-tealina', { stdio: 'inherit' })
 }
 
