@@ -10,7 +10,6 @@
     "cproj": "node packages/create-tealina/index.js",
     "format:check": "prettier --check .",
     "up-temp-versions": "node scripts/update-version-in-template.mjs",
-    "changeset": "pnpm changeset",
     "test": "vitest --run",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",

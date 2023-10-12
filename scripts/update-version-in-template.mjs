@@ -46,7 +46,7 @@ const latestTealina = async () => {
 }
 
 const latestDocUI = async () => {
-  const next = await readJsonFile('packages/@tealina/doc-ui/package.json')
+  const next = await readJsonFile('packages/tealina-doc-ui/package.json')
   return {
     key: 'dependencies',
     value: {
@@ -55,25 +55,11 @@ const latestDocUI = async () => {
   }
 }
 
-const latestDocTypes = async () => {
-  const next = await readJsonFile('packages/@tealina/doc-types/package.json')
-  return {
-    key: 'dependencies',
-    value: {
-      '@tealina/doc-types': `^${next.version}`,
-    },
-  }
-}
-
 const workflow = async () => {
   console.log('Intent to update version No. in templates:')
-  const updates = await Promise.all([
-    latestTealina(),
-    latestDocUI(),
-    latestDocTypes(),
-  ])
+  const updates = await Promise.all([latestTealina(), latestDocUI()])
   updateTeamplateDependance(updates)
-  execSync('pnpm test packages/create-tealina')
+  execSync('pnpm test packages/create-tealina', { stdio: 'inherit' })
 }
 
 workflow()
