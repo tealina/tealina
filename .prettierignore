@@ -3,4 +3,5 @@ temp
 assets
 coverage
 template
-static
+static 
+*.yaml

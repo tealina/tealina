@@ -1,7 +1,8 @@
 import fs from 'fs'
 import fsp from 'fs/promises'
 import path from 'path'
-import { CreationCtx, TealinaConifg } from '../index.js'
+import { pathToFileURL } from 'url'
+import { CreationCtx, TealinaConifg } from '../index'
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1)
@@ -56,5 +57,14 @@ export const readIndexFile = (indexFilePath: string): Promise<string[]> =>
     v => takePropLines(v.toString().trim().split('\n')),
     () => [],
   )
+
+export const toNormalPath = (x: string) => x.split(path.sep).join('/')
+
 export const loadConfig = async (configPath: string) =>
-  import(configPath).then(v => v.default as TealinaConifg)
+  import(pathToFileURL(configPath).href)
+    .then(v => v.default as TealinaConifg)
+    .then(v => ({
+      ...v,
+      typesDir: toNormalPath(v.typesDir),
+      testDir: toNormalPath(v.testDir),
+    }))

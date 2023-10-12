@@ -1,7 +1,7 @@
 import { PlayCircleFilled } from '@ant-design/icons'
 import { Form } from 'antd'
 import { useMemo } from 'react'
-import type { DocItem, Entity } from 'tealina-doc-types'
+import type { DocItem, Entity } from '@tealina/doc-types'
 import { prop2item } from '../../../transformer/prop2item'
 import { OneApiScopeEntitie } from '../../api_detail/useDetailState'
 import { JsonView } from '../../monaco/JsonView'

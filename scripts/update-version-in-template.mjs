@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process'
 import { writeFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 
@@ -45,26 +46,34 @@ const latestTealina = async () => {
 }
 
 const latestDocUI = async () => {
-  const next = await readJsonFile('packages/tealina-doc-ui/package.json')
+  const next = await readJsonFile('packages/@tealina/doc-ui/package.json')
   return {
     key: 'dependencies',
     value: {
-      'tealina-doc-ui': `^${next.version}`,
+      '@tealina/doc-ui': `^${next.version}`,
     },
   }
 }
 
 const latestDocTypes = async () => {
-  const next = await readJsonFile('packages/tealina-doc-ui/package.json')
+  const next = await readJsonFile('packages/@tealina/doc-types/package.json')
   return {
     key: 'dependencies',
     value: {
-      'tealina-doc-types': `^${next.version}`,
+      '@tealina/doc-types': `^${next.version}`,
     },
   }
 }
 
-console.log('Intent to update version No. in templates:')
-Promise.all([latestTealina(), latestDocUI(), latestDocTypes()]).then(
-  updateTeamplateDependance,
-)
+const workflow = async () => {
+  console.log('Intent to update version No. in templates:')
+  const updates = await Promise.all([
+    latestTealina(),
+    latestDocUI(),
+    latestDocTypes(),
+  ])
+  updateTeamplateDependance(updates)
+  execSync('pnpm test packages/create-tealina')
+}
+
+workflow()

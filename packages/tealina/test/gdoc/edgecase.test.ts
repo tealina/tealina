@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest'
-import { generateApiDoc } from '../../src/core/gdoc.js'
+import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 import path from 'path'
 
 const mockDir = 'packages/tealina/test/gdoc/mock'
 describe('test error handling', () => {
   test('invalid ts config', () => {
     try {
-      generateApiDoc({
+      parseDeclarationFile({
         entries: [path.join(mockDir, 'edgecase', 'api-v1.d.ts')],
         tsconfigPath: path.join(mockDir, 'tsconfig2.json'),
       })
@@ -17,7 +17,7 @@ describe('test error handling', () => {
   test('error when no export found', () => {
     let hasError = false
     try {
-      generateApiDoc({
+      parseDeclarationFile({
         entries: [path.join(mockDir, 'edgecase', 'error-case.d.ts')],
         tsconfigPath: path.join(mockDir, 'tsconfig.json'),
       })
@@ -30,7 +30,7 @@ describe('test error handling', () => {
   test('error when no valid export found', () => {
     let hasError = false
     try {
-      generateApiDoc({
+      parseDeclarationFile({
         entries: [path.join(mockDir, 'edgecase', 'error-case2.d.ts')],
         tsconfigPath: path.join(mockDir, 'tsconfig.json'),
       })

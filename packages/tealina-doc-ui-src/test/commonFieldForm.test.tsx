@@ -1,5 +1,5 @@
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import type { CommonFieldsType } from 'tealina-doc-ui'
+import type { CommonFieldsType } from '@tealina/doc-ui'
 import { describe, expect, test } from 'vitest'
 import { kConfigKey } from '../src/constans/configKeys'
 import { TestProvider } from './helper'

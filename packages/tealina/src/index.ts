@@ -1,4 +1,4 @@
-export * from 'tealina-doc-types'
+export * from '@tealina/doc-types'
 export interface CreationCtx {
   dir?: string
   /** captialized directory name */

@@ -16,7 +16,7 @@
     "express": "^4.18.2",
     "fp-lite": "^1.1.0",
     "server": "link:",
-    "tealina-doc-ui:": "workspace:*",
+    "@tealina/doc-ui:": "workspace:*",
     "zod": "^3.21.4"
   },
   "devDependencies": {
@@ -24,7 +24,7 @@
     "@types/node": "^18.11.18",
     "tealina": "workspace:*",
     "tsx": "^3.12.7",
-    "typescript": "~5.1.3"
+    "typescript": "~5.2.2"
   },
   "license": "ISC"
 }

@@ -64,7 +64,7 @@ const writeInitDevFile = (
     ['$`', getRunLeader(pkgManager), ...args, '`'].join('')
   const initCommands = [
     ...setupLines,
-    command(' install .'),
+    command(' install'),
     command(' prisma db push'),
     command(' v1 gpure'),
     command(' v1 capi get/health --with-test'),
@@ -81,18 +81,14 @@ const writeBasicInitDevFile = (
     ['$`', getRunLeader(pkgManager), ...args, '`'].join('')
   const initCommands = [
     ...setupLines,
-    command(' install .'),
+    command(' install'),
     command(' v1 capi get/health --with-test'),
     command(' v1 gdoc'),
   ]
   writeFileSync(join(destServerDir, 'init-dev.mjs'), initCommands.join('\n'))
 }
 
-const injectExtraTemplates = (
-  webDestDir: string,
-  webExtraTemplateDir: string,
-) => {
-  const dest = join(webDestDir, 'src')
+const injectExtraTemplates = (dest: string, webExtraTemplateDir: string) => {
   const write = (file: string) => {
     const targetPath = join(dest, file)
     copy(join(webExtraTemplateDir, file), targetPath)
@@ -117,7 +113,7 @@ const showGuide = ({ answer, pkgManager }: ContextType) => {
   const leader = getRunLeader(pkgManager)
   const webGuid = [
     `cd ${projectName}/web`,
-    `${leader} install .`,
+    `${leader} install`,
     `${leader} dev`,
   ]
   const runtime = leader == 'bun' ? 'bun' : 'node'

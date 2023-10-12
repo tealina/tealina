@@ -11,3 +11,4 @@ export const registerGlobalOption = (cli: CAC) =>
     .option('--config-path <path>', '[string] tealina config path', {
       default: './tealina.config.mjs',
     })
+    .option('--verbose', '[flag] show excution state when error')

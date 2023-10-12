@@ -1,6 +1,6 @@
 import { Table, TableProps } from 'antd'
 import { useAtomValue } from 'jotai'
-import type { Entity, PropType } from 'tealina-doc-types'
+import type { Entity, PropType } from '@tealina/doc-types'
 import { syntaxColorAtom } from '../atoms/themeAtom'
 import { type2cell } from '../transformer/type2cell'
 import { ColorText } from './ColorText'

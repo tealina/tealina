@@ -7,14 +7,14 @@ import {
   RefType,
   TupleType,
   UnionType,
-} from 'tealina-doc-types'
+} from '@tealina/doc-types'
 import { describe, expect, test } from 'vitest'
-import { generateApiDoc } from '../../src/core/gdoc.js'
+import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 
 describe('test genereta api documentation api/post/createUser', () => {
   const mockDir = 'packages/tealina/test/gdoc/mock'
   const configpath = path.join(mockDir, 'tsconfig.json')
-  const result = generateApiDoc({
+  const result = parseDeclarationFile({
     entries: [path.join(mockDir, 'basic', 'api-v1.d.ts')],
     tsconfigPath: configpath,
   })
@@ -68,8 +68,7 @@ describe('test genereta api documentation api/post/createUser', () => {
       comment: 'Model User',
     })
     expect(responseType.props.length).gte(3)
-    const [idProp, emailProp, nameProp, roleProp, stateProp] =
-      responseType.props
+    const [idProp, emailProp, nameProp, roleProp] = responseType.props
     expect(idProp).contains({
       name: 'id',
       kind: DocKind.Primitive,

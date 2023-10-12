@@ -1,11 +1,10 @@
 {
   "name": "create-tealina",
-  "version": "0.0.4",
+  "version": "0.0.8",
   "type": "module",
   "description": "create a full stack project ",
-  "main": "dist/index.js",
   "scripts": {
-    "build": "rm -rf dist & tsc",
+    "build": "unbuild",
     "test": "vitest --dir test --testTimeout=0 --run"
   },
   "bin": {

@@ -16,22 +16,18 @@ import {
 import { statSync } from 'fs'
 import { readdir } from 'fs/promises'
 import path from 'path'
-import {
-  genIndexProp,
-  genTopIndexProp,
-  genWithWrapper,
-} from '../utils/codeGen.js'
-import { Snapshot, completePath, effectFiles } from '../utils/effectFiles.js'
-import { logResults } from '../utils/logResults.js'
-import { TealinaComonOption } from '../utils/options.js'
-import { readIndexFile, withoutSuffix } from '../utils/tool.js'
-import { validateKind } from '../utils/validate.js'
+import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
+import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
+import { logResults } from '../utils/logResults'
+import { TealinaComonOption } from '../utils/options'
+import { readIndexFile, withoutSuffix } from '../utils/tool'
+import { validateKind } from '../utils/validate'
 import {
   TypeFileInfo,
   calcTypeFileSnapshot,
   collectTypeFileInfo,
-} from '../utils/withTypeFile.js'
-import { MergedOption } from './capi.js'
+} from '../utils/withTypeFile'
+import { MergedOption } from './capi'
 interface GatherPhase {
   kind: string
   content: string[]
@@ -81,7 +77,7 @@ const walkDir = (dir: string): Promise<string[]> =>
 const ensureStatsWithSlash = (x: string): string =>
   x.replace(LeftBrecket, '').replace(SingleQuete, '').slice(1)
 
-const renameSuffix = (name: string) => name.replace('.js', '.ts')
+const renameSuffix = (name: string) => name.replace('', '.ts')
 
 const toImps = flow(
   map((line: string) => line.split('import(').pop()?.slice(0, -2)),

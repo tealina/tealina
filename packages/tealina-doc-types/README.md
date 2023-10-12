@@ -9,13 +9,13 @@ The output type of `tealina gdoc`, it is designed for transformation tools.
 > Should be add as dependencies, not devDependencies, because the DocKind is exported as const object
 
 ```bash
-pnpm add tealina-doc-types
+pnpm add @tealina/doc-types
 
-yarn add tealina-doc-types
+yarn add @tealina/doc-types
 
-bun add tealina-doc-types
+bun add @tealina/doc-types
 
-npm i tealina-doc-types
+npm i @tealina/doc-types
 ```
 
 ### Demo
@@ -54,7 +54,7 @@ npm i tealina-doc-types
 
 ```tsx
 
-import { DocNode, DocKind, EntityRef } from 'tealina-doc-types'
+import { DocNode, DocKind, EntityRef } from '@tealina/doc-types'
 
 function tranform2span(docNode:DocNode){
   switch(docNode.kind){

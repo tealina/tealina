@@ -15,25 +15,26 @@ import {
 } from 'fp-lite'
 import { pathExists } from 'fs-extra'
 import path from 'node:path'
-import type { ApiTemplateType, TealinaConifg } from '../index.js'
+import type { ApiTemplateType, TealinaConifg } from '../index'
+import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
+import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
+import { logResults } from '../utils/logResults'
+import { TealinaComonOption } from '../utils/options'
+import { parseSchema, toFindable } from '../utils/parsePrisma'
 import {
-  genIndexProp,
-  genTopIndexProp,
-  genWithWrapper,
-} from '../utils/codeGen.js'
-import { Snapshot, completePath, effectFiles } from '../utils/effectFiles.js'
-import { logResults } from '../utils/logResults.js'
-import { TealinaComonOption } from '../utils/options.js'
-import { parseSchema, toFindable } from '../utils/parsePrisma.js'
-import { parseCreateInfo, readIndexFile, unCapitalize } from '../utils/tool.js'
-import { isValidHttpMethod } from '../utils/validate.js'
+  parseCreateInfo,
+  readIndexFile,
+  toNormalPath,
+  unCapitalize,
+} from '../utils/tool'
+import { isValidHttpMethod } from '../utils/validate'
 import {
   DirInfo,
   TypeFileInfo,
   calcTypeFileSnapshot,
   collectTypeFileInfo,
-} from '../utils/withTypeFile.js'
-import { loadConfig } from '../utils/tool.js'
+} from '../utils/withTypeFile'
+import { loadConfig } from '../utils/tool'
 
 export interface BaseOption extends TealinaComonOption {
   /** restful style */
@@ -114,6 +115,7 @@ const loadTemplateConfig = async (
       testDir: config.testDir,
       typesDir: config.typesDir,
       ...rawOptions, //test mode can override the config
+      apiDir: toNormalPath(rawOptions.apiDir),
     },
   }
 }
@@ -454,6 +456,7 @@ const createApis = asyncFlow(
 )
 
 export {
+  validateInput,
   calcRelativeFilesSnapshots,
   calcSnapshots,
   collectContext,

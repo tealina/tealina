@@ -1,8 +1,8 @@
 //@ts-check
 import { writeFileSync } from 'fs'
-import { generateApiDoc } from '../src/core/gdoc.js'
+import { parseDeclarationFile } from '../src/utils/parseDeclarationFile.js'
 
-const doc = generateApiDoc({
+const doc = parseDeclarationFile({
   entries: ['temp/express/post-get/server/types/api-v1.d.ts'],
   tsconfigPath: 'temp/express/post-get/server/tsconfig.json',
 })

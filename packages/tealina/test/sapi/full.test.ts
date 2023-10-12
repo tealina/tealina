@@ -2,8 +2,8 @@ import { unique } from 'fp-lite'
 import fs from 'fs-extra'
 import path from 'path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { OptionTypes } from '../../src/core/capi.js'
-import { syncApiByFile } from '../../src/core/sapi.js'
+import { OptionTypes } from '../../src/commands/capi.js'
+import { syncApiByFile } from '../../src/commands/sapi.js'
 import { DirInfo, getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
 
 describe('test sapi in mock dir', function () {

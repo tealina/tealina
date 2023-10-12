@@ -6,8 +6,8 @@ import type {
   DocNode,
   ObjectType,
   PropType,
-} from 'tealina-doc-types'
-import { DocKind } from 'tealina-doc-types'
+} from '@tealina/doc-types'
+import { DocKind } from '@tealina/doc-types'
 export type PayloadKeys = keyof Pick<
   DocItem,
   'headers' | 'body' | 'response' | 'query' | 'params'

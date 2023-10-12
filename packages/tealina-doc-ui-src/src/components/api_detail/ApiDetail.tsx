@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai'
-import type { ApiDoc, DocItem } from 'tealina-doc-types'
+import type { ApiDoc, DocItem } from '@tealina/doc-types'
 import {
   apiDocAtom,
   curJsonSourceAtom,

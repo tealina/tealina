@@ -11,24 +11,17 @@ import {
   pipe,
 } from 'fp-lite'
 import path from 'node:path'
+import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
+import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
+import { logResults } from '../utils/logResults'
+import { calcTypeFileSnapshot } from '../utils/withTypeFile'
 import {
-  genIndexProp,
-  genTopIndexProp,
-  genWithWrapper,
-} from '../utils/codeGen.js'
-import { Snapshot, completePath, effectFiles } from '../utils/effectFiles.js'
-import { logResults } from '../utils/logResults.js'
-import { calcTypeFileSnapshot } from '../utils/withTypeFile.js'
-import {
-  BaseOption,
   FullContext,
-  RegularOption,
   Seeds,
-  isByModel,
   collectContext,
   seeds2kindScope,
-  validateRegularOption,
-} from './capi.js'
+  validateInput,
+} from './capi'
 
 const toKeyMapTrue = flow(
   map((x: string) => [x, true] as const),
@@ -133,28 +126,12 @@ const calcSnapshots = (ctx: FullContext): Snapshot[] =>
     concat(pipe(ctx.seeds, map(mayWithTestFile(ctx)), flat)),
   )
 
-const validate4DeletionInput = (
-  args: (string | undefined)[],
-  option: BaseOption,
-): Promise<RegularOption> => {
-  try {
-    //Handled during the option registration phase
-    if (isByModel(option)) {
-      return Promise.reject(new Error('Delete api can not use --by-model flag'))
-    }
-    const opt = validateRegularOption(args, option, 'dapi')
-    return Promise.resolve(opt)
-  } catch (error) {
-    return Promise.reject(error)
-  }
-}
-
 const deleteApis = asyncFlow(
-  validate4DeletionInput,
+  validateInput,
   collectContext,
   calcSnapshots,
   effectFiles,
   logResults,
 )
 
-export { calcSnapshots, deleteApis, validate4DeletionInput }
+export { calcSnapshots, deleteApis }

@@ -1,5 +1,5 @@
 import path from 'path'
-import { DirInfo } from './withTypeFile.js'
+import { DirInfo } from './withTypeFile'
 
 const toRoutePath = (xs: string[]) => {
   const route = xs.map(v => v.replace(/\[-?/, ':').replace(/\]/, '')).join('/')
@@ -21,8 +21,8 @@ export const genWithWrapper = (contens: string[]) =>
 export const genTypeCode = ({ apiDir, typesDir }: DirInfo) => {
   const relativeDotStr = path.relative(typesDir, apiDir)
   return [
-    `import apis from '${relativeDotStr}/index.js'`,
-    `import type { ResolveApiType } from './handler.js'`,
+    `import apis from '${relativeDotStr}/index'`,
+    `import type { ResolveApiType } from './handler'`,
     '',
     'type RawApis = typeof apis',
     'export type ApiTypesRecord = {',

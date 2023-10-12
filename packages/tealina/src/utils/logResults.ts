@@ -1,6 +1,6 @@
 import chalk from 'chalk'
-import { map, omit, pipe, separeBy, unique } from 'fp-lite'
-import { Snapshot } from './effectFiles.js'
+import { map, pipe, separeBy, unique } from 'fp-lite'
+import { Snapshot } from './effectFiles'
 
 interface LogConfig {
   leading: string

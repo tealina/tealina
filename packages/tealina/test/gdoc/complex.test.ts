@@ -1,11 +1,11 @@
 import path from 'path'
-import { ArrayType, DocKind, RefType, TupleType } from 'tealina-doc-types'
+import { ArrayType, DocKind, RefType, TupleType } from '@tealina/doc-types'
 import { describe, expect, test } from 'vitest'
-import { generateApiDoc } from '../../src/core/gdoc.js'
+import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 
 describe('test genereta api documentation api/post/createUser', () => {
   const mockDir = 'packages/tealina/test/gdoc/mock'
-  const result = generateApiDoc({
+  const result = parseDeclarationFile({
     entries: [path.join(mockDir, 'complex', 'api-v1.d.ts')],
     tsconfigPath: path.join(mockDir, 'tsconfig.json'),
   })

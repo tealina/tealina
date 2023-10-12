@@ -16,7 +16,7 @@ describe('full test cai', () => {
     const route = 'get/health'
     ensureWrite(path.join(dirInfo.apiDir, route), 'mock content')
     const { cli } = parseCommandArgs('get/health', dirInfo)
-    const result = await cli.runMatchedCommand()
+    await cli.runMatchedCommand()
   })
   test('create with alias', async () => {
     const name = 'user'
@@ -182,7 +182,7 @@ function makeFullResult(
   seeds: { method: string; name: string }[],
   dirInfo: ReturnType<typeof prepareTempDir>,
 ) {
-  const { apiDir, apiTypesDir, apiTestDir } = dirInfo
+  const { apiDir, typesDir, testDir } = dirInfo
   const topIndex = {
     group: 'api',
     action: 'created',
@@ -215,7 +215,7 @@ function makeFullResult(
       group: 'test',
       action: 'created',
       filePath: path.join(
-        apiTestDir,
+        testDir,
         path.basename(apiDir),
         v.method,
         v.name.length ? `${preName}/${v.name}.test.ts` : `${preName}.test.ts`,
@@ -225,13 +225,13 @@ function makeFullResult(
   const typeFile = {
     group: 'types',
     action: 'created',
-    filePath: path.join(getApiTypeFilePath({ typesDir: apiTypesDir, apiDir })),
+    filePath: path.join(getApiTypeFilePath({ typesDir, apiDir })),
     // filePath: path.join(apiTypesDir, `${path.basename(apiDir)}.ts`),
   }
   const testHelper = {
     group: 'test',
     action: 'created',
-    filePath: path.join(apiTestDir, path.basename(apiDir), 'helper.ts'),
+    filePath: path.join(testDir, path.basename(apiDir), 'helper.ts'),
   }
   const fullResult = [
     topIndex,

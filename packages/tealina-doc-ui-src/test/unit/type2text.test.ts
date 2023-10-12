@@ -14,7 +14,7 @@ import {
   StringLiteral,
   TupleType,
   UnionType,
-} from 'tealina-doc-types'
+} from '@tealina/doc-types'
 
 const emptyContext = { enumRefs: {}, entityRefs: {}, tupleRefs: {} }
 

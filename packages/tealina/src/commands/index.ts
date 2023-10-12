@@ -1,12 +1,10 @@
 import { cac } from 'cac'
-import { createApis } from '../core/capi.js'
-import { deleteApis } from '../core/dapi.js'
-import { generatePureTypes } from '../core/gpure.js'
-import { syncApiByFile } from '../core/sapi.js'
-import { registerGlobalOption } from '../utils/options.js'
-import { startGenerateDoc } from './gdoc.js'
-
-//All action should be async so the error can be catch in bin/tealina.js file
+import { createApis } from './capi'
+import { deleteApis } from './dapi'
+import { generatePureTypes } from './gpure'
+import { syncApiByFile } from './sapi'
+import { registerGlobalOption } from '../utils/options'
+import { startGenerateDoc } from './gdoc'
 
 const cli = cac('tealina')
 
@@ -60,6 +58,12 @@ cli
     default: 'Pure',
   })
   .action(generatePureTypes)
+
+// Listen to unknown commands
+cli.on('command:*', () => {
+  console.error('Invalid command: %s', cli.args.join(' '))
+  process.exit(1)
+})
 
 cli.help()
 

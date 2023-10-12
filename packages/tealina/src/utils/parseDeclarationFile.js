@@ -1,15 +1,16 @@
 //@ts-check
 import { readFileSync } from 'fs'
-import { DocKind } from 'tealina-doc-types'
+import path from 'path'
+import { DocKind } from '@tealina/doc-types'
 import ts from 'typescript'
 
 /**
  *
- * @typedef {import('tealina-doc-types').Entity} Entity
- * @typedef {import('tealina-doc-types').DocNode } DocNode
- * @typedef {import('tealina-doc-types').Kind} Kind
- * @typedef {import('tealina-doc-types').DocItem } DocItem
- * @typedef {import('tealina-doc-types').EnumEntity } EnumEntity
+ * @typedef {import('@tealina/doc-types').Entity} Entity
+ * @typedef {import('@tealina/doc-types').DocNode } DocNode
+ * @typedef {import('@tealina/doc-types').Kind} Kind
+ * @typedef {import('@tealina/doc-types').DocItem } DocItem
+ * @typedef {import('@tealina/doc-types').EnumEntity } EnumEntity
  */
 
 /**@type {Record<number,Entity>} */
@@ -579,9 +580,9 @@ const findFormLast = (xs, predicate) => {
 
 /**
  * @param {{entries:string[],tsconfigPath:string}} param0
- * @returns {import('tealina-doc-types').ApiDoc}
+ * @returns {import('@tealina/doc-types').ApiDoc}
  */
-export const generateApiDoc = ({ entries, tsconfigPath }) => {
+export const parseDeclarationFile = ({ entries, tsconfigPath }) => {
   const parsedConfig = ts.readConfigFile(tsconfigPath, p =>
     readFileSync(p).toString(),
   )
@@ -594,9 +595,10 @@ export const generateApiDoc = ({ entries, tsconfigPath }) => {
   const program = ts.createProgram(entries, parsedConfig.config)
   checker = program.getTypeChecker()
   const sourceFiles = program.getSourceFiles()
+  const entryFileName = entries[0].split(path.sep).join('/')
   const entrySourceFile = findFormLast(
     sourceFiles,
-    v => v.fileName == entries[0],
+    v => v.fileName == entryFileName,
   )
   // @ts-ignore
   const apis = parseApiTypeInfo(entrySourceFile)

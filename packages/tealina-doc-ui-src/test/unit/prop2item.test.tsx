@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react'
-import { DocKind } from 'tealina-doc-types'
+import { DocKind } from '@tealina/doc-types'
 import '@vitest/web-worker'
 import { describe, expect, test } from 'vitest'
 import { prop2item } from '../../src/transformer/prop2item'

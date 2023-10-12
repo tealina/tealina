@@ -10,7 +10,7 @@ import {
   makeLineParser,
   parseSchema,
   toFindable,
-} from '../utils/parsePrisma.js'
+} from '../utils/parsePrisma'
 
 const ArgsValuePattern = /".*"/
 /**
@@ -277,7 +277,7 @@ const valueFromMapAttribute = (attrs: string[]) => {
 }
 
 const parseEnumCol = (v: LineInfo): EnumMemeber | null => {
-  const [attrPart, tailComment] = (v.secondCol ?? '').split('///')
+  const [attrPart, tailComment] = v.secondCol.split('///')
   const attrs = attrPart.split('@')
   if (attrs.some(v => v.startsWith('ingnore'))) return null
   return {

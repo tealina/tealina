@@ -6,12 +6,12 @@ import {
   getTestHeplerPath,
   parseByAlias,
   parseByRoute,
-} from '../../src/core/capi.js'
-import { calcSnapshots, validate4DeletionInput } from '../../src/core/dapi.js'
+} from '../../src/commands/capi.js'
+import { calcSnapshots } from '../../src/commands/dapi.js'
 import { DirInfo } from '../../src/utils/withTypeFile.js'
 import { FuncTemplates } from '../mock/config/funcCRUD.js'
 import { RestfulCRUD } from '../mock/config/restfulCRUD.js'
-import { cli } from '../../src/command/index.js'
+import { cli } from '../../src/commands/index.js'
 
 describe('test dapi calculation part', function () {
   const dirInfo: DirInfo = {
@@ -37,27 +37,6 @@ describe('test dapi calculation part', function () {
     ...v,
     apiFileSummary: { filePath: getApiFilePath(dirInfo, v), isExists: false },
     testFileSummary: { filePath: getTestFilePath(dirInfo, v), isExists: false },
-  })
-
-  test('validate input', async () => {
-    const x = await validate4DeletionInput(['user --by-model -t crud'], {
-      ...dirInfo,
-      byModel: true,
-    } as any).catch(e => {
-      expect(String(e)).includes('Delete api can not use --by-model flag')
-    })
-    expect(x).undefined
-  })
-
-  test('validate input (empty input)', async () => {
-    const x = await validate4DeletionInput([], {
-      apiDir: '',
-      configPath: '',
-      withTest: false,
-    }).catch(e => {
-      expect(String(e)).includes('Route is required')
-    })
-    expect(x).undefined
   })
 
   test(': user crud, effect all relative files', () => {
@@ -174,9 +153,9 @@ describe('test dapi calculation part', function () {
       commonOption: { ...dirInfo, withTest: true } as any,
       ...restCtx,
     })
-    const [topIndex, putIndex, apiHandler] = snapshots
+    const [apiIndex, putIndex, apiHandler] = snapshots
     expect(snapshots.some(v => v.group == 'test')).true
-    expect(topIndex.action).eq('updated')
+    expect(apiIndex.action).eq('updated')
     expect(putIndex.action).eq('deleted')
     expect(apiHandler.action).eq('deleted')
     expect(apiHandler.filePath).eq('put/user/[id].ts')
@@ -212,8 +191,8 @@ describe('test dapi calculation part', function () {
       ...restCtx,
     })
     expect(snapshots.some(v => v.group == 'test')).false
-    const [topIndex, putIndex, apiHandler] = snapshots
-    expect(topIndex.action).eq('updated')
+    const [apiIndex, putIndex, apiHandler] = snapshots
+    expect(apiIndex.action).eq('updated')
     expect(putIndex.action).eq('deleted')
     expect(apiHandler.action).eq('deleted')
     expect(apiHandler.filePath).eq('put/user/[id].ts')
@@ -221,7 +200,7 @@ describe('test dapi calculation part', function () {
 })
 
 test('--by-model not acceptable', () => {
-  const result = cli.parse(['', 'tealina', 'dapi', '--by-model'], {
+  cli.parse(['', 'tealina', 'dapi', '--by-model'], {
     run: false,
   })
   let hasErr = false

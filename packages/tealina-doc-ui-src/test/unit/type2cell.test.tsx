@@ -13,7 +13,7 @@ import {
   StringLiteral,
   TupleType,
   UnionType,
-} from 'tealina-doc-types'
+} from '@tealina/doc-types'
 import { describe, expect, test } from 'vitest'
 import { LightColors } from '../../src/atoms/themeAtom'
 import { type2cell } from '../../src/transformer/type2cell'

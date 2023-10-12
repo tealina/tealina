@@ -3,7 +3,7 @@ on:
   push:
 jobs:
   test:
-   runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -15,8 +15,7 @@ jobs:
           - os: windows-latest
             node_version: 18.17
       fail-fast: false
-
-    name: "Build&Test: node-${{ matrix.node_version }}, ${{ matrix.os }}"
+    name: 'Build&Test: node-${{ matrix.node_version }}, ${{ matrix.os }}'
     steps:
     - uses: actions/checkout@v3
     - uses: pnpm/action-setup@v2
@@ -30,4 +29,4 @@ jobs:
     - name: Install dependencies
       run: pnpm install
     - name: Test Packages
-      run: pnpm test:pkgs
+      run: pnpm test

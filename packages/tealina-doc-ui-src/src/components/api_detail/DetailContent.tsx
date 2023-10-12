@@ -9,7 +9,7 @@ import {
   type Entity,
   type ObjectType,
   type TupleEntity,
-} from 'tealina-doc-types'
+} from '@tealina/doc-types'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
 import { syntaxColorAtom } from '../../atoms/themeAtom'
 import { type2cell } from '../../transformer/type2cell'

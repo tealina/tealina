@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode, cloneElement } from 'react'
-import type { DocNode } from 'tealina-doc-types'
-import { DocKind } from 'tealina-doc-types'
+import type { DocNode } from '@tealina/doc-types'
+import { DocKind } from '@tealina/doc-types'
 import { ColorText } from '../components/ColorText'
 import { OneApiScopeEntitie } from '../components/api_detail/useDetailState'
 

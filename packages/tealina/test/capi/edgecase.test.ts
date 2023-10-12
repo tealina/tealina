@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { BaseOption } from '../../src/core/capi.js'
+import { BaseOption } from '../../src/commands/capi.js'
 import { Snapshot } from '../../src/utils/effectFiles.js'
 import { cleanDir, parseCommandArgs, tempDirFactory } from './helper.js'
 
@@ -33,7 +33,7 @@ describe('test capi edgecase', () => {
       dirInfo,
       'packages/tealina/test/mock/config/edgecase.config.ts',
     )
-    const x = await cli.runMatchedCommand()
+    await cli.runMatchedCommand()
   })
 
   test('not use --with-test flag', async () => {

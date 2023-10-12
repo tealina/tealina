@@ -6,7 +6,7 @@ import {
 import { flat, flow, map, pipe, separeBy } from 'fp-lite'
 import { useAtom } from 'jotai'
 import { useEffect, useState } from 'react'
-import { ApiDoc, DocItem } from 'tealina-doc-types'
+import { ApiDoc, DocItem } from '@tealina/doc-types'
 import { CurApi, apiDocAtom, curShowApiAtom } from '../../atoms/jsonSourceAtom'
 
 const toItemModel = ([method, docItem]: [

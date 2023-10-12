@@ -1,5 +1,5 @@
 {
-  "name": "tealina-doc-types",
+  "name": "@tealina/doc-types",
   "version": "0.0.1",
   "description": "The tealina gdoc output types",
   "type": "module",

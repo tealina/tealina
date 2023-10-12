@@ -1,8 +1,7 @@
 import { access } from 'fs/promises'
 import path from 'path'
-import { genTypeCode } from './codeGen.js'
-import { Snapshot } from './effectFiles.js'
-import { TealinaComonOption } from './options.js'
+import { genTypeCode } from './codeGen'
+import { Snapshot } from './effectFiles'
 
 export interface TypeFileInfo {
   filePath: string

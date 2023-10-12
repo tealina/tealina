@@ -1,6 +1,6 @@
 import { isEmpty } from 'fp-lite'
-import type { ApiDoc, DocNode } from 'tealina-doc-types'
-import { DocKind } from 'tealina-doc-types'
+import type { ApiDoc, DocNode } from '@tealina/doc-types'
+import { DocKind } from '@tealina/doc-types'
 
 const id2name = (id: number) => ['{', id, '}'].join(' ')
 

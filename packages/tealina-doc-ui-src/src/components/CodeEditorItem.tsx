@@ -1,7 +1,7 @@
 import FormItem from 'antd/es/form/FormItem'
 import { InternalNamePath } from 'antd/es/form/interface'
 import { useState } from 'react'
-import { PropType } from 'tealina-doc-types'
+import { PropType } from '@tealina/doc-types'
 import { Editor } from './monaco/JsonEditor'
 
 function JSON5Editor({

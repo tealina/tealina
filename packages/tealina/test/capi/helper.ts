@@ -2,8 +2,9 @@ import { notNull } from 'fp-lite'
 import fs from 'fs-extra'
 import path from 'node:path'
 import { afterAll, beforeAll } from 'vitest'
-import { BaseOption } from '../../src/core/capi.js'
-import { cli } from '../../src/command/index.js'
+import { BaseOption } from '../../src/commands/capi.js'
+import { cli } from '../../src/commands/index.js'
+import { DirInfo } from '../../src/utils/withTypeFile.js'
 
 export const cleanDir = (root: string) => {
   beforeAll(() => {
@@ -23,14 +24,14 @@ export const cleanDir = (root: string) => {
 }
 
 export function tempDirFactory(root: string) {
-  return (name: string) => {
+  return (name: string): DirInfo => {
     const apiDir = path.join(root, name)
-    const apiTypesDir = path.join(root, 'types')
-    const apiTestDir = path.join(root, 'test')
+    const typesDir = path.join(root, 'types')
+    const testDir = path.join(root, 'test')
     fs.ensureDirSync(apiDir)
-    fs.ensureDirSync(apiTypesDir)
-    fs.ensureDirSync(apiTestDir)
-    return { apiDir, apiTypesDir, apiTestDir }
+    fs.ensureDirSync(typesDir)
+    fs.ensureDirSync(testDir)
+    return { apiDir, typesDir, testDir }
   }
 }
 
@@ -62,11 +63,11 @@ export function parseCommandArgsOld(
 }
 export function parseCommandArgs(
   command: string,
-  dirInfo: Record<'apiDir' | 'apiTypesDir' | 'apiTestDir', string>,
+  dirInfo: DirInfo,
   configPath = 'packages/tealina/test/mock/config/tealina.config.ts',
 ) {
-  cli.option('--types-dir', '', { default: dirInfo.apiTypesDir })
-  cli.option('--test-dir', '', { default: dirInfo.apiTestDir })
+  cli.option('--types-dir', '', { default: dirInfo.typesDir })
+  cli.option('--test-dir', '', { default: dirInfo.testDir })
   const parsedResult = cli.parse(
     [
       '',

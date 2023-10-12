@@ -29,8 +29,8 @@ import type {
   PropType,
   StringLiteral,
   UnionType,
-} from 'tealina-doc-types'
-import { DocKind } from 'tealina-doc-types'
+} from '@tealina/doc-types'
+import { DocKind } from '@tealina/doc-types'
 import { CodeEditorItem } from '../components/CodeEditorItem'
 import { type2text } from './type2text'
 
@@ -150,7 +150,6 @@ export const prop2item = (
             label={String(prop.name)}
             className="capitalize"
             required={!prop.isOptional}
-            initialValue={prop.jsDoc?.default}
           />
           <Col offset={1 + preNamepath.length}>
             {nest.props.map(p =>
@@ -268,7 +267,6 @@ const makeFormItem =
                 },
               ]
         }
-        initialValue={prop.jsDoc?.default}
         {...itemProp}
       >
         {child}
@@ -340,7 +338,7 @@ function UnionFormItemsWrapper({
   const eachTypeProp = prop.types.map(v =>
     Object.assign({}, v, pickFn(prop, 'name', 'isOptional', 'jsDoc')),
   )
-  const [curIndex, setCurIndex] = useState(-1)
+  const [curIndex, setCurIndex] = useState(0)
   const form = useFormInstance()
   return (
     <div>
@@ -360,7 +358,7 @@ function UnionFormItemsWrapper({
           />
         </Col>
       </Row>
-      {curIndex > -1 ? render(eachTypeProp[curIndex]) : null}
+      {render(eachTypeProp[curIndex])}
     </div>
   )
 }

@@ -5,8 +5,8 @@ import {
   ENUMS_BEGIN,
   JSON_VALUE_TYPE,
   generatePureTypes,
-} from '../../src/core/gpure.js'
-import { cli } from '../../src/command/index.js'
+} from '../../src/commands/gpure.js'
+import { cli } from '../../src/commands/index.js'
 
 describe('test gpure full work flow', () => {
   const tempDir = 'temp/gpure/full'

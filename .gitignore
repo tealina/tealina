@@ -3,7 +3,10 @@
 *.local
 *.log
 /.vscode/
+docs/.vitepress/dist
+docs/.vitepress/cache
 dist
 node_modules
 temp
 coverage
+

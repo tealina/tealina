@@ -10,8 +10,8 @@ import {
 } from 'fp-lite'
 import { readdirSync, rmdirSync, unlinkSync } from 'fs'
 import path from 'path'
-import { TealinaComonOption } from './options.js'
-import { ensureWrite } from './tool.js'
+import { TealinaComonOption } from './options'
+import { ensureWrite } from './tool'
 
 export const completePath =
   ({ apiDir }: TealinaComonOption) =>

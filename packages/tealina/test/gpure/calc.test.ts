@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { parseModelAndType } from '../../src/core/gpure.js'
+import { parseModelAndType } from '../../src/commands/gpure.js'
 
 describe('test gpure commnad calcation part', () => {
   test('parse shema content', () => {

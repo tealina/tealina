@@ -5,7 +5,7 @@ import {
   getAssetsPath,
   assembleHTML,
   VDOC_BASENAME,
-} from 'tealina-doc-ui'
+} from '@tealina/doc-ui'
 
 const vDocCofig: TealinaVdocWebConfig = {
   sources: [

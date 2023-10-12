@@ -1,7 +1,7 @@
 import { existsSync, rmSync } from 'fs-extra'
 import path from 'path'
 import { afterAll, beforeAll, expect, test } from 'vitest'
-import { cli } from '../../src/command/index.js'
+import { cli } from '../../src/commands/index.js'
 
 const mockDir = 'packages/tealina/test/gdoc/mock'
 const apiDir = 'api-v1'

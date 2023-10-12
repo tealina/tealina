@@ -46,7 +46,8 @@ const prepareExecFn =
 export async function validate(dir: string) {
   const cwd = path.join(dir, 'server')
   const $ = prepareExecFn(cwd)
+  await $`pnpm install .` //workspace
   await $`node init-dev.mjs`
-  await $`pnpm tsc --noEmit`
   await $`pnpm test -- --run --testTimeout=0`
+  await $`pnpm tsc --noEmit`
 }

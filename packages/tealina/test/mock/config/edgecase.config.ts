@@ -9,4 +9,6 @@ export default defineConfig({
       genHelper: ctx => 'const me = "test helper"',
     },
   },
+  testDir: '',
+  typesDir: '',
 })

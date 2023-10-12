@@ -1,12 +1,12 @@
 {
   "name": "tealina",
-  "version": "0.0.2",
+  "version": "0.0.8",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "dist/index.mjs",
   "description": "A cli for develop APIs with end to end typesave, document generation",
   "scripts": {
     "gen-types": "tsc src/index.ts --declaration --emitDeclarationOnly --outDir dist",
-    "build": "rm -rf dist & tsc -p tsconfig.build.json & npm run gen-types",
+    "build": "unbuild && pnpm gen-types",
     "test": "vitest --dir ./test --run"
   },
   "bin": {
@@ -29,6 +29,9 @@
     "chalk": "^5.2.0",
     "fp-lite": "^1.2.0",
     "fs-extra": "^11.1.1",
-    "tealina-doc-types": "workspace:*"
+    "@tealina/doc-types": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.1.3"
   }
 }

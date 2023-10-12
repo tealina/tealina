@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react'
 import UnoCSS from 'unocss/vite'
 import { defineConfig } from 'vitest/config'
-import { VDOC_BASENAME } from 'tealina-doc-ui'
+import { VDOC_BASENAME } from '@tealina/doc-ui'
 import { invoke } from 'fp-lite'
 const fv = invoke<string>(console.log)
 // https://vitejs.dev/config/

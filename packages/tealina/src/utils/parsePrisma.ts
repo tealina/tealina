@@ -69,7 +69,7 @@ export const makeLineParser =
       }
       return null
     }
-    const [fisrtCol, secondCol, ...restCol] = line
+    const [fisrtCol, secondCol = '', ...restCol] = line
       .split(' ')
       .map(v => v.trim())
       .filter(v => v.length)

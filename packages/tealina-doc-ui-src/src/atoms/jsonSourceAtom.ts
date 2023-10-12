@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
-import { ApiDoc } from 'tealina-doc-types'
-import { TealinaVdocWebConfig } from 'tealina-doc-ui'
+import { ApiDoc } from '@tealina/doc-types'
+import { TealinaVdocWebConfig } from '@tealina/doc-ui'
 
 if (import.meta.env.MODE == 'development') {
   window.TEALINA_VDOC_CONFIG = {
