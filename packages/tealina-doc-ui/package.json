@@ -28,5 +28,9 @@
   },
   "dependencies": {
     "@tealina/doc-types": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
