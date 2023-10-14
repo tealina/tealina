@@ -65,6 +65,7 @@ export function parseCommandArgs(
   command: string,
   dirInfo: DirInfo,
   configPath = 'packages/tealina/test/mock/config/tealina.config.ts',
+  tsconfig = 'packages/tealina/test/mock/config/_tsconfig.json',
 ) {
   cli.option('--types-dir', '', { default: dirInfo.typesDir })
   cli.option('--test-dir', '', { default: dirInfo.testDir })
@@ -79,6 +80,8 @@ export function parseCommandArgs(
       dirInfo.apiDir,
       '--config-path',
       configPath,
+      '--tsconfig-path',
+      tsconfig,
     ],
     { run: false },
   )

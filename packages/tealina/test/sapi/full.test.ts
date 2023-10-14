@@ -20,6 +20,7 @@ describe('test sapi in mock dir', function () {
     testDir: apiTestDir,
     typesDir: apiTypesDir,
     withTest: false,
+    tsconfigPath: 'packages/tealina/test/mock/config/_tsconfig.json',
   }
 
   beforeAll(() => {

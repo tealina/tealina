@@ -18,6 +18,7 @@ describe('full test cai', () => {
     const { cli } = parseCommandArgs('get/health', dirInfo)
     await cli.runMatchedCommand()
   })
+
   test('create with alias', async () => {
     const name = 'user'
     const dirInfo = prepareTempDir('byalias')

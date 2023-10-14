@@ -13,7 +13,7 @@ interface GdocOptions extends TealinaComonOption {
 
 export const startGenerateDoc = async (options: GdocOptions) => {
   const config = await loadConfig(path.resolve(options.configPath))
-  const { outputDir, apiDir, tsconfig: tsconfigPath } = options
+  const { outputDir, apiDir, tsconfigPath } = options
   const entries = [getApiTypeFilePath({ apiDir, typesDir: config.typesDir })]
   const result = parseDeclarationFile({
     entries,

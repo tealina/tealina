@@ -31,17 +31,22 @@ const toKeyMapTrue = flow(
 const getTopIndexSnapshot = (
   xs: { kind: string }[],
   topIndexContent: string[],
+  suffix: string,
 ): Snapshot =>
-  pipe(xs, map(flow(v => v.kind, genTopIndexProp)), (imps): Snapshot => {
-    const existImpMap = toKeyMapTrue(imps)
-    const remains = topIndexContent.filter(v => !existImpMap.has(v))
-    return {
-      group: 'api',
-      action: 'updated',
-      filePath: 'index.ts',
-      code: genWithWrapper(remains),
-    }
-  })
+  pipe(
+    xs,
+    map(flow(v => v.kind, genTopIndexProp(suffix))),
+    (imps): Snapshot => {
+      const existImpMap = toKeyMapTrue(imps)
+      const remains = topIndexContent.filter(v => !existImpMap.has(v))
+      return {
+        group: 'api',
+        action: 'updated',
+        filePath: 'index.ts',
+        code: genWithWrapper(remains),
+      }
+    },
+  )
 
 interface KindSummary {
   kind: string
@@ -49,9 +54,9 @@ interface KindSummary {
 }
 
 const toIndexSnapshot =
-  (kindIndexMap: Map<string, string[]>) =>
+  (kindIndexMap: Map<string, string[]>, suffix: string) =>
   (v: KindSummary): (Snapshot & { kind: string }) | null => {
-    const imps = v.namePathsArray.map(pathArr => genIndexProp(pathArr))
+    const imps = v.namePathsArray.map(pathArr => genIndexProp(suffix)(pathArr))
     const { kind } = v
     const contents = kindIndexMap.get(kind) ?? []
     const remains = contents.filter(v => !imps.includes(v))
@@ -68,17 +73,17 @@ const toIndexSnapshot =
   }
 
 const calcByKinds =
-  ({ kindIndexContentMap, topIndexContent }: FullContext) =>
+  ({ kindIndexContentMap, topIndexContent, suffix }: FullContext) =>
   (kinds: KindSummary[]) => {
     const kindIndexSnapshots = pipe(
       kinds,
-      map(toIndexSnapshot(kindIndexContentMap)),
+      map(toIndexSnapshot(kindIndexContentMap, suffix)),
       filter(notNull),
     )
     const deletedKinds = kindIndexSnapshots.filter(v => v.action == 'deleted')
     if (deletedKinds.length < 1) return kindIndexSnapshots
     return [
-      getTopIndexSnapshot(deletedKinds, topIndexContent),
+      getTopIndexSnapshot(deletedKinds, topIndexContent, suffix),
       kindIndexSnapshots,
     ]
   }

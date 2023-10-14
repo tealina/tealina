@@ -27,7 +27,7 @@ test('actual run gdoc', () => {
       apiDir,
       '--config-path',
       path.join(mockDir, 'tealina.config.mjs'),
-      '--tsconfig',
+      '--tsconfig-path',
       path.join(mockDir, 'tsconfig.json'),
       '--output-dir',
       outputDir,

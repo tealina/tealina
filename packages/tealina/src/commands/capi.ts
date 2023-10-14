@@ -22,8 +22,11 @@ import { logResults } from '../utils/logResults'
 import { TealinaComonOption } from '../utils/options'
 import { parseSchema, toFindable } from '../utils/parsePrisma'
 import {
+  getSuffix,
+  loadConfig,
   parseCreateInfo,
   readIndexFile,
+  readTsConfig,
   toNormalPath,
   unCapitalize,
 } from '../utils/tool'
@@ -34,7 +37,6 @@ import {
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
-import { loadConfig } from '../utils/tool'
 
 export interface BaseOption extends TealinaComonOption {
   /** restful style */
@@ -81,6 +83,7 @@ interface FullContext {
   commonOption: MergedOption
   testHelperInfo: { isExists: boolean; filePath: string }
   testTemplate: TealinaConifg['template']['test']
+  suffix: string
 }
 
 const isByModel = (option: BaseOption): option is ByModelOption =>
@@ -203,23 +206,28 @@ const toKeyMapTrue = flow(
 const getTopIndexSnapshot = (
   xs: { kind: string }[],
   topIndexContent: string[],
+  suffix: string,
 ): Snapshot | null =>
-  pipe(xs, map(flow(v => v.kind, genTopIndexProp)), (imps): Snapshot | null => {
-    const existImpMap = toKeyMapTrue(topIndexContent)
-    const newImps = imps.filter(v => !existImpMap.has(v))
-    if (newImps.length < 1) return null
-    return {
-      group: 'api',
-      action: topIndexContent.length ? 'updated' : 'created',
-      filePath: 'index.ts',
-      code: genWithWrapper([...newImps, ...topIndexContent]),
-    }
-  })
+  pipe(
+    xs,
+    map(flow(v => v.kind, genTopIndexProp(suffix))),
+    (imps): Snapshot | null => {
+      const existImpMap = toKeyMapTrue(topIndexContent)
+      const newImps = imps.filter(v => !existImpMap.has(v))
+      if (newImps.length < 1) return null
+      return {
+        group: 'api',
+        action: topIndexContent.length ? 'updated' : 'created',
+        filePath: 'index.ts',
+        code: genWithWrapper([...newImps, ...topIndexContent]),
+      }
+    },
+  )
 
 const toIndexSnapshot =
-  (kindIndexMap: Map<string, string[]>) =>
+  (kindIndexMap: Map<string, string[]>, suffix: string) =>
   (v: { kind: string; namePathsArray: string[][] }): Snapshot | null => {
-    const imps = v.namePathsArray.map(pathArr => genIndexProp(pathArr))
+    const imps = v.namePathsArray.map(pathArr => genIndexProp(suffix)(pathArr))
     const { kind } = v
     const contents = kindIndexMap.get(kind) ?? []
     const existImpMap = toKeyMapTrue(contents)
@@ -238,11 +246,12 @@ const calcRelativeFilesSnapshots = ({
   kindIndexContentMap,
   topIndexContent,
   commonOption: dirInfo,
+  suffix,
 }: FullContext): Snapshot[] =>
   pipe(seeds2kindScope(seeds), kinds =>
     pipe(
-      [getTopIndexSnapshot(kinds, topIndexContent)],
-      concat(kinds.map(toIndexSnapshot(kindIndexContentMap))),
+      [getTopIndexSnapshot(kinds, topIndexContent, suffix)],
+      concat(kinds.map(toIndexSnapshot(kindIndexContentMap, suffix))),
       filter(notNull),
       map(completePath(dirInfo)),
     ),
@@ -442,6 +451,9 @@ const collectContext = asyncFlow(
       checkTestHelper(option).then(toKeyValue('testHelperInfo')),
       toKeyValue('testTemplate')(config.template.test),
       toKeyValue('commonOption')(option),
+      readTsConfig(option.tsconfigPath)
+        .then(getSuffix)
+        .then(toKeyValue('suffix')),
     ] as const,
   waitAll,
   kvs => Object.fromEntries(kvs) as FullContext,
@@ -456,7 +468,6 @@ const createApis = asyncFlow(
 )
 
 export {
-  validateInput,
   calcRelativeFilesSnapshots,
   calcSnapshots,
   collectContext,
@@ -470,6 +481,7 @@ export {
   parseByRoute,
   prepareKindArgs,
   seeds2kindScope,
+  validateInput,
   validateRegularOption,
 }
 

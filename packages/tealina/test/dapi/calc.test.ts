@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
+  FullContext,
   Seeds,
   getApiFilePath,
   getTestFilePath,
@@ -32,6 +33,7 @@ describe('test dapi calculation part', function () {
       genHelper: (x: any) => 'test helper',
       genSuite: (x: any) => 'test suite',
     },
+    suffix: '.js',
   }
   const withFileSummary = (v: Seeds) => ({
     ...v,
@@ -97,6 +99,31 @@ describe('test dapi calculation part', function () {
       typeFileInfo,
       commonOption: dirInfo as any,
       ...restCtx,
+    })
+    const [postIndex, ...deletions] = snapshots
+    expect(postIndex.action).eq('updated')
+    const allActionIsDeleted = deletions.every(s => s.action == 'deleted')
+    expect(allActionIsDeleted).true
+  })
+
+  test('(no suffix) : role cr, remove partial', () => {
+    const snapshots = calcSnapshots({
+      seeds: parseByAlias(['role'], FuncTemplates, 'cr').map(withFileSummary),
+      kindIndexContentMap: new Map([
+        [
+          'post',
+          [
+            "  'role/create': import('./role/create'),",
+            "  'role/getList': import('./role/getList'),",
+            "  'other/action': import('./other/action'),",
+          ],
+        ],
+      ]),
+      topIndexContent: [],
+      typeFileInfo,
+      commonOption: dirInfo as any,
+      ...restCtx,
+      suffix: '',
     })
     const [postIndex, ...deletions] = snapshots
     expect(postIndex.action).eq('updated')

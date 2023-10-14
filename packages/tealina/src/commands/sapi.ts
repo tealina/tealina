@@ -20,7 +20,12 @@ import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
 import { TealinaComonOption } from '../utils/options'
-import { readIndexFile, withoutSuffix } from '../utils/tool'
+import {
+  getSuffix,
+  readIndexFile,
+  readTsConfig,
+  withoutSuffix,
+} from '../utils/tool'
 import { validateKind } from '../utils/validate'
 import {
   TypeFileInfo,
@@ -110,12 +115,13 @@ const toDiffPhase = (phase: GatherPhase): DiffPhase => ({
 const hasUpdate = ({ shouldRemove, shouldAppend, pre }: DiffPhase) =>
   shouldAppend.length > 0 || shouldRemove.length > 0
 
-const toExportcode = flow(
-  withoutSuffix,
-  x => x.replace(LeaderSlash, ''),
-  x => x.split('/'),
-  genIndexProp,
-)
+const toExportcode = (suffix: string) =>
+  flow(
+    withoutSuffix,
+    x => x.replace(LeaderSlash, ''),
+    x => x.split('/'),
+    genIndexProp(suffix),
+  )
 
 const getNewContent = (
   { pre, shouldAppend, shouldRemove }: DiffPhase,
@@ -130,14 +136,19 @@ const getNewContent = (
   return genWithWrapper([...newLines, ...remain])
 }
 
-const calcIndexFileSnapshot = (diff: DiffPhase): Snapshot => ({
-  group: 'api',
-  action: 'updated',
-  filePath: path.join(diff.pre.kind, 'index.ts'),
-  code: getNewContent(diff, toExportcode),
-})
+const calcIndexFileSnapshot =
+  (suffix: string) =>
+  (diff: DiffPhase): Snapshot => ({
+    group: 'api',
+    action: 'updated',
+    filePath: path.join(diff.pre.kind, 'index.ts'),
+    code: getNewContent(diff, toExportcode(suffix)),
+  })
 
-const calcTopIndexFileSnapshot = (diff: DiffPhase): Snapshot => ({
+const calcTopIndexFileSnapshot = (
+  diff: DiffPhase,
+  suffix: string,
+): Snapshot => ({
   group: 'api',
   action: 'updated',
   filePath: 'index.ts',
@@ -145,7 +156,7 @@ const calcTopIndexFileSnapshot = (diff: DiffPhase): Snapshot => ({
     diff,
     flow(
       filePath => path.dirname(filePath).slice(1), //eg: /func/index.ts => func
-      genTopIndexProp,
+      genTopIndexProp(suffix),
     ),
   ),
 })
@@ -178,6 +189,7 @@ interface FileTreeInfo {
   topIndexFile: GatherPhase
   typeFileInfo: TypeFileInfo
   commonOption: MergedOption
+  suffix: string
 }
 
 const collectApiInfo = ({ apiDir }: TealinaComonOption) =>
@@ -194,32 +206,40 @@ const collectApiInfo = ({ apiDir }: TealinaComonOption) =>
     waitAll,
   )
 
-const calcKindIndexSnapshot = flow(
-  map(toDiffPhase),
-  filter(hasUpdate),
-  map(calcIndexFileSnapshot),
-)
+const calcKindIndexSnapshot = (info: FileTreeInfo) =>
+  pipe(
+    info.kindIndexFiles,
+    map(toDiffPhase),
+    filter(hasUpdate),
+    map(calcIndexFileSnapshot(info.suffix)),
+  )
 
-const calcTopIndexSnapshot = flow(toDiffPhase, v =>
-  hasUpdate(v) ? [calcTopIndexFileSnapshot(v)] : [],
-)
+const calcTopIndexSnapshot = (info: FileTreeInfo) =>
+  pipe(toDiffPhase(info.topIndexFile), v =>
+    hasUpdate(v) ? [calcTopIndexFileSnapshot(v, info.suffix)] : [],
+  )
 
 const calcSnapshots = (info: FileTreeInfo): Snapshot[] =>
   pipe(
-    calcKindIndexSnapshot(info.kindIndexFiles),
-    concat(calcTopIndexSnapshot(info.topIndexFile)),
+    calcKindIndexSnapshot(info),
+    concat(calcTopIndexSnapshot(info)),
     map(completePath(info.commonOption)),
     concat(calcTypeFileSnapshot(info)),
   )
 
 const prepareInfo = (commonOption: MergedOption) =>
   asyncPipe(
-    waitAll([collectApiInfo(commonOption), collectTypeFileInfo(commonOption)]),
-    ([[kindIndexFiles, topIndexFile], typeFileInfo]) => ({
+    waitAll([
+      collectApiInfo(commonOption),
+      collectTypeFileInfo(commonOption),
+      readTsConfig(commonOption.tsconfigPath).then(getSuffix),
+    ]),
+    ([[kindIndexFiles, topIndexFile], typeFileInfo, suffix]) => ({
       kindIndexFiles,
       topIndexFile,
       typeFileInfo,
       commonOption,
+      suffix,
     }),
   )
 

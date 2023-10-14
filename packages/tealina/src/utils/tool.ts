@@ -1,8 +1,9 @@
-import fs from 'fs'
+import fs, { readFileSync } from 'fs'
 import fsp from 'fs/promises'
 import path from 'path'
 import { pathToFileURL } from 'url'
 import { CreationCtx, TealinaConifg } from '../index'
+import ts from 'typescript'
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1)
@@ -67,4 +68,27 @@ export const loadConfig = async (configPath: string) =>
       ...v,
       typesDir: toNormalPath(v.typesDir),
       testDir: toNormalPath(v.testDir),
+      tsconfigPath: v.tsconfigPath ? toNormalPath(v.tsconfigPath) : void 0,
     }))
+
+export interface TsConfig {
+  compilerOptions?: {
+    moduleResolution?: 'Bundler' | string
+  }
+}
+
+export const getSuffix = (v: TsConfig) =>
+  v.compilerOptions?.moduleResolution == 'Bundler' ? '' : '.js'
+
+export const readTsConfig = async (tsconfigPath: string) => {
+  const parsedConfig = ts.readConfigFile(tsconfigPath, p =>
+    readFileSync(p).toString(),
+  )
+  if (parsedConfig.error) {
+    throw new Error(
+      parsedConfig?.error?.messageText.toString() ??
+        `Error when parseing ${tsconfigPath}`,
+    )
+  }
+  return parsedConfig.config as TsConfig
+}

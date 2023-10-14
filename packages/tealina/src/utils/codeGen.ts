@@ -7,11 +7,17 @@ const toRoutePath = (xs: string[]) => {
   return route.includes(':') ? route + '/' : route
 }
 
-export const genTopIndexProp = (dir: string) =>
-  `  '${dir}': import('./${dir}/index.js'),`
+export const genTopIndexProp =
+  (suffix = '') =>
+  (dir: string) =>
+    `  '${dir}': import('./${dir}/index${suffix}'),`
 
-export const genIndexProp = (fullPathArr: string[]) =>
-  `  '${toRoutePath(fullPathArr)}': import('./${fullPathArr.join('/')}.js'),`
+export const genIndexProp =
+  (suffix = '') =>
+  (fullPathArr: string[]) =>
+    `  '${toRoutePath(fullPathArr)}': import('./${fullPathArr.join(
+      '/',
+    )}${suffix}'),`
 
 export const genWithWrapper = (contens: string[]) =>
   ['//prettier-ignore', 'export default {', ...contens.sort(), '}', ''].join(
