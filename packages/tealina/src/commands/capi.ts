@@ -14,7 +14,6 @@ import {
   waitAll,
 } from 'fp-lite'
 import { pathExists } from 'fs-extra'
-import path from 'node:path'
 import type { ApiTemplateType, TealinaConifg } from '../index'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
@@ -27,7 +26,6 @@ import {
   parseCreateInfo,
   readIndexFile,
   readTsConfig,
-  toNormalPath,
   unCapitalize,
 } from '../utils/tool'
 import { isValidHttpMethod } from '../utils/validate'
@@ -37,6 +35,7 @@ import {
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
+import { normalize, join, resolve, basename } from 'pathe'
 
 export interface BaseOption extends TealinaComonOption {
   /** restful style */
@@ -111,14 +110,14 @@ const parseByAlias = (
 const loadTemplateConfig = async (
   rawOptions: OptionTypes,
 ): Promise<{ config: TealinaConifg; option: MergedOption }> => {
-  const config = await loadConfig(path.resolve(rawOptions.configPath))
+  const config = await loadConfig(resolve(rawOptions.configPath))
   return {
     config,
     option: {
       testDir: config.testDir,
       typesDir: config.typesDir,
       ...rawOptions, //test mode can override the config
-      apiDir: toNormalPath(rawOptions.apiDir),
+      apiDir: normalize(rawOptions.apiDir),
     },
   }
 }
@@ -190,7 +189,7 @@ const gatherIndexContent = (apiDir: string) => (kinds: string[]) =>
   asyncPipe(
     Promise.resolve(kinds),
     map(kind =>
-      readIndexFile(path.join(apiDir, kind, 'index.ts')).then(
+      readIndexFile(join(apiDir, kind, 'index.ts')).then(
         content => [kind, content] as const,
       ),
     ),
@@ -236,7 +235,7 @@ const toIndexSnapshot =
     return {
       group: 'api',
       action: isEmpty(contents) ? 'created' : 'updated',
-      filePath: path.join(kind, 'index.ts'),
+      filePath: join(kind, 'index.ts'),
       code: genWithWrapper([...newImps, ...contents]),
     }
   }
@@ -293,8 +292,8 @@ const toTestHelperSnapshot = ({
   filePath,
   code: genHelper!({
     relative2ancestor: Array(namePaths.length).fill('..').join('/'),
-    typesDirName: path.basename(typesDir),
-    apiDirName: path.basename(apiDir),
+    typesDirName: basename(typesDir),
+    apiDirName: basename(apiDir),
   }),
 })
 
@@ -371,15 +370,15 @@ const seeds2kindScope = flow(
 )
 
 const getTestHeplerPath = (opt: DirInfo) =>
-  path.join(opt.testDir, path.basename(opt.apiDir), 'helper.ts')
+  join(opt.testDir, basename(opt.apiDir), 'helper.ts')
 
 const getTestFilePath = (
   { apiDir, testDir }: DirInfo,
   { kind, namePaths }: Seeds,
-) => `${path.join(testDir, path.basename(apiDir), kind, ...namePaths)}.test.ts`
+) => `${join(testDir, basename(apiDir), kind, ...namePaths)}.test.ts`
 
 const getApiFilePath = ({ apiDir }: DirInfo, { kind, namePaths }: Seeds) =>
-  `${path.join(apiDir, kind, ...namePaths)}.ts`
+  `${join(apiDir, kind, ...namePaths)}.ts`
 
 const getFileSummary = (filePath: string): Promise<FileSummary> =>
   pathExists(filePath).then(isExists => ({ filePath, isExists }))
@@ -444,7 +443,7 @@ const collectContext = asyncFlow(
         getTouchedKinds(option, config.template.handlers),
         gatherIndexContent(option.apiDir),
       ).then(toKeyValue('kindIndexContentMap')),
-      readIndexFile(path.join(option.apiDir, 'index.ts')).then(
+      readIndexFile(join(option.apiDir, 'index.ts')).then(
         toKeyValue('topIndexContent'),
       ),
       collectTypeFileInfo(option).then(toKeyValue('typeFileInfo')),

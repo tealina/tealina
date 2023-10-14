@@ -5,9 +5,9 @@ export default makeTemplate(
   ({ Filename: Model, relative2api, filename: model }) => {
     const imps = [
       `import { ${Model} } from '@prisma/client'`,
-      `import { db } from '${relative2api}/db/prisma.js'`,
-      `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
-      `import type { Pure } from '${relative2api}/../types/pure.js'`,
+      `import { db } from '${relative2api}/db/prisma'`,
+      `import type { AuthedHandler } from '${relative2api}/../types/handler'`,
+      `import type { Pure } from '${relative2api}/../types/pure'`,
     ]
     const codes = [
       `type ApiType = AuthedHandler<{ body: Pure.${Model}CreateInput; }, ${Model}>`,

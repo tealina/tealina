@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import consola from 'consola'
 
 type LoggerType = (...args: any[]) => void
 
@@ -10,7 +11,7 @@ const formatError = (logger: LoggerType) => (e: Error) => {
 
 export const catchError = (
   fn: (...args: any[]) => any,
-  logger: LoggerType = console.log,
+  logger: LoggerType = consola.error,
 ) => {
   try {
     const p = fn()

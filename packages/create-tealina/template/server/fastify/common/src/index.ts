@@ -1,8 +1,8 @@
-import './config/env.js' /** Why is the following line left blank? @see {@link https://github.com/microsoft/TypeScript/pull/48330}*/
+import './config/env' /** Why is the following line left blank? @see {@link https://github.com/microsoft/TypeScript/pull/48330}*/
 
 import { asyncFlow } from 'fp-lite'
-import { buildApp } from './app/index.js'
-import { VDOC_BASENAME } from './app/docRoute.js'
+import { buildApp } from './app/index'
+import { VDOC_BASENAME } from './app/docRoute'
 
 const logAddress = async (address: string) => {
   console.log(`Server started at ${address}`)

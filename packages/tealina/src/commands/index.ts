@@ -5,6 +5,7 @@ import { generatePureTypes } from './gpure'
 import { syncApiByFile } from './sapi'
 import { registerGlobalOption } from '../utils/options'
 import { startGenerateDoc } from './gdoc'
+import consola from 'consola'
 
 const cli = cac('tealina')
 
@@ -58,7 +59,7 @@ cli
 
 // Listen to unknown commands
 cli.on('command:*', () => {
-  console.error('Invalid command: %s', cli.args.join(' '))
+  consola.error('Invalid command: %s', cli.args.join(' '))
   process.exit(1)
 })
 

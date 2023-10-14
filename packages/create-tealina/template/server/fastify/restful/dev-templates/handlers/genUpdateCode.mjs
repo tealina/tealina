@@ -3,11 +3,11 @@ import { makeTemplate } from 'tealina'
 
 export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
   const imps = [
-    `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
-    `import type { RawId } from '${relative2api}/../types/common.js'`,
-    `import type { Pure } from '${relative2api}/../types/pure.js'`,
-    `import { db } from '${relative2api}/db/prisma.js'`,
-    `import { modelIdZ } from '${relative2api}/validate/modelId.js'`,
+    `import type { AuthedHandler } from '${relative2api}/../types/handler'`,
+    `import type { RawId } from '${relative2api}/../types/common'`,
+    `import type { Pure } from '${relative2api}/../types/pure'`,
+    `import { db } from '${relative2api}/db/prisma'`,
+    `import { modelIdZ } from '${relative2api}/validate/modelId'`,
   ]
   const codes = [
     `type ApiType = AuthedHandler<{ params: RawId, body: Pure.${Model}UpdateInput }>`,

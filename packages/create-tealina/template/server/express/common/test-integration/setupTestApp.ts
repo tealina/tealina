@@ -1,7 +1,7 @@
 import type { Express } from 'express'
 import type { Server } from 'http'
 import { afterAll } from 'vitest'
-import { buildApp } from '../src/app/index.js'
+import { buildApp } from '../src/app/index'
 
 const getAdress = (server: Server): string => {
   const addr = server.address()

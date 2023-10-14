@@ -27,7 +27,9 @@
   },
   "dependencies": {
     "chalk": "^5.2.0",
+    "consola": "^3.2.3",
     "create-vite": "^4.4.1",
+    "pathe": "^1.1.1",
     "prompts": "^2.4.2"
   }
 }

@@ -4,6 +4,7 @@ import path from 'path'
 import { pathToFileURL } from 'url'
 import { CreationCtx, TealinaConifg } from '../index'
 import ts from 'typescript'
+import { normalize, extname } from 'pathe'
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1)
@@ -11,7 +12,7 @@ export const capitalize = (str: string) =>
 export const unCapitalize = (str: string) =>
   str.charAt(0).toLowerCase() + str.slice(1)
 
-export const withoutSuffix = (x: string) => x.replace(path.extname(x), '')
+export const withoutSuffix = (x: string) => x.replace(extname(x), '')
 
 export const parseCreateInfo = (
   method: string,
@@ -59,16 +60,14 @@ export const readIndexFile = (indexFilePath: string): Promise<string[]> =>
     () => [],
   )
 
-export const toNormalPath = (x: string) => x.split(path.sep).join('/')
-
 export const loadConfig = async (configPath: string) =>
   import(pathToFileURL(configPath).href)
     .then(v => v.default as TealinaConifg)
     .then(v => ({
       ...v,
-      typesDir: toNormalPath(v.typesDir),
-      testDir: toNormalPath(v.testDir),
-      tsconfigPath: v.tsconfigPath ? toNormalPath(v.tsconfigPath) : void 0,
+      typesDir: normalize(v.typesDir),
+      testDir: normalize(v.testDir),
+      tsconfigPath: v.tsconfigPath ? normalize(v.tsconfigPath) : void 0,
     }))
 
 export interface TsConfig {

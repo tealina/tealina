@@ -10,7 +10,6 @@ import {
   notNull,
   pipe,
 } from 'fp-lite'
-import path from 'node:path'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
@@ -22,6 +21,7 @@ import {
   seeds2kindScope,
   validateInput,
 } from './capi'
+import { basename, join } from 'pathe'
 
 const toKeyMapTrue = flow(
   map((x: string) => [x, true] as const),
@@ -60,7 +60,7 @@ const toIndexSnapshot =
     const { kind } = v
     const contents = kindIndexMap.get(kind) ?? []
     const remains = contents.filter(v => !imps.includes(v))
-    const filePath = path.join(kind, 'index.ts')
+    const filePath = join(kind, 'index.ts')
     return isEmpty(remains)
       ? { group: 'api', action: 'deleted', filePath, kind }
       : {
@@ -100,7 +100,7 @@ const getRelativeFilesSnapshots = (ctx: FullContext): Snapshot[] =>
 const toApiFileSnapshot = (update: Seeds, apiDir: string): Snapshot => ({
   group: 'api',
   action: 'deleted',
-  filePath: `${path.join(apiDir, update.kind, ...update.namePaths)}.ts`,
+  filePath: `${join(apiDir, update.kind, ...update.namePaths)}.ts`,
 })
 
 const toTestApiSnapshot = (
@@ -109,9 +109,9 @@ const toTestApiSnapshot = (
 ): Snapshot => ({
   group: 'test',
   action: 'deleted',
-  filePath: `${path.join(
+  filePath: `${join(
     testDir,
-    path.basename(apiDir),
+    basename(apiDir),
     update.kind,
     ...update.namePaths,
   )}.test.ts`,

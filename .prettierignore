@@ -2,6 +2,7 @@ dist
 temp
 assets
 coverage
-template
+# template
 static 
 *.yaml
+*.json

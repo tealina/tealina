@@ -1,7 +1,6 @@
 import { filter, flow, map, notNull, unique } from 'fp-lite'
 import chalk from 'chalk'
 import fs from 'node:fs/promises'
-import path from 'node:path'
 import {
   BlockRange,
   LineInfo,
@@ -11,6 +10,8 @@ import {
   parseSchema,
   toFindable,
 } from '../utils/parsePrisma'
+import { dirname, join, relative, resolve } from 'pathe'
+import consola from 'consola'
 
 const ArgsValuePattern = /".*"/
 /**
@@ -363,9 +364,9 @@ const makeFullContent = (
   hasJsonType: boolean,
 ) => {
   const cwd = process.cwd()
-  const relative = path.relative(path.dirname(output), cwd)
-  const fullInput = path.resolve(input)
-  const fromPath = path.join(relative, fullInput.slice(cwd.length))
+  const relativePath = relative(dirname(output), cwd)
+  const fullInput = resolve(input)
+  const fromPath = join(relativePath, fullInput.slice(cwd.length))
   const comment = [
     '/**',
     ` * Purified prisma mutation types from [schema](${fromPath})\\`,
@@ -409,7 +410,9 @@ const generatePureTypes = async (config: PurifyOption) => {
     checkHasJsonType(details),
   )
   await fs.writeFile(config.output, fullContent)
-  console.log(chalk.green(`Generated success! output path : ${config.output}`))
+  consola.success(
+    chalk.green(`Generated success! output path : ${config.output}`),
+  )
 }
 
 export {

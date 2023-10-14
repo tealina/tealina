@@ -9,15 +9,15 @@ import {
   pipe,
 } from 'fp-lite'
 import { readdirSync, rmdirSync, unlinkSync } from 'fs'
-import path from 'path'
 import { TealinaComonOption } from './options'
 import { ensureWrite } from './tool'
+import { dirname, join } from 'pathe'
 
 export const completePath =
   ({ apiDir }: TealinaComonOption) =>
   (v: Snapshot) => ({
     ...v,
-    filePath: path.join(apiDir, v.filePath),
+    filePath: join(apiDir, v.filePath),
   })
 
 const changedOnly = (v: Snapshot): boolean =>
@@ -35,7 +35,7 @@ const mutateFile = (snapshot: Snapshot) => {
 
 const cleanEmptyDirs = (dir: string): string[] =>
   pipe(readdirSync(dir), names =>
-    isEmpty(names) ? (rmdirSync(dir), cleanEmptyDirs(path.dirname(dir))) : [],
+    isEmpty(names) ? (rmdirSync(dir), cleanEmptyDirs(dirname(dir))) : [],
   )
 
 const updateFiles = flow(
@@ -43,7 +43,7 @@ const updateFiles = flow(
   g => {
     pipe(
       g.get('delete') ?? [],
-      map(flow(deleteFile, v => path.dirname(v.filePath), cleanEmptyDirs)),
+      map(flow(deleteFile, v => dirname(v.filePath), cleanEmptyDirs)),
     )
     pipe(g.get('mutation') ?? [], map(mutateFile))
   },

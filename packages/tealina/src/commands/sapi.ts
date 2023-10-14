@@ -15,7 +15,6 @@ import {
 } from 'fp-lite'
 import { statSync } from 'fs'
 import { readdir } from 'fs/promises'
-import path from 'path'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
@@ -33,6 +32,7 @@ import {
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
 import { MergedOption } from './capi'
+import { basename, dirname, join } from 'pathe'
 interface GatherPhase {
   kind: string
   content: string[]
@@ -50,7 +50,7 @@ const LeftBrecket = /^\(/
 const SingleQuete = /^'|'$/g
 const LeaderSlash = /^\//
 
-const prepend = (dir: string) => (file: string) => path.join(dir, file)
+const prepend = (dir: string) => (file: string) => join(dir, file)
 
 const withIsDir = (path: string): [string, boolean] => [
   path,
@@ -141,7 +141,7 @@ const calcIndexFileSnapshot =
   (diff: DiffPhase): Snapshot => ({
     group: 'api',
     action: 'updated',
-    filePath: path.join(diff.pre.kind, 'index.ts'),
+    filePath: join(diff.pre.kind, 'index.ts'),
     code: getNewContent(diff, toExportcode(suffix)),
   })
 
@@ -155,7 +155,7 @@ const calcTopIndexFileSnapshot = (
   code: getNewContent(
     diff,
     flow(
-      filePath => path.dirname(filePath).slice(1), //eg: /func/index.ts => func
+      filePath => dirname(filePath).slice(1), //eg: /func/index.ts => func
       genTopIndexProp(suffix),
     ),
   ),
@@ -165,7 +165,7 @@ const gatherIndex = (kindDir: string): Promise<GatherPhase> =>
   asyncPipe(
     waitAll([getIndexContent(kindDir), walkDir(kindDir)]),
     ([content, files]): GatherPhase => ({
-      kind: path.basename(kindDir),
+      kind: basename(kindDir),
       content,
       imps: toImps(content),
       files: files.map(v => v.slice(kindDir.length)),
@@ -178,11 +178,11 @@ const gatherTopIndex =
     kind: '',
     content,
     imps: toImps(content),
-    files: dirs.map(dir => ['', path.basename(dir), 'index.ts'].join('/')),
+    files: dirs.map(dir => ['', basename(dir), 'index.ts'].join('/')),
   })
 
 const validAllKind = (vs: string[]): void =>
-  vs.forEach(flow(x => path.basename(x), validateKind))
+  vs.forEach(flow(x => basename(x), validateKind))
 
 interface FileTreeInfo {
   kindIndexFiles: GatherPhase[]

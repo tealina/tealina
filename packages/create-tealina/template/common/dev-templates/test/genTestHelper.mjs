@@ -5,9 +5,9 @@ export default makeTestHelperTemplate(
   ({ typesDirName, apiDirName, relative2ancestor }) =>
     [
       `import axios, { AxiosError } from 'axios'`,
-      `import type { ApiTypesRecord } from '../${relative2ancestor}/${typesDirName}/${apiDirName}.js'`,
-      `import { createReq } from '../createReq.js'`,
-      `import { setupTestApp } from '../setupTestApp.js'`,
+      `import type { ApiTypesRecord } from '../${relative2ancestor}/${typesDirName}/${apiDirName}'`,
+      `import { createReq } from '../createReq'`,
+      `import { setupTestApp } from '../setupTestApp'`,
       '',
       'const serverAddr = await setupTestApp()',
       '',

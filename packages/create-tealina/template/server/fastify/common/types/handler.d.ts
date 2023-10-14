@@ -1,5 +1,5 @@
-import type { AuthHeaders, AuthedLocals } from './common.js'
-import type { Simplify } from './utility.js'
+import type { AuthHeaders, AuthedLocals } from './common'
+import type { Simplify } from './utility'
 
 interface RawPayload {
   body?: any
@@ -63,9 +63,9 @@ export type CustomHandlerType =
 //prettier-ignore
 import type { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, RouteGenericInterface, } from 'fastify'
 //prettier-ignore
-import type { ContextConfigDefault, RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerBase, RawServerDefault } from 'fastify/types/utils.js'
-import type { ResolveFastifyReplyReturnType } from 'fastify/types/type-provider.js'
-import type { RouteHandlerMethod } from 'fastify/types/route.js'
+import type { ContextConfigDefault, RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerBase, RawServerDefault } from 'fastify/types/utils'
+import type { ResolveFastifyReplyReturnType } from 'fastify/types/type-provider'
+import type { RouteHandlerMethod } from 'fastify/types/route'
 
 /**
  * alias of {@link RouteHandlerMethod}

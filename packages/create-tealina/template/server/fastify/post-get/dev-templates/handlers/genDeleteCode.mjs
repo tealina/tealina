@@ -3,9 +3,9 @@ import { makeTemplate } from 'tealina'
 
 export default makeTemplate(({ relative2api, dir: model }) => {
   const imps = [
-    `import { db } from '${relative2api}/db/prisma.js'`,
-    `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
-    `import type { ModelId } from '${relative2api}/../types/common.js'`,
+    `import { db } from '${relative2api}/db/prisma'`,
+    `import type { AuthedHandler } from '${relative2api}/../types/handler'`,
+    `import type { ModelId } from '${relative2api}/../types/common'`,
   ]
   const codes = [
     `type ApiType = AuthedHandler<{ body: ModelId }>`,

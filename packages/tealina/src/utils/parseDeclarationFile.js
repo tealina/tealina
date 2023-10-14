@@ -581,6 +581,7 @@ const findFormLast = (xs, predicate) => {
 /**
  * @param {{entries:string[],tsconfigPath:string}} param0
  * @returns {import('@tealina/doc-types').ApiDoc}
+ * ref https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API
  */
 export const parseDeclarationFile = ({ entries, tsconfigPath }) => {
   const parsedConfig = ts.readConfigFile(tsconfigPath, p =>

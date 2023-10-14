@@ -1,4 +1,4 @@
-import type { OpenHandler } from '../../../types/handler.js'
+import type { OpenHandler } from '../../../types/handler'
 
 type ApiType = OpenHandler<{}, { status: string }>
 

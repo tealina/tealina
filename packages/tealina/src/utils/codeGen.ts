@@ -1,4 +1,4 @@
-import path from 'path'
+import { relative } from 'pathe'
 import { DirInfo } from './withTypeFile'
 
 const toRoutePath = (xs: string[]) => {
@@ -25,7 +25,7 @@ export const genWithWrapper = (contens: string[]) =>
   )
 
 export const genTypeCode = ({ apiDir, typesDir }: DirInfo) => {
-  const relativeDotStr = path.relative(typesDir, apiDir)
+  const relativeDotStr = relative(typesDir, apiDir)
   return [
     `import apis from '${relativeDotStr}/index'`,
     `import type { ResolveApiType } from './handler'`,

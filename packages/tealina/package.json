@@ -4,6 +4,13 @@
   "type": "module",
   "main": "dist/index.mjs",
   "description": "A cli for develop APIs with end to end typesave, document generation",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "gen-types": "tsc src/index.ts --declaration --emitDeclarationOnly --outDir dist",
     "build": "unbuild && pnpm gen-types",
@@ -26,10 +33,12 @@
     "node": "^18.0.0 || >=20.0.0"
   },
   "dependencies": {
+    "@tealina/doc-types": "workspace:*",
     "chalk": "^5.2.0",
+    "consola": "^3.2.3",
     "fp-lite": "^1.2.0",
     "fs-extra": "^11.1.1",
-    "@tealina/doc-types": "workspace:*"
+    "pathe": "^1.1.1"
   },
   "peerDependencies": {
     "typescript": ">=5.1.3"

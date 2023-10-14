@@ -11,30 +11,30 @@ export default defineApiTemplates([
     alias: 'c',
     name: 'create',
     method: 'post',
-    generateFn: genCreateCode
+    generateFn: genCreateCode,
   },
   {
     alias: 'r',
     name: 'getList',
     method: 'post',
-    generateFn: genReadCode
+    generateFn: genReadCode,
   },
   {
     alias: 'u',
     name: 'update',
     method: 'post',
-    generateFn: genUpdateCode
+    generateFn: genUpdateCode,
   },
   {
     alias: 'd',
     name: 'delete',
     method: 'post',
-    generateFn: genDeleteCode
+    generateFn: genDeleteCode,
   },
   {
     alias: '*', //fallback
     name: '',
     method: 'post',
-    generateFn: genBasicCode
-  }
+    generateFn: genBasicCode,
+  },
 ])

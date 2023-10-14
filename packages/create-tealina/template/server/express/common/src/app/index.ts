@@ -1,18 +1,18 @@
 import express, { RequestHandler, Router } from 'express'
 import { asyncFlow, omitFn, pickFn } from 'fp-lite'
 import path from 'path'
-import apisV1 from '../api-v1/index.js'
-import { docRouter, VDOC_BASENAME } from './docRouter.js'
-import { handleError } from './handleError.js'
+import apisV1 from '../api-v1/index'
+import { docRouter, VDOC_BASENAME } from './docRouter'
+import { handleError } from './handleError'
 import {
   handleApiNotFound,
   handleNotFound,
   handleStaticNotFound,
-} from './handleNotFound.js'
-import { registeApiRoutes } from './registeApiRoutes.js'
-import { loadAPIs } from './resolveBatchExport.js'
-import { setupApiHeaders } from './setupApiHeaders.js'
-import { verifyToken } from './verifyToken.js'
+} from './handleNotFound'
+import { registeApiRoutes } from './registeApiRoutes'
+import { loadAPIs } from './resolveBatchExport'
+import { setupApiHeaders } from './setupApiHeaders'
+import { verifyToken } from './verifyToken'
 
 const simpleLog: RequestHandler = (req, res, next) => {
   next()
