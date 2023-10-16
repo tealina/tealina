@@ -8,6 +8,7 @@ const schame = z.object({
       const num = Number(v)
       return num > 0 && num < 65536
     }, 'PORT should be in range 0-65536'),
+  NODE_ENV: z.enum(['development', 'test', 'production']),
 })
 
 schame.parse(process.env)

@@ -1,8 +1,8 @@
-import express, { RequestHandler, Router } from 'express'
+import express, { Router } from 'express'
 import { asyncFlow, omitFn, pickFn } from 'fp-lite'
 import path from 'path'
 import apisV1 from '../api-v1/index'
-import { docRouter, VDOC_BASENAME } from './docRouter'
+import { VDOC_BASENAME, docRouter } from './docRouter'
 import { handleError } from './handleError'
 import {
   handleApiNotFound,
@@ -13,11 +13,6 @@ import { registeApiRoutes } from './registeApiRoutes'
 import { loadAPIs } from './resolveBatchExport'
 import { setupApiHeaders } from './setupApiHeaders'
 import { verifyToken } from './verifyToken'
-
-const simpleLog: RequestHandler = (req, res, next) => {
-  next()
-  console.log('simple-log:', req.originalUrl)
-}
 
 const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
   x: T,
@@ -53,7 +48,6 @@ const buildAppRouter = (apiRouter: Router) =>
 
 const createExpressApp = (appRouter: Router) =>
   express()
-    .use(simpleLog)
     .use(appRouter)
     .use('/api', handleApiNotFound) //The following is error handling
     .get('*', handleStaticNotFound)
