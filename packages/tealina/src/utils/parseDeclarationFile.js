@@ -516,8 +516,12 @@ const getCommentFromSymbol = symbol => {
 const getHandlerSymbol = exportAssignment => {
   try {
     //any lines below may error, tread them all as handler export error
-    const idname = exportAssignment.expression.getText()
+    let idname = exportAssignment.expression.getText()
     const sourceFile = exportAssignment.getSourceFile()
+    if (ts.isCallExpression(exportAssignment.expression)) {
+      const [lastArgument] = exportAssignment.expression.arguments.slice(-1)
+      idname = lastArgument.getText()
+    }
     // @ts-ignore
     const symbol = sourceFile.locals.get(idname)
     const { initializer } = symbol.valueDeclaration

@@ -6,13 +6,15 @@ export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
     `import type { AuthedHandler } from '${relative2api}/../types/handler'`,
     `import type { RawId } from '${relative2api}/../types/common'`,
     `import type { Pure } from '${relative2api}/../types/pure'`,
+    `import { convention } from '${relative2api}/convention'`,
     `import { db } from '${relative2api}/db/prisma'`,
     `import { modelIdZ } from '${relative2api}/validate/modelId'`,
   ]
   const codes = [
     `type ApiType = AuthedHandler<{ params: RawId, body: Pure.${Model}UpdateInput }>`,
     '',
-    `const updateById: ApiType = async (req, res) => {`,
+    `/** Update ${Model} by id */`,
+    `const handler: ApiType = async (req, res) => {`,
     '  const { id } = modelIdZ.parse(req.params)',
     '  const data = req.body',
     `  const result = await db.${model}.update({`,
@@ -22,7 +24,7 @@ export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
     '  res.code(200).send()',
     '}',
     '',
-    `export default updateById`,
+    `export default convention(handler)`,
   ]
   return [...imps, '', ...codes].join('\n')
 })

@@ -7,7 +7,7 @@ import qs from 'qs'
 import apisV1 from '../api-v1/index'
 import { VDOC_BASENAME, docRouter } from './docRoute'
 import { registeApiRoutes } from './registeApiRoutes'
-import { loadAPIs } from './resolveBatchExport'
+import { checkMethodType, loadAPIs } from './resolveBatchExport'
 import { verifyToken } from './verifyToken'
 
 const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
@@ -16,6 +16,7 @@ const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
 ) => [pickFn(x, ...keys), omitFn(x, ...keys)] as const
 
 const buildV1Router: FastifyPluginAsync = async (fastify, option) => {
+  checkMethodType(apisV1)
   const apiRecord = await loadAPIs(apisV1)
   const { get, ...rest } = apiRecord
   const [openGetApis, authGetApis] = separateObject(get, 'health')

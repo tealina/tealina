@@ -28,7 +28,7 @@
     "@types/express": "^4.17.16",
     "@types/node": "^18.11.18",
     "prisma": "^5.3.1",
-    "tealina": "^0.0.9",
+    "tealina": "^0.0.10",
     "tsx": "^3.12.7",
     "typescript": "~5.2.2",
     "unbuild": "^2.0.0",

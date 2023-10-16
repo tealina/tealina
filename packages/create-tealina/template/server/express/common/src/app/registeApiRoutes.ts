@@ -32,22 +32,7 @@ type HttpMethod = keyof Pick<
   | 'trace'
 >
 
-const ValidMethod: Record<HttpMethod, true> = {
-  connect: true,
-  delete: true,
-  get: true,
-  head: true,
-  options: true,
-  patch: true,
-  post: true,
-  put: true,
-  trace: true,
-}
-
-const validateMethod = (key: string): HttpMethod => {
-  if (key in ValidMethod) return key as HttpMethod
-  throw new Error(`Invalid http method: ${key}`)
-}
+const validateMethod = <T extends Record<HttpMethod, any>>(x: T) => x
 
 type RegisteEachFn = (url: string, handlers: RequestHandler[]) => void
 
@@ -63,7 +48,7 @@ const walk = (record: ResolvedAPIs[string], registeEach: RegisteEachFn) => {
 type RegisterFn = (routeMather: Router[HttpMethod]) => RegisteEachFn
 
 interface RegisteOptions {
-  /** you can use it for access controll */
+  /** you can use it for access control */
   beforeEach: RequestHandler
 }
 
@@ -76,11 +61,10 @@ const registeApiRoutes = (
   const registeEach: RegisterFn = beforeEach
     ? matcher => (url, hanlders) => matcher(url, beforeEach, ...hanlders)
     : matcher => (url, hanlders) => matcher(url, ...hanlders)
-  Object.entries(allApi).forEach(([dir, sameMethodApis]) => {
-    const method = validateMethod(dir)
-    walk(sameMethodApis, registeEach(router[method].bind(router)))
+  Object.entries(allApi).forEach(([method, sameMethodApis]) => {
+    walk(sameMethodApis, registeEach(router[method as HttpMethod].bind(router)))
   })
   return router
 }
 
-export { registeApiRoutes }
+export { registeApiRoutes, validateMethod }
