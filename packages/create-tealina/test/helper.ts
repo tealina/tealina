@@ -1,6 +1,6 @@
-import { exec } from 'child_process'
-import { existsSync, rmSync } from 'fs'
-import path from 'path'
+import { exec, spawn, spawnSync } from 'child_process'
+import { existsSync, rmSync } from 'node:fs'
+import path from 'node:path'
 import { beforeAll } from 'vitest'
 
 export const TEMP_ROOT = 'temp'
@@ -19,27 +19,19 @@ const prepareExecFn =
     new Promise<void>((res, rej) => {
       const command = noDynamicArgsInput[0][0]
       console.log('executing =>', command)
-      const p = exec(command, {
+      const [leader, ...args] = command.split(' ')
+      const p = spawn(leader, args, {
         cwd,
-        windowsHide: true,
       })
-      process.on('SIGINT', () => {
-        p.kill('SIGINT')
-        res()
+      let out: string[] = []
+      p.stdout.on('data', chunk => {
+        const msg = chunk.toString()
+        console.log(msg)
+        out.push(msg)
       })
-      p.on('exit', code => {
-        if (code != 0) {
-          rej(new Error(`Exce command failed: ${command}`))
-          return
-        }
-        res()
-      })
-      p.on('error', e => {
-        console.log(`Error when exce command:${command}`)
-        rej(e)
-      })
-      p.on('close', () => {
-        res()
+      p.on('close', code => {
+        if (code == 0) return res()
+        return rej(new Error(out.join('')))
       })
     })
 

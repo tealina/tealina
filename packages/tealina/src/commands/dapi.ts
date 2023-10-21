@@ -41,7 +41,7 @@ const getTopIndexSnapshot = (
       const remains = topIndexContent.filter(v => !existImpMap.has(v))
       return {
         group: 'api',
-        action: 'updated',
+        action: 'update',
         filePath: 'index.ts',
         code: genWithWrapper(remains),
       }
@@ -62,10 +62,10 @@ const toIndexSnapshot =
     const remains = contents.filter(v => !imps.includes(v))
     const filePath = join(kind, 'index.ts')
     return isEmpty(remains)
-      ? { group: 'api', action: 'deleted', filePath, kind }
+      ? { group: 'api', action: 'delete', filePath, kind }
       : {
           group: 'api',
-          action: 'updated',
+          action: 'update',
           filePath,
           code: genWithWrapper(remains),
           kind,
@@ -80,7 +80,7 @@ const calcByKinds =
       map(toIndexSnapshot(kindIndexContentMap, suffix)),
       filter(notNull),
     )
-    const deletedKinds = kindIndexSnapshots.filter(v => v.action == 'deleted')
+    const deletedKinds = kindIndexSnapshots.filter(v => v.action == 'delete')
     if (deletedKinds.length < 1) return kindIndexSnapshots
     return [
       getTopIndexSnapshot(deletedKinds, topIndexContent, suffix),
@@ -99,7 +99,7 @@ const getRelativeFilesSnapshots = (ctx: FullContext): Snapshot[] =>
 
 const toApiFileSnapshot = (update: Seeds, apiDir: string): Snapshot => ({
   group: 'api',
-  action: 'deleted',
+  action: 'delete',
   filePath: `${join(apiDir, update.kind, ...update.namePaths)}.ts`,
 })
 
@@ -108,7 +108,7 @@ const toTestApiSnapshot = (
   { commonOption: { apiDir, testDir } }: FullContext,
 ): Snapshot => ({
   group: 'test',
-  action: 'deleted',
+  action: 'delete',
   filePath: `${join(
     testDir,
     basename(apiDir),

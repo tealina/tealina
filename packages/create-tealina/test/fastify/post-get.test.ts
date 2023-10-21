@@ -2,7 +2,7 @@ import prompts from 'prompts'
 import { describe, test } from 'vitest'
 import { createScaffold } from '../../src/core.js'
 import { TEMP_ROOT, cleanDir, validate } from '../helper.js'
-import path from 'path'
+import path from 'node:path'
 
 describe('create Fastify post-get', () => {
   const server = 'fastify'

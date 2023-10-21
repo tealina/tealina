@@ -1,11 +1,11 @@
 import chalk from 'chalk'
-import { parseDeclarationFile } from '../utils/parseDeclarationFile'
+import consola from 'consola'
+import { isEmpty } from 'fp-lite'
+import { basename, join } from 'pathe'
 import { TealinaComonOption } from '../utils/options'
+import { parseDeclarationFile } from '../utils/parseDeclarationFile'
 import { ensureWrite, loadConfig } from '../utils/tool'
 import { getApiTypeFilePath } from '../utils/withTypeFile'
-import { isEmpty } from 'fp-lite'
-import { basename, join, resolve } from 'pathe'
-import consola from 'consola'
 
 interface GdocOptions extends TealinaComonOption {
   outputDir: string
@@ -13,12 +13,12 @@ interface GdocOptions extends TealinaComonOption {
 }
 
 export const startGenerateDoc = async (options: GdocOptions) => {
-  const config = await loadConfig(resolve(options.configPath))
-  const { outputDir, apiDir, tsconfigPath } = options
+  const config = await loadConfig(options)
+  const { outputDir, apiDir } = options
   const entries = [getApiTypeFilePath({ apiDir, typesDir: config.typesDir })]
   const result = parseDeclarationFile({
     entries,
-    tsconfigPath,
+    tsconfigPath: config.tsconfigPath,
   })
   const allRecords = Object.values(result).map(v => Object.values(v))
   if (allRecords.every(isEmpty)) {

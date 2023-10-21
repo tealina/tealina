@@ -1,7 +1,7 @@
 import { execSync } from 'child_process'
 import fg from 'fast-glob'
-import { rmSync } from 'fs'
-import path from 'path'
+import { rmSync } from 'node:fs'
+import path from 'node:path'
 
 const unique = xs => new Set(xs)
 

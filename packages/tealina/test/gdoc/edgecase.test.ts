@@ -1,6 +1,6 @@
+import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
-import path from 'path'
 
 const mockDir = 'packages/tealina/test/gdoc/mock'
 describe('test error handling', () => {
@@ -36,7 +36,6 @@ describe('test error handling', () => {
       })
     } catch (error) {
       hasError = true
-      console.log(String(error))
       expect(String(error)).includes('Export default should be a function')
     }
     expect(hasError).true

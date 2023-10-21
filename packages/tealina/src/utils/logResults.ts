@@ -9,9 +9,9 @@ interface LogConfig {
 }
 
 const LOG_CONFIG: Record<Snapshot['action'], LogConfig> = {
-  created: { leading: '+', colorFn: chalk.green },
-  deleted: { leading: '-', colorFn: chalk.red },
-  updated: { leading: '^', colorFn: chalk.cyan },
+  create: { leading: '+', colorFn: chalk.green },
+  delete: { leading: '-', colorFn: chalk.red },
+  update: { leading: '^', colorFn: chalk.cyan },
 }
 
 const logByAction = (effects: Snapshot[]) => {
@@ -20,21 +20,20 @@ const logByAction = (effects: Snapshot[]) => {
     effects,
     map(v => v.filePath),
     unique,
-    map(v => [leading, v].join('  ')),
+    map(v => `  ${leading} ${v}`),
     map(colorFn),
     xs => xs.join('\n'),
-    x => (x.length > 0 ? console.log(x) : null),
+    x => (x.length > 0 ? consola.log(x) : null),
   )
 }
 
 const logByGroup = (effects: Snapshot[]): void => {
-  console.group(effects[0].group)
+  consola.success(effects[0].group)
   pipe(
     effects,
     separeBy(v => v.action),
     map(logByAction),
   )
-  console.groupEnd()
 }
 
 export const logResults = (results: Snapshot[]) => {

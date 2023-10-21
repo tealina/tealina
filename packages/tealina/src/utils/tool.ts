@@ -1,10 +1,12 @@
-import fs, { readFileSync } from 'fs'
+import fs, { readFileSync } from 'node:fs'
 import fsp from 'fs/promises'
-import path from 'path'
+import path from 'node:path'
+import { extname, normalize, resolve } from 'pathe'
+import ts from 'typescript'
 import { pathToFileURL } from 'url'
 import { CreationCtx, TealinaConifg } from '../index'
-import ts from 'typescript'
-import { normalize, extname } from 'pathe'
+import { TealinaComonOption } from './options'
+import { DirInfo } from './withTypeFile'
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1)
@@ -60,14 +62,19 @@ export const readIndexFile = (indexFilePath: string): Promise<string[]> =>
     () => [],
   )
 
-export const loadConfig = async (configPath: string) =>
-  import(pathToFileURL(configPath).href)
+export type MinimalInput = Required<TealinaConifg> & DirInfo
+
+export const loadConfig = async (
+  opt: TealinaComonOption,
+): Promise<MinimalInput> =>
+  import(pathToFileURL(resolve(opt.configPath)).href)
     .then(v => v.default as TealinaConifg)
     .then(v => ({
       ...v,
       typesDir: normalize(v.typesDir),
       testDir: normalize(v.testDir),
-      tsconfigPath: v.tsconfigPath ? normalize(v.tsconfigPath) : void 0,
+      tsconfigPath: normalize(v.tsconfigPath ?? './tsconfig.json'),
+      ...opt,
     }))
 
 export interface TsConfig {

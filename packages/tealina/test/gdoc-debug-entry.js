@@ -1,5 +1,5 @@
 //@ts-check
-import { writeFileSync } from 'fs'
+import { writeFileSync } from 'node:fs'
 import { parseDeclarationFile } from '../src/utils/parseDeclarationFile.js'
 
 const doc = parseDeclarationFile({

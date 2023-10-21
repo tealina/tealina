@@ -1,6 +1,6 @@
 import express, { Router } from 'express'
 import { asyncFlow, omitFn, pickFn } from 'fp-lite'
-import path from 'path'
+import path from 'node:path'
 import apisV1 from '../api-v1/index'
 import { VDOC_BASENAME, docRouter } from './docRouter'
 import { handleError } from './handleError'

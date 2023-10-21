@@ -6,48 +6,39 @@ import {
   flat,
   flow,
   groupBy,
-  isEmpty,
+  invoke,
   map,
   notNull,
-  peek,
   pipe,
   waitAll,
 } from 'fp-lite'
-import { statSync } from 'fs'
-import { readdir } from 'fs/promises'
-import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
+import { statSync } from 'node:fs'
+import { readFile, readdir } from 'node:fs/promises'
+import { basename, join } from 'pathe'
+import { genIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import { TealinaComonOption } from '../utils/options'
 import {
+  MinimalInput,
   getSuffix,
-  readIndexFile,
+  loadConfig,
   readTsConfig,
   withoutSuffix,
 } from '../utils/tool'
 import { validateKind } from '../utils/validate'
 import {
+  DirInfo,
   TypeFileInfo,
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
-import { MergedOption } from './capi'
-import { basename, dirname, join } from 'pathe'
+
 interface GatherPhase {
   kind: string
-  content: string[]
-  imps: string[]
+  content: string
   files: string[]
 }
 
-type DiffPhase = {
-  pre: GatherPhase
-  shouldRemove: string[]
-  shouldAppend: string[]
-}
-
-const LeftBrecket = /^\(/
-const SingleQuete = /^'|'$/g
 const LeaderSlash = /^\//
 
 const prepend = (dir: string) => (file: string) => join(dir, file)
@@ -79,41 +70,11 @@ const walkDir = (dir: string): Promise<string[]> =>
     filter(v => !v.endsWith('/index.ts')),
   )
 
-const ensureStatsWithSlash = (x: string): string =>
-  x.replace(LeftBrecket, '').replace(SingleQuete, '').slice(1)
-
-const renameSuffix = (name: string) => name.replace('', '.ts')
-
-const toImps = flow(
-  map((line: string) => line.split('import(').pop()?.slice(0, -2)),
-  filter(notNull),
-  map(flow(ensureStatsWithSlash, renameSuffix)),
-)
-
-const getIndexContent = (dir: string) =>
-  readIndexFile([dir, 'index.ts'].join('/'))
-
-const toKeyMapTrue = flow(
-  map((x: string) => [x, true] as const),
-  kvs => new Map(kvs),
-)
-
-const calcDiff = ({ imps, files }: GatherPhase) =>
-  pipe(
-    [toKeyMapTrue(imps), toKeyMapTrue(files)],
-    ([existImpMap, existFileMap]) => ({
-      shouldRemove: imps.filter(imp => !existFileMap.has(imp)),
-      shouldAppend: files.filter(file => !existImpMap.has(file)),
-    }),
+const readIndexContent = (dir: string) =>
+  readFile(join(dir, 'index.ts')).then(
+    v => v.toString(),
+    () => '',
   )
-
-const toDiffPhase = (phase: GatherPhase): DiffPhase => ({
-  pre: phase,
-  ...calcDiff(phase),
-})
-
-const hasUpdate = ({ shouldRemove, shouldAppend, pre }: DiffPhase) =>
-  shouldAppend.length > 0 || shouldRemove.length > 0
 
 const toExportcode = (suffix: string) =>
   flow(
@@ -123,111 +84,75 @@ const toExportcode = (suffix: string) =>
     genIndexProp(suffix),
   )
 
-const getNewContent = (
-  { pre, shouldAppend, shouldRemove }: DiffPhase,
-  genFn: (filePath: string) => string,
-): string | null => {
-  const contents = pre.content
-  const append = shouldAppend.map(genFn)
-  const remove = shouldRemove.map(genFn)
-  const remain = contents.filter(code => !remove.includes(code))
-  const newLines = append.filter(code => !contents.includes(code))
-  if (isEmpty(remove) && isEmpty(newLines)) return null
-  return genWithWrapper([...newLines, ...remain])
-}
+const genIndexContent = (suffix: string) =>
+  flow(map(toExportcode(suffix)), genWithWrapper)
 
-const calcIndexFileSnapshot =
-  (suffix: string) =>
-  (diff: DiffPhase): Snapshot => ({
-    group: 'api',
-    action: 'updated',
-    filePath: join(diff.pre.kind, 'index.ts'),
-    code: getNewContent(diff, toExportcode(suffix)),
-  })
-
-const calcTopIndexFileSnapshot = (
-  diff: DiffPhase,
-  suffix: string,
-): Snapshot => ({
+const makeIndexFileSnapshot = (kind: string, code: string): Snapshot => ({
   group: 'api',
-  action: 'updated',
-  filePath: 'index.ts',
-  code: getNewContent(
-    diff,
-    flow(
-      filePath => dirname(filePath).slice(1), //eg: /func/index.ts => func
-      genTopIndexProp(suffix),
-    ),
-  ),
+  action: 'update',
+  filePath: join(kind, 'index.ts'),
+  code,
 })
 
 const gatherIndex = (kindDir: string): Promise<GatherPhase> =>
   asyncPipe(
-    waitAll([getIndexContent(kindDir), walkDir(kindDir)]),
+    waitAll([readIndexContent(kindDir), walkDir(kindDir)]),
     ([content, files]): GatherPhase => ({
       kind: basename(kindDir),
       content,
-      imps: toImps(content),
       files: files.map(v => v.slice(kindDir.length)),
     }),
   )
 
 const gatherTopIndex =
   (dirs: string[]) =>
-  (content: string[]): GatherPhase => ({
+  (content: string): GatherPhase => ({
     kind: '',
     content,
-    imps: toImps(content),
     files: dirs.map(dir => ['', basename(dir), 'index.ts'].join('/')),
   })
 
-const validAllKind = (vs: string[]): void =>
+const validateAllKind = (vs: string[]): void =>
   vs.forEach(flow(x => basename(x), validateKind))
 
 interface FileTreeInfo {
   kindIndexFiles: GatherPhase[]
   topIndexFile: GatherPhase
   typeFileInfo: TypeFileInfo
-  commonOption: MergedOption
+  commonOption: MinimalInput
   suffix: string
 }
 
-const collectApiInfo = ({ apiDir }: TealinaComonOption) =>
+const collectApiInfo = ({ apiDir }: DirInfo) =>
   asyncPipe(
     readdir(apiDir),
     map(prepend(apiDir)),
     filter(v => statSync(v).isDirectory()),
-    peek(validAllKind),
+    invoke(validateAllKind),
     dirs =>
       [
         pipe(dirs, map(gatherIndex), waitAll),
-        asyncPipe(getIndexContent(apiDir), gatherTopIndex(dirs)),
+        asyncPipe(readIndexContent(apiDir), gatherTopIndex(dirs)),
       ] as const,
     waitAll,
   )
 
-const calcKindIndexSnapshot = (info: FileTreeInfo) =>
-  pipe(
-    info.kindIndexFiles,
-    map(toDiffPhase),
-    filter(hasUpdate),
-    map(calcIndexFileSnapshot(info.suffix)),
-  )
-
-const calcTopIndexSnapshot = (info: FileTreeInfo) =>
-  pipe(toDiffPhase(info.topIndexFile), v =>
-    hasUpdate(v) ? [calcTopIndexFileSnapshot(v, info.suffix)] : [],
+const toSnapshot = (suffix: string) => (v: GatherPhase) =>
+  pipe(v.files, genIndexContent(suffix), freshCode =>
+    v.content == freshCode ? null : makeIndexFileSnapshot(v.kind, freshCode),
   )
 
 const calcSnapshots = (info: FileTreeInfo): Snapshot[] =>
   pipe(
-    calcKindIndexSnapshot(info),
-    concat(calcTopIndexSnapshot(info)),
+    info.kindIndexFiles,
+    map(toSnapshot(info.suffix)),
+    concat(toSnapshot(info.suffix)(info.topIndexFile)),
+    filter(notNull),
     map(completePath(info.commonOption)),
     concat(calcTypeFileSnapshot(info)),
   )
 
-const prepareInfo = (commonOption: MergedOption) =>
+const collectContext = (commonOption: MinimalInput) =>
   asyncPipe(
     waitAll([
       collectApiInfo(commonOption),
@@ -244,11 +169,12 @@ const prepareInfo = (commonOption: MergedOption) =>
   )
 
 const syncApiByFile = asyncFlow(
-  prepareInfo,
+  loadConfig,
+  collectContext,
   calcSnapshots,
   effectFiles,
   waitAll,
   logResults,
 )
 
-export { syncApiByFile }
+export { calcSnapshots, syncApiByFile }

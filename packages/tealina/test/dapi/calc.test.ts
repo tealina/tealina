@@ -77,7 +77,7 @@ describe('test dapi calculation part', function () {
     ]
     expect(snapshots.length).eq(newFiles.length)
     const [topIndex] = snapshots
-    expect(topIndex.action).eq('updated')
+    expect(topIndex.action).eq('update')
     const allMatched = newFiles.every(n => snapshots.some(s => s.filePath == n))
     expect(allMatched, 'should delete all files when api dir is empty').true
   })
@@ -101,8 +101,8 @@ describe('test dapi calculation part', function () {
       ...restCtx,
     })
     const [postIndex, ...deletions] = snapshots
-    expect(postIndex.action).eq('updated')
-    const allActionIsDeleted = deletions.every(s => s.action == 'deleted')
+    expect(postIndex.action).eq('update')
+    const allActionIsDeleted = deletions.every(s => s.action == 'delete')
     expect(allActionIsDeleted).true
   })
 
@@ -126,8 +126,8 @@ describe('test dapi calculation part', function () {
       suffix: '',
     })
     const [postIndex, ...deletions] = snapshots
-    expect(postIndex.action).eq('updated')
-    const allActionIsDeleted = deletions.every(s => s.action == 'deleted')
+    expect(postIndex.action).eq('update')
+    const allActionIsDeleted = deletions.every(s => s.action == 'delete')
     expect(allActionIsDeleted).true
   })
 
@@ -157,8 +157,8 @@ describe('test dapi calculation part', function () {
     ]
     expect(snapshots.length).eq(newFiles.length)
     const [topIndexSnapshot, ...deletions] = snapshots
-    expect(topIndexSnapshot.action).eq('updated')
-    const allActionIsDeleted = deletions.every(s => s.action == 'deleted')
+    expect(topIndexSnapshot.action).eq('update')
+    const allActionIsDeleted = deletions.every(s => s.action == 'delete')
     expect(allActionIsDeleted).true
   })
 
@@ -182,9 +182,9 @@ describe('test dapi calculation part', function () {
     })
     const [apiIndex, putIndex, apiHandler] = snapshots
     expect(snapshots.some(v => v.group == 'test')).true
-    expect(apiIndex.action).eq('updated')
-    expect(putIndex.action).eq('deleted')
-    expect(apiHandler.action).eq('deleted')
+    expect(apiIndex.action).eq('update')
+    expect(putIndex.action).eq('delete')
+    expect(apiHandler.action).eq('delete')
     expect(apiHandler.filePath).eq('put/user/[id].ts')
   })
 
@@ -219,9 +219,9 @@ describe('test dapi calculation part', function () {
     })
     expect(snapshots.some(v => v.group == 'test')).false
     const [apiIndex, putIndex, apiHandler] = snapshots
-    expect(apiIndex.action).eq('updated')
-    expect(putIndex.action).eq('deleted')
-    expect(apiHandler.action).eq('deleted')
+    expect(apiIndex.action).eq('update')
+    expect(putIndex.action).eq('delete')
+    expect(apiHandler.action).eq('delete')
     expect(apiHandler.filePath).eq('put/user/[id].ts')
   })
 })

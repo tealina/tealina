@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import path from 'path'
+import path from 'node:path'
 
 export const handleApiNotFound: RequestHandler = (req, res, next) => {
   res.status(404)

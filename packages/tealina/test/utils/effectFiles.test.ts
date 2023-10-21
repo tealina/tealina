@@ -1,5 +1,5 @@
-import { existsSync, rmSync } from 'fs'
-import path from 'path'
+import { existsSync, rmSync } from 'node:fs'
+import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { Snapshot, effectFiles } from '../../src/utils/effectFiles.js'
 import { ensureWrite } from '../../src/utils/tool.js'
@@ -15,8 +15,8 @@ describe('test delete', () => {
   afterAll(() => rmSync(tempDir, { recursive: true }))
   test('delete files', () => {
     const snapshots: Snapshot[] = [
-      { group: 'api', filePath: join('empty/x1.ts'), action: 'deleted' },
-      { group: 'test', filePath: join('empty/x2.ts'), action: 'deleted' },
+      { group: 'api', filePath: join('empty/x1.ts'), action: 'delete' },
+      { group: 'test', filePath: join('empty/x2.ts'), action: 'delete' },
     ]
     effectFiles(snapshots)
     snapshots.forEach(
@@ -29,13 +29,13 @@ describe('test delete', () => {
       {
         group: 'api',
         filePath: join('create/x1.ts'),
-        action: 'created',
+        action: 'create',
         code: 'mock code',
       },
       {
         group: 'test',
         filePath: join('create/deep/x2.ts'),
-        action: 'created',
+        action: 'create',
         code: 'mock code',
       },
     ]

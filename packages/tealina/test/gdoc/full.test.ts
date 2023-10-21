@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 import { afterAll, beforeAll, expect, test } from 'vitest'
 import { cli } from '../../src/commands/index.js'
 
@@ -27,8 +27,6 @@ test('actual run gdoc', () => {
       apiDir,
       '--config-path',
       path.join(mockDir, 'tealina.config.mjs'),
-      '--tsconfig-path',
-      path.join(mockDir, 'tsconfig.json'),
       '--output-dir',
       outputDir,
     ],

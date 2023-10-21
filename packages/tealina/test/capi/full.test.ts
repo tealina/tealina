@@ -1,11 +1,12 @@
 import { map, pipe, unique } from 'fp-lite'
-import { writeFileSync } from 'fs'
+import { writeFileSync } from 'node:fs'
 import fs from 'fs-extra'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { ensureWrite } from '../../src/utils/tool.js'
 import { cleanDir, parseCommandArgs, tempDirFactory } from './helper.js'
 import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
+import { Snapshot } from '../../src/utils/effectFiles.js'
 
 const TEMP_ROOT = 'temp/capi'
 const prepareTempDir = tempDirFactory('temp/capi')
@@ -184,57 +185,63 @@ function makeFullResult(
   dirInfo: ReturnType<typeof prepareTempDir>,
 ) {
   const { apiDir, typesDir, testDir } = dirInfo
-  const topIndex = {
+  const topIndex: Snapshot = {
     group: 'api',
-    action: 'created',
+    action: 'create',
     filePath: path.join(apiDir, `index.ts`),
   }
   const indexList = pipe(
     seeds,
     map(v => v.method),
     unique,
-    map(method => ({
-      group: 'api',
-      action: 'created',
-      filePath: path.join(apiDir, method, `index.ts`),
-    })),
+    map(
+      (method): Snapshot => ({
+        group: 'api',
+        action: 'create',
+        filePath: path.join(apiDir, method, `index.ts`),
+      }),
+    ),
   )
   const preNames = [route].flat()
   const handlerList = preNames.map(preName =>
-    seeds.map(v => ({
-      group: 'api',
-      action: 'created',
-      filePath: path.join(
-        apiDir,
-        v.method,
-        v.name.length ? `${preName}/${v.name}.ts` : `${preName}.ts`,
-      ),
-    })),
+    seeds.map(
+      (v): Snapshot => ({
+        group: 'api',
+        action: 'create',
+        filePath: path.join(
+          apiDir,
+          v.method,
+          v.name.length ? `${preName}/${v.name}.ts` : `${preName}.ts`,
+        ),
+      }),
+    ),
   )
   const testList = preNames.map(preName =>
-    seeds.map(v => ({
-      group: 'test',
-      action: 'created',
-      filePath: path.join(
-        testDir,
-        path.basename(apiDir),
-        v.method,
-        v.name.length ? `${preName}/${v.name}.test.ts` : `${preName}.test.ts`,
-      ),
-    })),
+    seeds.map(
+      (v): Snapshot => ({
+        group: 'test',
+        action: 'create',
+        filePath: path.join(
+          testDir,
+          path.basename(apiDir),
+          v.method,
+          v.name.length ? `${preName}/${v.name}.test.ts` : `${preName}.test.ts`,
+        ),
+      }),
+    ),
   )
-  const typeFile = {
+  const typeFile: Snapshot = {
     group: 'types',
-    action: 'created',
+    action: 'create',
     filePath: path.join(getApiTypeFilePath({ typesDir, apiDir })),
     // filePath: path.join(apiTypesDir, `${path.basename(apiDir)}.ts`),
   }
-  const testHelper = {
+  const testHelper: Snapshot = {
     group: 'test',
-    action: 'created',
+    action: 'create',
     filePath: path.join(testDir, path.basename(apiDir), 'helper.ts'),
   }
-  const fullResult = [
+  const fullResult: Snapshot[] = [
     topIndex,
     ...indexList,
     ...handlerList.flat(),

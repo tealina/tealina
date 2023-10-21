@@ -1,5 +1,5 @@
 import { access } from 'fs/promises'
-import path from 'path'
+import path from 'node:path'
 import { genTypeCode } from './codeGen'
 import { Snapshot } from './effectFiles'
 
@@ -19,7 +19,7 @@ export const calcTypeFileSnapshot = ({
   return [
     {
       group: 'types',
-      action: 'created',
+      action: 'create',
       filePath: typeFileInfo.filePath,
       code: genTypeCode(commonOption),
     },

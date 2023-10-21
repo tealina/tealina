@@ -1,5 +1,11 @@
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
-import path from 'path'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
+import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import {
   ENUMS_BEGIN,

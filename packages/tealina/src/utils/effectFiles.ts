@@ -8,23 +8,25 @@ import {
   omit,
   pipe,
 } from 'fp-lite'
-import { readdirSync, rmdirSync, unlinkSync } from 'fs'
-import { TealinaComonOption } from './options'
-import { ensureWrite } from './tool'
+import { existsSync, readdirSync, rmdirSync, unlinkSync } from 'node:fs'
 import { dirname, join } from 'pathe'
+import { ensureWrite } from './tool'
+import { DirInfo } from './withTypeFile'
 
 export const completePath =
-  ({ apiDir }: TealinaComonOption) =>
+  ({ apiDir }: DirInfo) =>
   (v: Snapshot) => ({
     ...v,
     filePath: join(apiDir, v.filePath),
   })
 
 const changedOnly = (v: Snapshot): boolean =>
-  v.action == 'created' || v.action != 'updated' || v.code != null
+  v.action == 'create' || v.action != 'update' || v.code != null
 
 const deleteFile = (snapshot: Snapshot) => {
-  unlinkSync(snapshot.filePath)
+  if (existsSync(snapshot.filePath)) {
+    unlinkSync(snapshot.filePath)
+  }
   return snapshot
 }
 
@@ -39,7 +41,7 @@ const cleanEmptyDirs = (dir: string): string[] =>
   )
 
 const updateFiles = flow(
-  groupBy((v: Snapshot) => (v.action == 'deleted' ? 'delete' : 'mutation')),
+  groupBy((v: Snapshot) => (v.action == 'delete' ? 'delete' : 'mutation')),
   g => {
     pipe(
       g.get('delete') ?? [],
@@ -57,7 +59,7 @@ export const effectFiles = flow(
 
 export type Snapshot = {
   group: 'api' | 'test' | 'types'
-  action: 'updated' | 'created' | 'deleted'
+  action: 'update' | 'create' | 'delete'
   filePath: string
   code?: string | null
 }

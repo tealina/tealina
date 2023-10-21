@@ -1,7 +1,7 @@
 import plugin4static from '@fastify/static'
 import { FastifyPluginCallback } from 'fastify'
 import { readFile } from 'fs/promises'
-import path from 'path'
+import path from 'node:path'
 import {
   TealinaVdocWebConfig,
   VDOC_BASENAME,

@@ -1,6 +1,6 @@
 import { unique } from 'fp-lite'
 import fs from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { OptionTypes } from '../../src/commands/capi.js'
 import { syncApiByFile } from '../../src/commands/sapi.js'
@@ -20,7 +20,6 @@ describe('test sapi in mock dir', function () {
     testDir: apiTestDir,
     typesDir: apiTypesDir,
     withTest: false,
-    tsconfigPath: 'packages/tealina/test/mock/config/_tsconfig.json',
   }
 
   beforeAll(() => {
@@ -49,8 +48,7 @@ describe('test sapi in mock dir', function () {
     expect(uniqued.length).eq(result.length)
     fs.rmSync(typeFile)
     const result2 = await syncApiByFile(ctx)
-    console.log(result2)
-    // expect(result2.length).eq(1)
+    expect(result2.length).eq(1)
   })
 
   it('api can constains params', async () => {

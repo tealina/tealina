@@ -35,32 +35,6 @@ export function tempDirFactory(root: string) {
   }
 }
 
-export function parseCommandArgsOld(
-  command: string,
-  dirInfo: Record<'apiDir' | 'apiTypesDir' | 'apiTestDir', string>,
-  configPath = 'packages/tealina/test/mock/config/tealina.config.ts',
-) {
-  cli.option('--types-dir', '', { default: dirInfo.apiTypesDir })
-  cli.option('--test-dir', '', { default: dirInfo.apiTestDir })
-  const { args, options } = cli.parse(
-    [
-      '',
-      'tealina',
-      'capi',
-      ...command.split(' '),
-      ...(command.includes('--no-with-test') ? [] : ['--with-test']),
-      '--api-dir',
-      dirInfo.apiDir,
-      '--config-path',
-      configPath,
-    ],
-    { run: false },
-  )
-  return [...args, options] as
-    | [string | undefined, string | undefined, BaseOption]
-    | [string | undefined, BaseOption]
-    | [BaseOption]
-}
 export function parseCommandArgs(
   command: string,
   dirInfo: DirInfo,
@@ -69,6 +43,7 @@ export function parseCommandArgs(
 ) {
   cli.option('--types-dir', '', { default: dirInfo.typesDir })
   cli.option('--test-dir', '', { default: dirInfo.testDir })
+  cli.option('--tsconfig-path', '')
   const parsedResult = cli.parse(
     [
       '',

@@ -14,16 +14,18 @@ import {
   waitAll,
 } from 'fp-lite'
 import { pathExists } from 'fs-extra'
+import { basename, join, normalize } from 'pathe'
 import type { ApiTemplateType, TealinaConifg } from '../index'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import { TealinaComonOption } from '../utils/options'
+import { TealinaComonOption as TealinaCommonOption } from '../utils/options'
 import { parseSchema, toFindable } from '../utils/parsePrisma'
 import {
+  MinimalInput,
   getSuffix,
   loadConfig,
-  parseCreateInfo,
+  parseCreateInfo as parseCreationInfo,
   readIndexFile,
   readTsConfig,
   unCapitalize,
@@ -35,9 +37,8 @@ import {
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
-import { normalize, join, resolve, basename } from 'pathe'
 
-export interface BaseOption extends TealinaComonOption {
+export interface BaseOption extends TealinaCommonOption {
   /** restful style */
   templateAlias?: string
   withTest: boolean
@@ -109,8 +110,8 @@ const parseByAlias = (
 
 const loadTemplateConfig = async (
   rawOptions: OptionTypes,
-): Promise<{ config: TealinaConifg; option: MergedOption }> => {
-  const config = await loadConfig(resolve(rawOptions.configPath))
+): Promise<{ config: MinimalInput; option: MergedOption }> => {
+  const config = await loadConfig(rawOptions)
   return {
     config,
     option: {
@@ -216,7 +217,7 @@ const getTopIndexSnapshot = (
       if (newImps.length < 1) return null
       return {
         group: 'api',
-        action: topIndexContent.length ? 'updated' : 'created',
+        action: topIndexContent.length ? 'update' : 'create',
         filePath: 'index.ts',
         code: genWithWrapper([...newImps, ...topIndexContent]),
       }
@@ -234,7 +235,7 @@ const toIndexSnapshot =
     if (newImps.length < 1) return null
     return {
       group: 'api',
-      action: isEmpty(contents) ? 'created' : 'updated',
+      action: isEmpty(contents) ? 'create' : 'update',
       filePath: join(kind, 'index.ts'),
       code: genWithWrapper([...newImps, ...contents]),
     }
@@ -263,16 +264,16 @@ const toApiFileSnapshot = ({
   apiFileSummary: { filePath },
 }: FullSeeds): Snapshot => ({
   group: 'api',
-  action: 'created',
+  action: 'create',
   filePath,
-  code: generateFn(parseCreateInfo(kind, namePaths)),
+  code: generateFn(parseCreationInfo(kind, namePaths)),
 })
 
 const toApiTestSnapshot =
   ({ testTemplate: { genSuite } }: FullContext) =>
   ({ kind, namePaths, testFileSummary }: FullSeeds): Snapshot => ({
     group: 'test',
-    action: 'created',
+    action: 'create',
     filePath: testFileSummary.filePath,
     code: genSuite({
       method: kind,
@@ -288,7 +289,7 @@ const toTestHelperSnapshot = ({
   seeds: [{ namePaths }],
 }: FullContext): Snapshot => ({
   group: 'test',
-  action: 'created',
+  action: 'create',
   filePath,
   code: genHelper!({
     relative2ancestor: Array(namePaths.length).fill('..').join('/'),
@@ -450,7 +451,7 @@ const collectContext = asyncFlow(
       checkTestHelper(option).then(toKeyValue('testHelperInfo')),
       toKeyValue('testTemplate')(config.template.test),
       toKeyValue('commonOption')(option),
-      readTsConfig(option.tsconfigPath)
+      readTsConfig(config.tsconfigPath)
         .then(getSuffix)
         .then(toKeyValue('suffix')),
     ] as const,
