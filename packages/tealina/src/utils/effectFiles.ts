@@ -8,7 +8,7 @@ import {
   omit,
   pipe,
 } from 'fp-lite'
-import { existsSync, readdirSync, rmdirSync, unlinkSync } from 'node:fs'
+import { existsSync, readdirSync, rmdirSync, unlinkSync } from 'fs'
 import { dirname, join } from 'pathe'
 import { ensureWrite } from './tool'
 import { DirInfo } from './withTypeFile'

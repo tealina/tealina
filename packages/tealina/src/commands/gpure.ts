@@ -1,386 +1,62 @@
-import { filter, flow, map, notNull, unique } from 'fp-lite'
-import chalk from 'chalk'
-import fs from 'node:fs/promises'
 import {
-  BlockRange,
-  LineInfo,
-  clearSymbol,
-  getBlockComment,
-  makeLineParser,
-  parseSchema,
-  toFindable,
-} from '../utils/parsePrisma'
-import { dirname, join, relative, resolve } from 'pathe'
-import consola from 'consola'
+  asyncPipe,
+  concat,
+  filter,
+  flat,
+  groupBy,
+  isEmpty,
+  map,
+  notNull,
+  pickFn,
+  pipe,
+} from 'fp-lite'
+import { BlockAST, PropAST, parseSchame } from '../utils/parsePrisma'
+import { loadConfig } from '../utils/tool'
+import { writeFile } from 'fs/promises'
+import { TealinaComonOption } from '../utils/options'
 
-const ArgsValuePattern = /".*"/
 /**
  * static declaration, inject on demand,
  * for avoid unnecesary reference to Prisma.
  */
 const JSON_VALUE_TYPE = [
-  '\t/**',
-  '\t* From https://github.com/sindresorhus/type-fest/',
-  '\t* Matches a JSON object.',
-  '\t* This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. ',
-  '\t*/',
-  '\texport type JsonObject = {[Key in string]?: JsonValue}',
-  '\t',
-  '\t/**',
-  '\t* From https://github.com/sindresorhus/type-fest/',
-  '\t* Matches a JSON array.',
-  '\t*/',
-  '\texport interface JsonArray extends Array<JsonValue> {}',
-  '\t',
-  '\t/**',
-  '\t* From https://github.com/sindresorhus/type-fest/',
-  '\t* Matches any valid JSON value.',
-  '\t*/',
-  '\texport type JsonValue = string | number | boolean | JsonObject ',
+  '/**',
+  '* From https://github.com/sindresorhus/type-fest/',
+  '* Matches a JSON object.',
+  '* This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. ',
+  '*/',
+  'export type JsonObject = {[Key in string]?: JsonValue}',
+  '',
+  '/**',
+  '* From https://github.com/sindresorhus/type-fest/',
+  '* Matches a JSON array.',
+  '*/',
+  'export interface JsonArray extends Array<JsonValue> {}',
+  '',
+  '/**',
+  '* From https://github.com/sindresorhus/type-fest/',
+  '* Matches any valid JSON value.',
+  '*/',
+  'export type JsonValue = string | number | boolean | JsonObject ',
 ]
 
 const ENUMS_BEGIN = [
-  '\t/**',
-  '\t * Enums',
-  '\t */',
-  '\t// Based on',
-  '\t// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275',
+  '/**',
+  '* Enums',
+  '*/',
+  '// Based on',
+  '// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275',
   '',
 ]
 
-/** https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#model-field-scalar-types */
-const toTsType = (dslType: string) => {
-  switch (dslType) {
-    case 'BigInt':
-      return 'bigint'
-    case 'Int':
-    case 'Float':
-    case 'Decimal':
-      return 'number'
-    case 'String':
-      return 'string'
-    case 'DateTime':
-      return 'Date | string'
-    case 'Boolean':
-      return 'boolean'
-    case 'Json':
-      return 'JsonValue'
-    case 'Bytes':
-      return 'Buffer'
-    default: //Unsupported('*')
-      return 'unknow'
-  }
-}
-
-interface TypeColumn {
-  name: string
-  modifier: {
-    questionMarke?: boolean
-    list?: boolean
-  }
-  contextual: {
-    isModel?: boolean
-    isCompositeType?: boolean
-    isEnum?: boolean
-  }
-}
-
-/**
- * in line, single @ attributes
- */
-interface AttributesColumn {
-  default?: string
-  id?: boolean
-  objectId?: boolean
-  updatedAt?: boolean
-  ignore?: boolean
-  // relation?: { fields: string[] }
-}
-
-interface Property {
-  name: string
-  type: TypeColumn
-  comments: string[]
-  attributes: AttributesColumn
-}
-
-interface Detail {
-  comments: string[]
-  name: string
-  props: Property[]
-  // attributes: RowAttributes
-}
-
-interface EnumMemeber {
-  name: string
-  value: string
-  comment: string[]
-}
-
-interface EnumDetail {
-  comments: string[]
-  name: string
-  props: EnumMemeber[]
-  // attributes: RowAttributes
-}
-
-const makeTypeColParser = (
-  str: string,
-  getContextual: (name: string) => TypeColumn['contextual'],
-): TypeColumn => {
-  const name = clearSymbol(str)
-  return {
-    name,
-    modifier: {
-      questionMarke: str.includes('?'),
-      list: str.includes('['),
-    },
-    contextual: getContextual(name),
-  }
-}
-
-type InputTypeKind = 'Create' | 'Update'
-
-const makeTypeName = (kind: InputTypeKind, target: string) =>
-  [target, kind, 'Input'].join('')
-
-const parseAttrCol = (attrPart: string): AttributesColumn => {
-  const attrs = attrPart
-    .split('@')
-    .map(v => v.trim())
-    .filter(v => v.length > 0)
-  const DefoIndentifier = 'default('
-  const defo = attrs.find(v => v.startsWith(DefoIndentifier))
-  return {
-    // ...extraRelationInfo(attrs),
-    default: defo ? defo.slice(DefoIndentifier.length, -1) : void 0,
-    objectId: attrs.includes('db.ObjectId'),
-    id: attrs.includes('id'),
-    ignore: attrs.includes('ignore'),
-    updatedAt: attrs.includes('updatedAt'),
-  }
-}
-
-const checkIsOptional = (x: Property): boolean => {
-  const {
-    type: { modifier },
-    attributes,
-  } = x
-  return [
-    modifier.questionMarke,
-    modifier.list,
-    attributes.default,
-    attributes.updatedAt,
-  ].some(v => !!v) //false,null,undefined
-}
-
-const parseModelAndType = (schema: string[]) => {
-  const { findBlocks, takeBlockName } = toFindable(schema)
-  const typeBlocks = findBlocks('type')
-  const modelBlocks = findBlocks('model')
-  const enumBlocks = findBlocks('enum')
-  const enumNames = enumBlocks.map(takeBlockName)
-  const subDocNames = typeBlocks.map(takeBlockName)
-  const modelNames = modelBlocks.map(takeBlockName)
-  const getContextual = (name: string): TypeColumn['contextual'] => ({
-    isEnum: enumNames.includes(name),
-    isCompositeType: subDocNames.includes(name),
-    isModel: modelNames.includes(name),
-  })
-  const parseCol = (v: LineInfo): Property => {
-    const [attrPart, tailComment] = v.restCol.join(' ').split('///')
-    return {
-      name: v.fisrtCol,
-      type: makeTypeColParser(v.secondCol, getContextual),
-      attributes: parseAttrCol(attrPart),
-      comments: [...v.lineComment, tailComment].filter(notNull),
-    }
-  }
-  const withoutIgnored = ({ lines }: BlockInfo) =>
-    !lines.some(line => line.trimStart().startsWith('@@ignore'))
-  const toBlockInfo = (blockRange: BlockRange) => ({
-    block: blockRange,
-    lines: schema.slice(blockRange.begin + 1, blockRange.end - 1),
-  })
-  interface BlockInfo {
-    block: BlockRange
-    lines: string[]
-  }
-  const parseLine = flow(
-    map(makeLineParser()),
-    filter(notNull),
-    map(parseCol),
-    filter(v => !v.attributes.ignore),
-  )
-  const toDetail = ({ block, lines }: BlockInfo): Detail => ({
-    comments: getBlockComment(schema, block),
-    name: takeBlockName(block)!,
-    props: parseLine(lines),
-  })
-  const parseEnumLine = flow(
-    map(makeLineParser()),
-    filter(notNull),
-    map(parseEnumCol),
-    filter(notNull),
-  )
-  const toEnumDetail = ({ block, lines }: BlockInfo): EnumDetail => ({
-    comments: getBlockComment(schema, block),
-    name: takeBlockName(block)!,
-    props: parseEnumLine(lines),
-  })
-  const workFlow = flow(map(toBlockInfo), filter(withoutIgnored), map(toDetail))
-  const enumWorkFlow = flow(
-    map(toBlockInfo),
-    filter(withoutIgnored),
-    map(toEnumDetail),
-  )
-  const models = workFlow(modelBlocks)
-  const types = workFlow(typeBlocks)
-  const enums = enumWorkFlow(enumBlocks)
-  return { models, types, enums }
-}
-
-const enumTemplate = (entity: EnumDetail) => [
-  formatComment('\t', entity.comments),
-  `\texport const ${entity.name}: {`,
-  ...entity.props.map(v => [`\t\t${v.name}`, v.value].join(': ')),
-  '\t}',
-  `\texport type ${entity.name} = (typeof ${entity.name})[keyof typeof ${entity.name}]`,
-  '',
-]
-
-const getPropComment = ({ comments, attributes }: Property) => [
-  ...comments,
-  ...(attributes.default ? [`@default {${attributes.default}}`] : []),
-]
-
-const formatComment = (indent: string, comments: string[]) => {
-  const commentLength = comments.length
-  const formatedComment =
-    commentLength == 1
-      ? [`${indent}/**`, comments[0].trim(), '*/'].join(' ')
-      : commentLength > 1
-      ? [
-          [`${indent}/**`, ...comments.map(v => v.trimStart())].join(
-            `\n${indent} * `,
-          ),
-          `${indent} */`,
-        ].join('\n')
-      : ''
-  return formatedComment
-}
-
-const valueFromMapAttribute = (attrs: string[]) => {
-  const mapFn = attrs.find(v => v.startsWith('map'))
-  if (mapFn == null) return null
-  const vs = mapFn.match(ArgsValuePattern)
-  return vs != null ? vs[0] : null
-}
-
-const parseEnumCol = (v: LineInfo): EnumMemeber | null => {
-  const [attrPart, tailComment] = v.secondCol.split('///')
-  const attrs = attrPart.split('@')
-  if (attrs.some(v => v.startsWith('ingnore'))) return null
-  return {
-    name: v.fisrtCol,
-    value: valueFromMapAttribute(attrs) ?? `"${v.fisrtCol}"`,
-    comment: [...v.lineComment, tailComment].filter(notNull),
-  }
-}
-
-const makeTsTransformer =
-  (calcIsOptional: (p: Property) => boolean) =>
-  (kind: InputTypeKind) =>
-  (p: Property) => {
-    const { type } = p
-    const { modifier, contextual } = type
-    const tsType = contextual.isCompositeType
-      ? makeTypeName(kind, type.name)
-      : contextual.isEnum
-      ? type.name
-      : toTsType(type.name)
-    const result = [
-      '\t\t',
-      p.name,
-      calcIsOptional(p) ? '?' : '',
-      ': ',
-      contextual.isEnum ? `${p.type.name}` : tsType,
-      modifier.list ? '[]' : '',
-    ].join('')
-    const formatedComment = formatComment('\t\t', getPropComment(p))
-    return formatedComment.length > 1
-      ? [formatedComment, result].join('\n')
-      : result
-  }
-
-const withoutId = (p: Property): boolean =>
-  !(p.attributes.id && p.attributes.default != null)
-
-const makeMutationTsInterface =
-  (config: PurifyOption, kind: InputTypeKind) => (detail: Detail) => {
-    const { name, props, comments } = detail
-    const transmform2ts = makeTsTransformer(
-      kind == 'Update' ? p => true : checkIsOptional,
-    )
-    const pureProps = props
-      .filter(withoutId)
-      .filter(v => !v.type.contextual.isModel)
-    const lines = pureProps.map(transmform2ts(kind))
-    return [
-      ...(comments.length ? [formatComment('\t', comments)] : []),
-      `\texport interface ${makeTypeName(kind, name)} {`,
-      ...lines,
-      '\t}',
-      '',
-    ]
-  }
-
-type ParsedType = ReturnType<typeof parseModelAndType>
-
-const makePureTypes = (
-  { models, types, enums }: ParsedType,
-  config: PurifyOption,
-) => {
-  const makeCreateInputInterface = makeMutationTsInterface(config, 'Create')
-  const makeUpdateInputInterface = makeMutationTsInterface(config, 'Update')
-  const makeInterfaces = (m: Detail): string[] => [
-    ...makeCreateInputInterface(m),
-    ...makeUpdateInputInterface(m),
-  ]
-  const pureInterface = [
-    ...models.map(makeInterfaces),
-    ...types.map(makeInterfaces),
-    ...(enums.length > 0 ? ENUMS_BEGIN : []),
-    ...enums.map(enumTemplate),
-  ]
-    .flat()
-    .join('\n')
-  return pureInterface
-}
-
-const makeFullContent = (
-  { namespace, output, input }: PurifyOption,
-  pureInterface: string,
-  hasJsonType: boolean,
-) => {
-  const cwd = process.cwd()
-  const relativePath = relative(dirname(output), cwd)
-  const fullInput = resolve(input)
-  const fromPath = join(relativePath, fullInput.slice(cwd.length))
-  const comment = [
-    '/**',
-    ` * Purified prisma mutation types from [schema](${fromPath})\\`,
-    ' * Generated by command ```tealina gpure```\\',
-    ' */',
-  ]
-  const content = [
-    ...comment,
-    `export namespace ${namespace} {`,
-    pureInterface,
-    ...(hasJsonType ? [JSON_VALUE_TYPE.join('\n')] : []),
-    '}',
-  ].join('\n')
-  return content
+interface PurifyConfig {
+  /**
+   *  Overwrite specific prop.type
+   *  eg: OrderNo should be optional or exclude in OrderUpdateInput
+   */
+  overwrite?: Overwrite
+  /** remap type, eg: DateTime => number */
+  typeRemap?: (type: string) => string | null
 }
 
 interface PurifyOption {
@@ -389,36 +65,297 @@ interface PurifyOption {
   namespace: string
 }
 
-const checkHasJsonType = ({ models, types }: ParsedType) => {
-  const findFlow = flow(
-    (v: Detail) => v.props,
-    map(p => p.type.name),
-    unique,
-    xs => xs.some(v => v == 'Json'),
-  )
-  const hasJsonType = models.some(findFlow) || types.some(findFlow)
-  return hasJsonType
+type MutationKind = 'CreateInput' | 'UpdateInput'
+
+interface MatheLocate {
+  kind: MutationKind
+  keyword: string
+  blockName: string
 }
 
-const generatePureTypes = async (config: PurifyOption) => {
-  const schema = await parseSchema(config.input)
-  const details = parseModelAndType(schema)
-  const content = makePureTypes(details, config)
-  const fullContent = makeFullContent(
-    config,
-    content,
-    checkHasJsonType(details),
+interface MatchForOptionalChcek extends MatheLocate {
+  predicate: (prop: PropAST) => boolean
+}
+
+interface MatchForTypeTransform extends MatheLocate {
+  transform: (prop: PropAST) => string
+}
+
+interface MatchForExcludeProp extends MatheLocate {
+  predicate: (prop: PropAST) => boolean
+}
+
+interface Overwrite {
+  isOptional?: MatchForOptionalChcek[]
+  transofrmType?: MatchForTypeTransform[]
+  excludeProps?: MatchForExcludeProp[]
+}
+
+const formatComment = (lines: string[]) =>
+  isEmpty(lines)
+    ? []
+    : lines.length == 1
+    ? [`/** ${lines[0]} */`]
+    : ['/**', ...lines.map(v => ` * ${v}`), ' */']
+
+const byMatch = (block: BlockAST, kind: MutationKind) => (v: MatheLocate) =>
+  v.blockName == block.name && v.keyword == block.keyword && v.kind == kind
+
+const getSpace = (num: number) => Array(num).fill(' ').join('')
+
+const TabSpace = getSpace(2)
+
+/** https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#model-field-scalar-types */
+const justMap = new Map<string, string>([
+  ['BigInt', 'bigint'],
+  ['Int', 'number'],
+  ['Float', 'number'],
+  ['Decimal', 'number'],
+  ['String', 'string'],
+  ['DateTime', 'Date | string'],
+  ['Boolean', 'boolean'],
+  ['Json', 'JsonValue'],
+  ['Bytes', 'Buffer'],
+])
+
+type GetTsType = (x: PropAST) => string | null | undefined
+
+const TypeTransformStrategies: GetTsType[] = [
+  x => justMap.get(x.type),
+  x => (x.type.startsWith('Unsupported') ? 'unknown' : null),
+]
+
+const PropsExcludeStategies: ((x: PropAST) => boolean)[] = [
+  x => x.attribute.has('ignore'),
+  x => x.attribute.has('relation'),
+  x => x.kind == 'model',
+]
+
+const getFirstMatch = (strategies: GetTsType[]) => (x: PropAST) => {
+  if (x.kind != 'scalarType') return x.type
+  for (let i = 0; i < strategies.length; i++) {
+    const v = strategies[i](x)
+    if (v) return v
+  }
+  return 'any'
+}
+
+const useWhen = (s: string, isValid: boolean) => (isValid ? s : '')
+
+const defaultConfig: Record<
+  MutationKind,
+  {
+    checkOptional: (prop: PropAST) => boolean
+    transformStrategies: GetTsType[]
+  }
+> = {
+  CreateInput: {
+    checkOptional: prop =>
+      prop.modifier == '?' ||
+      prop.attribute.has('updatedAt') ||
+      prop.attribute.has('default'),
+    transformStrategies: TypeTransformStrategies,
+  },
+  UpdateInput: {
+    checkOptional: prop => true,
+    transformStrategies: TypeTransformStrategies,
+  },
+}
+
+const propDefaultAttr2comment = (prop: PropAST) => {
+  const attr = prop.attribute.get('default')
+  if (attr == null) return []
+  return [`@default {${attr.slice(1, -1)}}`] // without brackets
+}
+
+const prop2ts =
+  (option: {
+    optinalChchek: (prop: PropAST) => boolean
+    transformType: (prop: PropAST) => string
+  }) =>
+  (prop: PropAST) =>
+    [
+      ...formatComment(
+        prop.comment.public.concat(propDefaultAttr2comment(prop)),
+      ),
+      [
+        prop.name,
+        useWhen('?', option.optinalChchek(prop)),
+        ':',
+        ' ',
+        option.transformType(prop),
+        useWhen('[]', prop.modifier == '[]'),
+      ].join(''),
+    ]
+
+const block2ts =
+  (option: {
+    makeName: (block: BlockAST) => string
+    checkIsOptional: (block: BlockAST) => (prop: PropAST) => boolean
+    transformType: (block: BlockAST) => (prop: PropAST) => string
+    notExclude: (block: BlockAST) => (prop: PropAST) => boolean
+  }) =>
+  (block: BlockAST) => {
+    const commentLines = formatComment(block.comment.public)
+    const headLine = [`interface ${option.makeName(block)}{`]
+    const propLines = pipe(
+      block.props,
+      filter(option.notExclude(block)),
+      map(
+        prop2ts({
+          optinalChchek: option.checkIsOptional(block),
+          transformType: option.transformType(block),
+        }),
+      ),
+      flat,
+      map(v => [TabSpace, v].join('')), //indent
+    )
+    return [commentLines, headLine, propLines, '}', ''].flat()
+  }
+
+const findIsOptionalCheck = (
+  block: BlockAST,
+  kind: MutationKind,
+  matches?: MatchForOptionalChcek[],
+) => {
+  if (matches == null) return null
+  const target = matches.find(byMatch(block, kind))
+  return target?.predicate
+}
+
+const findBlockSpecificTransform = (
+  block: BlockAST,
+  kind: MutationKind,
+  matches?: MatchForTypeTransform[],
+) => {
+  if (matches == null) return null
+  return matches.find(byMatch(block, kind))?.transform
+}
+
+const findBlockSpecificExclude = (
+  block: BlockAST,
+  kind: MutationKind,
+  matches?: MatchForExcludeProp[],
+) => {
+  if (matches == null) return null
+  return matches.find(byMatch(block, kind))?.predicate
+}
+
+const toFilterFn =
+  (predicates: ((x: PropAST) => boolean)[]) => (prop: PropAST) =>
+    !predicates.some(fn => fn(prop))
+
+const toDetermineFn =
+  (predicates: ((x: PropAST) => boolean)[]) => (prop: PropAST) =>
+    predicates.some(fn => fn(prop))
+
+const makeMutationTsInterface = (
+  kind: MutationKind,
+  { overwrite, typeRemap }: PurifyConfig,
+) =>
+  block2ts({
+    makeName: block => [block.name, kind].join(''),
+    checkIsOptional: block =>
+      toDetermineFn(
+        [
+          findIsOptionalCheck(block, kind, overwrite?.isOptional),
+          defaultConfig[kind].checkOptional,
+        ].filter(notNull),
+      ),
+    transformType: block =>
+      getFirstMatch(
+        [
+          findBlockSpecificTransform(block, kind, overwrite?.transofrmType),
+          typeRemap ? (prop: PropAST) => typeRemap(prop.type) : null,
+          ...TypeTransformStrategies,
+        ].filter(notNull),
+      ),
+    notExclude: block =>
+      toFilterFn(
+        [
+          findBlockSpecificExclude(block, kind, overwrite?.excludeProps),
+          ...PropsExcludeStategies,
+        ].filter(notNull),
+      ),
+  })
+
+const withoutBreckets = (x?: string) => (x == null ? null : x.slice(1, -1))
+
+const enum2ts = ({ name, comment, props }: BlockAST): string[] => [
+  ...formatComment(comment.public),
+  `export const ${name}: {`,
+  ...props.map(v =>
+    [
+      `${TabSpace}${v.name}`,
+      withoutBreckets(v.attribute.get('map')) ?? `"${v.name}"`,
+    ].join(': '),
+  ),
+  '}',
+  `export type ${name} = (typeof ${name})[keyof typeof ${name}]`,
+  '',
+]
+
+const ConcernedKeywords = ['model', 'enum', 'type']
+
+const wrapperWith =
+  ({ input, namespace }: PurifyOption) =>
+  (lines: string[]) =>
+    [
+      ...formatComment([`Purified mutation types from [schema](${input})`]),
+      `export namespace ${namespace} {`,
+      '',
+      ...lines.map(v => `${TabSpace}${v}`),
+      '}',
+    ]
+
+const makeTypeCodes = (config: PurifyConfig) => (blockList: BlockAST[]) => {
+  const hasJsonValue = blockList.some(v =>
+    v.props.some(p => p.type == 'JsonValue'),
   )
-  await fs.writeFile(config.output, fullContent)
-  consola.success(
-    chalk.green(`Generated success! output path : ${config.output}`),
+  return pipe(
+    blockList,
+    groupBy(block => block.keyword),
+    g =>
+      pipe(
+        g.get('model') ?? [],
+        concat(g.get('type') ?? []),
+        map(block =>
+          pipe(
+            makeMutationTsInterface('CreateInput', config)(block),
+            concat(makeMutationTsInterface('UpdateInput', config)(block)),
+          ),
+        ),
+        xs => {
+          if (!g.has('enum')) return xs
+          return pipe(
+            xs,
+            concat([ENUMS_BEGIN]),
+            concat(g.get('enum')!.map(enum2ts)),
+          )
+        },
+      ),
+    flat,
+    hasJsonValue ? concat(JSON_VALUE_TYPE) : x => x,
   )
 }
 
-export {
-  generatePureTypes,
-  parseModelAndType,
-  makePureTypes,
-  JSON_VALUE_TYPE,
-  ENUMS_BEGIN,
+const workflow = (config: PurifyOption & PurifyConfig) =>
+  asyncPipe(
+    parseSchame(config.input),
+    filter(block => ConcernedKeywords.includes(block.keyword)),
+    filter(block => !block.attribute.has('ignore')),
+    makeTypeCodes(config),
+    wrapperWith(config),
+    xs => writeFile(config.output, xs.join('\n')),
+  )
+
+const generatePureTypes = async (option: TealinaComonOption & PurifyOption) => {
+  const config = await loadConfig(option)
+  const purifyConfig = config.gpure ?? {}
+  return workflow({
+    ...pickFn(option, 'input', 'namespace', 'output'),
+    ...purifyConfig,
+  })
 }
+export { generatePureTypes, workflow }
+export type { PurifyConfig }

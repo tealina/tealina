@@ -1,5 +1,5 @@
 //@ts-check
-import { readFileSync } from 'node:fs'
+import { readFileSync } from 'fs'
 import path from 'node:path'
 import { DocKind } from '@tealina/doc-types'
 import ts from 'typescript'

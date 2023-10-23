@@ -1,5 +1,5 @@
 import { exec, spawn, spawnSync } from 'child_process'
-import { existsSync, rmSync } from 'node:fs'
+import { existsSync, rmSync } from 'fs'
 import path from 'node:path'
 import { beforeAll } from 'vitest'
 

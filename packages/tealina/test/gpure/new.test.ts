@@ -1,8 +1,29 @@
 import { test } from 'vitest'
-import { workFlow } from '../../src/commands/gpure-new'
-import { writeFile } from 'fs/promises'
+import { workflow } from '../../src/commands/gpure'
 const filePath = 'packages/tealina/test/utils/mock/mock.prisma'
 test('new gpure', async () => {
-  const result = await workFlow(filePath)
-  await writeFile('temp/pure.d.ts', result)
+  const result = await workflow({
+    input: filePath,
+    namespace: 'Pure',
+    output: 'temp/pure.d.ts',
+    typeRemap: t => (t == 'DateTime' ? 'number' : null),
+    overwrite: {
+      excludeProps: [
+        {
+          blockName: 'User',
+          keyword: 'model',
+          kind: 'CreateInput',
+          predicate: p => p.name == 'role',
+        },
+      ],
+      isOptional: [
+        {
+          blockName: 'User',
+          keyword: 'model',
+          kind: 'CreateInput',
+          predicate: p => p.name == 'email',
+        },
+      ],
+    },
+  })
 })

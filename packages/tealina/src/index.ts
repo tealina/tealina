@@ -1,3 +1,5 @@
+import { PurifyConfig } from './commands/gpure'
+
 export * from '@tealina/doc-types'
 export interface CreationCtx {
   dir?: string
@@ -69,6 +71,7 @@ export interface TealinaConifg {
    * Read for check whether the compilerOptions.moduleResulove is 'Bundelr'
    * @default "tsconfig.json" */
   tsconfigPath?: string
+  gpure?: PurifyConfig
 }
 
 export const defineConfig = (config: TealinaConifg) => config

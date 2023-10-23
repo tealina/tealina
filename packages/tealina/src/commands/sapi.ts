@@ -12,7 +12,7 @@ import {
   pipe,
   waitAll,
 } from 'fp-lite'
-import { statSync } from 'node:fs'
+import { statSync } from 'fs'
 import { readFile, readdir } from 'node:fs/promises'
 import { basename, join } from 'pathe'
 import { genIndexProp, genWithWrapper } from '../utils/codeGen'

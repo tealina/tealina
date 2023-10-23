@@ -1,4 +1,4 @@
-import fs, { readFileSync } from 'node:fs'
+import fs, { readFileSync } from 'fs'
 import fsp from 'fs/promises'
 import path from 'node:path'
 import { extname, normalize, resolve } from 'pathe'
@@ -62,7 +62,9 @@ export const readIndexFile = (indexFilePath: string): Promise<string[]> =>
     () => [],
   )
 
-export type MinimalInput = Required<TealinaConifg> & DirInfo
+export type MinimalInput = Required<Omit<TealinaConifg, 'gpure'>> &
+  Pick<TealinaConifg, 'gpure'> &
+  DirInfo
 
 export const loadConfig = async (
   opt: TealinaComonOption,

@@ -20,7 +20,6 @@ import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
 import { TealinaComonOption as TealinaCommonOption } from '../utils/options'
-import { parseSchema, toFindable } from '../utils/parsePrisma'
 import {
   MinimalInput,
   getSuffix,
@@ -37,6 +36,7 @@ import {
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
+import { extraModelNames } from '../utils/parsePrisma'
 
 export interface BaseOption extends TealinaCommonOption {
   /** restful style */
@@ -136,12 +136,6 @@ const validateInput = (...dynamicArgs: any[]): Promise<OptionTypes> => {
   }
 }
 
-const getModelNamesInSchema = async (option: ByModelOption) => {
-  const schema = await parseSchema(option.schema)
-  const { findBlocks, takeBlockName } = toFindable(schema)
-  return findBlocks('model').map(flow(takeBlockName, unCapitalize))
-}
-
 const makeStrategies = (
   method: string,
   name: string,
@@ -169,8 +163,9 @@ const prepareKindArgsByModel = async (
   tempConfig: ApiTemplateType[],
 ): Promise<Seeds[]> => {
   const { templateAlias } = opt
-  const modelNames = await getModelNamesInSchema(opt)
-  return parseByAlias(modelNames, tempConfig, templateAlias)
+  const nameGroup = await extraModelNames(opt.schema)
+  const rawNames = nameGroup.get('model') ?? []
+  return parseByAlias(rawNames.map(unCapitalize), tempConfig, templateAlias)
 }
 
 const getTouchedKinds = (opt: BaseOption, tempConfig: ApiTemplateType[]) => {

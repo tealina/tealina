@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import fs, { existsSync, writeFileSync } from 'node:fs'
+import fs, { existsSync, writeFileSync } from 'fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import prompts from 'prompts'

@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process'
-import { writeFileSync } from 'node:fs'
+import { writeFileSync } from 'fs'
 import { readFile } from 'node:fs/promises'
 
 const TEMP_LIST = [
