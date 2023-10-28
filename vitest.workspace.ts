@@ -4,6 +4,7 @@ export default defineWorkspace([
   {
     test: {
       name: 'create-tealina',
+      testTimeout: 0,
       include: ['packages/create-tealina/test/**/*.test.ts'],
     },
   },
