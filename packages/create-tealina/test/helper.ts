@@ -26,7 +26,7 @@ const prepareExecFn =
       let out: string[] = []
       p.stdout.on('data', chunk => {
         const msg = chunk.toString()
-        console.log(msg)
+        // console.log(msg)
         out.push(msg)
       })
       p.on('close', code => {
@@ -39,7 +39,12 @@ export async function validate(dir: string) {
   const cwd = path.join(dir, 'server')
   const $ = prepareExecFn(cwd)
   await $`pnpm install .` //workspace
-  await $`node init-dev.mjs`
+  // await $`node init-dev.mjs`
+  await $`pnpm install`
+  await $`pnpm prisma db push`
+  await $`pnpm v1 gpure`
+  await $`pnpm v1 capi get/health --with-test`
+  await $`pnpm v1 gdoc`
   await $`pnpm test -- --run --testTimeout=0`
   await $`pnpm tsc --noEmit`
 }
