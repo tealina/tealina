@@ -1,7 +1,6 @@
 import {
   asyncFlow,
   concat,
-  deepFlat,
   filter,
   flat,
   flow,
@@ -92,7 +91,8 @@ const getRelativeFilesSnapshots = (ctx: FullContext): Snapshot[] =>
   pipe(
     seeds2kindScope(ctx.seeds),
     calcByKinds(ctx),
-    deepFlat(2),
+    flat,
+    flat,
     map(completePath(ctx.commonOption)),
     concat(calcTypeFileSnapshot(ctx)),
   )

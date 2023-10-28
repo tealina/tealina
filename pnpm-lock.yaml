@@ -89,14 +89,17 @@ importers:
         specifier: ^3.2.3
         version: 3.2.3
       fp-lite:
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: 2.0.0
+        version: 2.0.0
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
       pathe:
         specifier: ^1.1.1
         version: 1.1.1
+      tealina:
+        specifier: workspace:*
+        version: 'link:'
     devDependencies:
       '@types/fs-extra':
         specifier: ^11.0.1
@@ -3533,6 +3536,11 @@ packages:
   /fp-lite@1.2.0:
     resolution: {integrity: sha512-sMpj8zFIRsFVVnk5FAaI3wQtIwTfH4sKfhWhKogT8zVe8xyLNJTQ5C9OKtz+l+aSQ3AyhDRn7zRu8oJ0VAkaPA==}
     engines: {node: ^14.18.0 || >=16.0.0}
+    dev: false
+
+  /fp-lite@2.0.0:
+    resolution: {integrity: sha512-idx2+aOWu6tMJfF08/dK6E1eUGZ0UgoXyypVy0qstFwpRh29F9eHwiBulCbBTdtv3DG/U3TSXN+EwSdzwe2Mhg==}
+    engines: {node: ^18.0.0 || >=20.0.0}
     dev: false
 
   /fs-extra@11.1.1:

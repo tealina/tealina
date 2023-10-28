@@ -7,10 +7,10 @@ const filePath = 'packages/tealina/test/utils/mock/mock.prisma'
 test('extra outline', async () => {
   const reuslt = await extraModelNames(filePath)
   expect(reuslt.size).eq(1)
-  expect(reuslt.get('model')).deep.eq(['User', 'Post'])
+  expect(reuslt.get('model')).deep.eq(['User', 'Post', 'BlockIgnore'])
 })
 
-test.only('parse to ast', async () => {
+test('parse to ast', async () => {
   const astList = await parseSchame(filePath)
   expect(astList.length).gte(1)
   const outline = [
