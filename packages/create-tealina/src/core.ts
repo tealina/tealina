@@ -227,7 +227,7 @@ const createWebProject = (ctx: ContextType) => {
     copyDir(viteWebTemplateDir, webDestDir)
     createProject(viteWebTemplateDir, webDestDir, pkg => {
       pkg.dependencies.axios = '^1.4.1'
-      pkg.dependencies['fp-lite'] = '^1.1.0'
+      pkg.dependencies['fp-lite'] = '^2.0.0'
       pkg.devDependencies['server'] = 'link:../server'
       return pkg
     })
