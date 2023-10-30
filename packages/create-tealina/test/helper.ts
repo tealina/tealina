@@ -23,15 +23,17 @@ const prepareExecFn =
       const p = spawn(leader, args, {
         cwd,
       })
-      let out: string[] = []
-      p.stdout.on('data', chunk => {
-        const msg = chunk.toString()
-        // console.log(msg)
-        out.push(msg)
+      // p.stdout.on('data', chunk => {
+      //   const msg = chunk.toString()
+      //   console.log(msg)
+      // })
+      const errMsgLines: string[] = []
+      p.stderr.on('data', c => {
+        errMsgLines.push(c.toString())
       })
       p.on('close', code => {
         if (code == 0) return res()
-        return rej(new Error(out.join('')))
+        return rej(new Error(errMsgLines.join('\n')))
       })
     })
 
@@ -40,7 +42,6 @@ export async function validate(dir: string) {
   const $ = prepareExecFn(cwd)
   await $`pnpm install .` //workspace
   // await $`node init-dev.mjs`
-  await $`pnpm install`
   await $`pnpm prisma db push`
   await $`pnpm v1 gpure`
   await $`pnpm v1 capi get/health --with-test`

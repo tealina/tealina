@@ -1,8 +1,11 @@
 import chalk from 'chalk'
+import { spawn } from 'child_process'
 import fs, { existsSync, writeFileSync } from 'fs'
+import minimist from 'minimist'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import prompts from 'prompts'
+import { Readable } from 'stream'
 
 const { blue, green, reset } = chalk
 const { join } = path
@@ -132,13 +135,16 @@ const mayCopyCommonDir = (templateDir: string, destDir: string) => {
   }
 }
 
-const collectUserAnswer = () =>
+const formatDestDir = (dest: string) => dest.trim().replace(/\/+$/g, '')
+
+const collectUserAnswer = (argProjectName: string | undefined) =>
   prompts(
     [
       {
         message: reset('Project name:'),
         name: 'projectName',
-        type: 'text',
+        type: argProjectName ? null : 'text',
+        initial: argProjectName ?? 'tealina-project',
       },
       {
         message: reset('Select a server template:'),
@@ -165,6 +171,7 @@ const collectUserAnswer = () =>
         type: 'select',
         choices: [
           { title: 'React', value: 'react-ts' },
+          { title: 'React + SWC', value: 'react-swc-ts' },
           { title: 'Vue', value: 'vue-ts' },
           { title: 'Svelte', value: 'svelte-ts' },
           { title: 'Lit', value: 'lit-ts' },
@@ -180,7 +187,10 @@ const collectUserAnswer = () =>
         throw 'Canceled'
       },
     },
-  )
+  ).then(v => ({
+    ...v,
+    projectName: formatDestDir(v.projectName ?? argProjectName),
+  }))
 
 type ContextType = Awaited<ReturnType<typeof createCtx>>
 
@@ -216,31 +226,100 @@ const createServerProject = (ctx: ContextType) => {
   writeBasicInitDevFile(ctx.pkgManager, destServerDir)
 }
 
-const createWebProject = (ctx: ContextType) => {
+const runCreateVite = async (ctx: ContextType, webName: string) =>
+  new Promise<void>(res => {
+    const { answer, pkgManager } = ctx
+    const leader = pkgManager == 'npm' ? 'npx' : pkgManager
+
+    const fullArgs = ['create', 'vite', `${webName}`, '-t', answer.web]
+    console.log('  Running', leader, ...fullArgs)
+
+    const p = spawn(leader, fullArgs)
+    let shouldSilen = false
+    const inputSteam = new Readable({
+      read: function (_size) {
+        if (shouldSilen) return
+        this.push('\n')
+        shouldSilen = true
+      },
+    }).pipe(p.stdin)
+    // ignore this error
+    inputSteam.on('error', _err => {})
+    const reporter = (chunk: any) => {
+      if (shouldSilen) return
+      const line = chunk.toString().trim()
+      console.log(line, line.length)
+    }
+    p.stdout.on('data', reporter)
+    p.stderr.on('data', reporter)
+    p.on('error', err => {
+      console.log('Run create vite faled, skip current step')
+      console.error('errr', err)
+      res()
+    })
+    p.on('close', code => {
+      if (code != 0) return
+      res()
+    })
+  })
+
+const updatePackageJson = (webDestDir: string) => {
+  let pkg = JSON.parse(
+    fs.readFileSync(join(webDestDir, 'package.json'), 'utf-8'),
+  )
+  pkg.dependencies.axios = '^1.4.1'
+  pkg.devDependencies['server'] = 'link:../server'
+  fs.writeFileSync(
+    join(webDestDir, 'package.json'),
+    JSON.stringify(pkg, null, 2),
+  )
+}
+
+const emptyDir = (dir: string) => {
+  if (!fs.existsSync(dir)) return
+  for (const file of fs.readdirSync(dir)) {
+    if (file === '.git') continue
+    fs.rmSync(path.resolve(dir, file), { recursive: true, force: true })
+  }
+}
+
+const createWebProject = async (ctx: ContextType) => {
   const { projectRootDir, answer, dest } = ctx
   const webDestDir = join(dest, 'web')
-  const viteWebTemplateDir = join(
-    projectRootDir,
-    `node_modules/create-vite/template-${answer.web}`,
-  )
-  if (answer.web != 'none' && existsSync(viteWebTemplateDir)) {
-    copyDir(viteWebTemplateDir, webDestDir)
-    createProject(viteWebTemplateDir, webDestDir, pkg => {
-      pkg.dependencies.axios = '^1.4.1'
-      pkg.dependencies['fp-lite'] = '^2.0.0'
-      pkg.devDependencies['server'] = 'link:../server'
-      return pkg
-    })
+  if (answer.web != 'none') {
+    const webName = path
+      .join(answer.projectName, 'web')
+      .split(path.sep)
+      .join('/')
+    if (existsSync(webName)) {
+      const confirm = await prompts([
+        {
+          type: 'confirm',
+          name: 'overwrite',
+          message:
+            `Target directory "${webName}"` +
+            ` is not empty. Remove existing files and continue?`,
+        },
+      ])
+      if (!confirm.overwrite) {
+        throw 'Canceled'
+      }
+      emptyDir(webName)
+    }
+    await runCreateVite(ctx, webName)
+    updatePackageJson(webDestDir)
   }
   const webExtraTemplateDir = join(projectRootDir, 'template', 'web')
   injectExtraTemplates(webDestDir, webExtraTemplateDir)
 }
 
 const createCtx = async () => {
-  const [, , ...options] = process.argv
-  const answer = await collectUserAnswer()
+  const argv = minimist<{
+    d?: boolean
+  }>(process.argv.slice(2), { string: ['_'], boolean: ['d'] })
+  const answer = await collectUserAnswer(argv._[0])
   const cwd = process.cwd()
-  const dest = path.resolve(cwd, answer.projectName.trim())
+  const dest = path.resolve(cwd, answer.projectName)
   const projectRootDir = path.resolve(fileURLToPath(import.meta.url), '../../')
   const pkgManager = pkgFromUserAgent(process.env.npm_config_user_agent)
   const isDemo = answer.server == 'demo'
@@ -248,14 +327,14 @@ const createCtx = async () => {
     answer: isDemo ? { ...answer, server: 'express' } : answer,
     dest,
     projectRootDir,
-    isDemo: isDemo || options.includes('-d'), //for test
+    isDemo: isDemo || argv.d, //for test
     pkgManager,
   }
 }
 
 export const createScaffold = async () => {
   const ctx = await createCtx()
-  createWebProject(ctx)
   createServerProject(ctx)
+  await createWebProject(ctx)
   showGuide(ctx)
 }

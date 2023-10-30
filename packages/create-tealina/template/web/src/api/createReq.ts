@@ -1,6 +1,8 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { pipe, isEmpty } from 'fp-lite'
-import type { EmptyObject, Simplify } from '../types/utility'
+
+declare const emptyObjectSymbol: unique symbol
+type EmptyObject = { [emptyObjectSymbol]?: never }
+type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 type BaseShape = {
   headers: Record<string, any>
@@ -28,26 +30,25 @@ type DynamicParmasType =
 const descendByKeyLength = (kvs: [string, any][]): [string, any][] =>
   kvs.sort((a, b) => b[0].length - a[0].length)
 
-const replaceURL = (url: string) => (sortedKeyValues: [string, any][]) =>
+const replaceURL = (url: string, sortedKeyValues: [string, any][]) =>
   sortedKeyValues.reduce(
     (acc, [k, v]) => acc.replace(':'.concat(k), String(v)),
     url,
   )
 
-const toActualURL = (url: string, params?: Record<string, any>) =>
-  params == null
-    ? url
-    : pipe(Object.entries(params), descendByKeyLength, replaceURL(url))
-
 const transformPayload = (
   url: string,
   args: DynamicParmasType,
 ): AxiosRequestConfig => {
-  if (isEmpty(args)) return {}
+  if (args.length < 1) return {}
   const [payload, config] = args
   const { query, params, body, ...rest } = payload as PayloadType
+  const actualUrl =
+    params == null
+      ? url
+      : replaceURL(url, descendByKeyLength(Object.entries(params)))
   return {
-    url: toActualURL(url, params),
+    url: actualUrl,
     params: query,
     data: body,
     ...rest,

@@ -5,7 +5,8 @@
   "description": "create a full stack project ",
   "scripts": {
     "build": "unbuild",
-    "test": "vitest --dir test --testTimeout=0 --run"
+    "test": "vitest --dir test --testTimeout=0 --run",
+    "cproj": "tsx src/index.ts"
   },
   "bin": {
     "create-tealina": "index.js"
@@ -19,6 +20,7 @@
   "author": "Neo Yeo",
   "license": "MIT",
   "devDependencies": {
+    "@types/minimist": "^1.2.4",
     "@types/prompts": "^2.4.2",
     "tsx": "3.12.7"
   },
@@ -28,7 +30,7 @@
   "dependencies": {
     "chalk": "^5.2.0",
     "create-tealina": "link:",
-    "create-vite": "^4.4.1",
+    "minimist": "^1.2.8",
     "pathe": "^1.1.1",
     "prompts": "^2.4.2"
   }
