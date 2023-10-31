@@ -1,6 +1,6 @@
 {
   "name": "tealina",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "main": "dist/index.mjs",
   "description": "A cli for develop APIs with end to end typesave, document generation",
