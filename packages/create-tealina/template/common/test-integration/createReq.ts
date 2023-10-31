@@ -1,6 +1,6 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { pipe, isEmpty } from 'fp-lite'
-import type { EmptyObject, Simplify } from '../types/utility'
+import type { EmptyObject, Simplify } from '../types/utility.js'
 
 type BaseShape = {
   headers: Record<string, any>

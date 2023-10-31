@@ -75,7 +75,7 @@ export const loadConfig = async (
       ...v,
       typesDir: normalize(v.typesDir),
       testDir: normalize(v.testDir),
-      tsconfigPath: normalize(v.tsconfigPath ?? './tsconfig.json'),
+      suffix: v.suffix ?? '.js',
       ...opt,
     }))
 
@@ -84,9 +84,6 @@ export interface TsConfig {
     moduleResolution?: 'Bundler' | string
   }
 }
-
-export const getSuffix = (v: TsConfig) =>
-  v.compilerOptions?.moduleResolution == 'Bundler' ? '' : '.js'
 
 export const readTsConfig = async (tsconfigPath: string) => {
   const parsedConfig = ts.readConfigFile(tsconfigPath, p =>

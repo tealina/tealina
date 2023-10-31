@@ -1,7 +1,7 @@
 import { flat, flow, groupBy, map, pipe } from 'fp-lite'
-// import { catchErrorWrapper } from './catchErrorWrapper'
+// import { catchErrorWrapper } from './catchErrorWrapper.js'
 import { FastifyInstance, HTTPMethods, preHandlerHookHandler } from 'fastify'
-import { ResolvedAPIs } from './resolveBatchExport'
+import { ResolvedAPIs } from './resolveBatchExport.js'
 
 const orderBySlashCount = (xs: string[] = []) =>
   xs

@@ -67,11 +67,9 @@ export interface TealinaConifg {
    * Where generated integration test file store
    */
   testDir: string
-  /**
-   * Read for check whether the compilerOptions.moduleResulove is 'Bundelr'
-   * @default "tsconfig.json" */
-  tsconfigPath?: string
   gpure?: PurifyConfig
+  /** the import statement suffix @default {".js"} */
+  suffix?: string
 }
 
 export const defineConfig = (config: TealinaConifg) => config

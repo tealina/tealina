@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express'
-import type { CustomHandlerType } from '../types/handler'
+import type { CustomHandlerType } from '../types/handler.js'
 
 type ConstrainedHandlerType = readonly [...RequestHandler[], CustomHandlerType]
 

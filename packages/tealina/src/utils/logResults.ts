@@ -14,6 +14,11 @@ const LOG_CONFIG: Record<Snapshot['action'], LogConfig> = {
   update: { leading: '^', colorFn: chalk.cyan },
 }
 
+const simpleLogFn = consola.create({
+  formatOptions: {
+    date: false,
+  },
+})
 const logByAction = (effects: Snapshot[]) => {
   const { leading, colorFn } = LOG_CONFIG[effects[0].action]
   pipe(
@@ -23,7 +28,7 @@ const logByAction = (effects: Snapshot[]) => {
     map(v => `  ${leading} ${v}`),
     map(colorFn),
     xs => xs.join('\n'),
-    x => (x.length > 0 ? consola.log(x) : null),
+    x => (x.length > 0 ? simpleLogFn.log(x) : null),
   )
 }
 

@@ -14,17 +14,11 @@ import {
 } from 'fp-lite'
 import { statSync } from 'fs'
 import { readFile, readdir } from 'node:fs/promises'
-import { basename, join } from 'pathe'
-import { genIndexProp, genWithWrapper } from '../utils/codeGen'
+import { basename, dirname, join } from 'pathe'
+import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import {
-  MinimalInput,
-  getSuffix,
-  loadConfig,
-  readTsConfig,
-  withoutSuffix,
-} from '../utils/tool'
+import { MinimalInput, loadConfig, withoutSuffix } from '../utils/tool'
 import { validateKind } from '../utils/validate'
 import {
   DirInfo,
@@ -76,16 +70,13 @@ const readIndexContent = (dir: string) =>
     () => '',
   )
 
-const toExportcode = (suffix: string) =>
+const makeExportCode = (suffix: string) =>
   flow(
     withoutSuffix,
     x => x.replace(LeaderSlash, ''),
     x => x.split('/'),
     genIndexProp(suffix),
   )
-
-const genIndexContent = (suffix: string) =>
-  flow(map(toExportcode(suffix)), genWithWrapper)
 
 const makeIndexFileSnapshot = (kind: string, code: string): Snapshot => ({
   group: 'api',
@@ -137,16 +128,19 @@ const collectApiInfo = ({ apiDir }: DirInfo) =>
     waitAll,
   )
 
-const toSnapshot = (suffix: string) => (v: GatherPhase) =>
-  pipe(v.files, genIndexContent(suffix), freshCode =>
+const toSnapshot = (genCodeFn: (x: string) => string) => (v: GatherPhase) =>
+  pipe(v.files, map(genCodeFn), genWithWrapper, freshCode =>
     v.content == freshCode ? null : makeIndexFileSnapshot(v.kind, freshCode),
   )
+
+const topIndexSnapshot = (info: FileTreeInfo) =>
+  toSnapshot(f => genTopIndexProp(info.suffix)(dirname(f)))(info.topIndexFile)
 
 const calcSnapshots = (info: FileTreeInfo): Snapshot[] =>
   pipe(
     info.kindIndexFiles,
-    map(toSnapshot(info.suffix)),
-    concat(toSnapshot(info.suffix)(info.topIndexFile)),
+    map(toSnapshot(makeExportCode(info.suffix))),
+    concat(topIndexSnapshot(info)),
     filter(notNull),
     map(completePath(info.commonOption)),
     concat(calcTypeFileSnapshot(info)),
@@ -154,17 +148,13 @@ const calcSnapshots = (info: FileTreeInfo): Snapshot[] =>
 
 const collectContext = (commonOption: MinimalInput) =>
   asyncPipe(
-    waitAll([
-      collectApiInfo(commonOption),
-      collectTypeFileInfo(commonOption),
-      readTsConfig(commonOption.tsconfigPath).then(getSuffix),
-    ]),
-    ([[kindIndexFiles, topIndexFile], typeFileInfo, suffix]) => ({
+    waitAll([collectApiInfo(commonOption), collectTypeFileInfo(commonOption)]),
+    ([[kindIndexFiles, topIndexFile], typeFileInfo]) => ({
       kindIndexFiles,
       topIndexFile,
       typeFileInfo,
       commonOption,
-      suffix,
+      suffix: commonOption.suffix,
     }),
   )
 

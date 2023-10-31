@@ -1,5 +1,5 @@
 import { asyncPipe, map, waitAll } from 'fp-lite'
-import { CustomHandlerType } from '../../types/handler'
+import { CustomHandlerType } from '../../types/handler.js'
 
 const toKeyValues = <T extends Record<string, any>>(obj: T) =>
   Object.entries<T>(obj)
@@ -10,7 +10,7 @@ const loadEachMethod = <T extends Record<string, Promise<KindImps>>>([
 ]: [string, T[string]]) =>
   asyncPipe(
     sameMethodApiImps,
-    module => toKeyValues(module.default), // module = {'user/create': import('./user/create')}
+    module => toKeyValues(module.default), // module = {'user/create': import('./user/create.js')}
     map(([urlKey, handlerImp]) =>
       handlerImp.then(handlerModule => [urlKey, handlerModule.default]),
     ),

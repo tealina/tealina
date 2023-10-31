@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import consola from 'consola'
 import { isEmpty } from 'fp-lite'
-import { basename, join } from 'pathe'
+import { basename, join, normalize } from 'pathe'
 import { TealinaComonOption } from '../utils/options'
 import { parseDeclarationFile } from '../utils/parseDeclarationFile'
 import { ensureWrite, loadConfig } from '../utils/tool'
@@ -18,7 +18,7 @@ export const startGenerateDoc = async (options: GdocOptions) => {
   const entries = [getApiTypeFilePath({ apiDir, typesDir: config.typesDir })]
   const result = parseDeclarationFile({
     entries,
-    tsconfigPath: config.tsconfigPath,
+    tsconfigPath: normalize(options.tsconfig),
   })
   const allRecords = Object.values(result).map(v => Object.values(v))
   if (allRecords.every(isEmpty)) {

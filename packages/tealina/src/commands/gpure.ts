@@ -1,3 +1,5 @@
+import chalk from 'chalk'
+import consola from 'consola'
 import {
   asyncPipe,
   concat,
@@ -10,10 +12,10 @@ import {
   pickFn,
   pipe,
 } from 'fp-lite'
-import { BlockAST, PropAST, parseSchame } from '../utils/parsePrisma'
-import { loadConfig } from '../utils/tool'
 import { writeFile } from 'fs/promises'
 import { TealinaComonOption } from '../utils/options'
+import { BlockAST, PropAST, parseSchame } from '../utils/parsePrisma'
+import { loadConfig } from '../utils/tool'
 
 /**
  * static declaration, inject on demand,
@@ -347,6 +349,10 @@ const workflow = (config: PurifyOption & PurifyConfig) =>
     makeTypeCodes(config),
     wrapperWith(config),
     xs => writeFile(config.output, xs.join('\n')),
+    () =>
+      consola.success(
+        chalk.green('Types Generated, save at: ' + config.output),
+      ),
   )
 
 const generatePureTypes = async (option: TealinaComonOption & PurifyOption) => {

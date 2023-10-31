@@ -35,6 +35,9 @@ cli
   .option('-o,--output-dir <path>', `[string] output dir`, {
     default: 'docs',
   })
+  .option('--tsconfig <path>', `[string] output dir`, {
+    default: './tsconfig.json',
+  })
   .action(startGenerateDoc)
 
 cli

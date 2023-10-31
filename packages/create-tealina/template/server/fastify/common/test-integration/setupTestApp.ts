@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { afterAll } from 'vitest'
-import { buildApp } from '../src/app/index'
+import { buildApp } from '../src/app/index.js'
 
 export const setupTestApp = async () => {
   const ref = {} as { server: FastifyInstance }

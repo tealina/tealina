@@ -7,7 +7,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install",
-    "cproj": "tsx packages/create-tealina/src/index.ts",
+    "cproj": "node packages/create-tealina/dist/index.mjs",
     "format:check": "prettier --check .",
     "up-temp-versions": "node scripts/update-version-in-template.mjs",
     "test": "vitest --run",

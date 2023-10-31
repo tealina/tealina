@@ -4,11 +4,11 @@ import Fastify from 'fastify'
 import { omitFn, pickFn } from 'fp-lite'
 import path from 'node:path'
 import qs from 'qs'
-import apisV1 from '../api-v1/index'
-import { VDOC_BASENAME, docRouter } from './docRoute'
-import { registeApiRoutes } from './registeApiRoutes'
-import { checkMethodType, loadAPIs } from './resolveBatchExport'
-import { verifyToken } from './verifyToken'
+import apisV1 from '../api-v1/index.js'
+import { VDOC_BASENAME, docRouter } from './docRoute.js'
+import { registeApiRoutes } from './registeApiRoutes.js'
+import { checkMethodType, loadAPIs } from './resolveBatchExport.js'
+import { verifyToken } from './verifyToken.js'
 
 const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
   x: T,

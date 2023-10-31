@@ -1,5 +1,5 @@
-import type { OpenHandler } from '../../../types/handler'
-import { convention } from '../../convention'
+import type { OpenHandler } from '../../../types/handler.js'
+import { convention } from '../../convention.js'
 
 type ApiType = OpenHandler<null, { status: string }>
 

@@ -20,13 +20,12 @@ import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
 import { TealinaComonOption as TealinaCommonOption } from '../utils/options'
+import { extraModelNames } from '../utils/parsePrisma'
 import {
   MinimalInput,
-  getSuffix,
   loadConfig,
   parseCreateInfo as parseCreationInfo,
   readIndexFile,
-  readTsConfig,
   unCapitalize,
 } from '../utils/tool'
 import { isValidHttpMethod } from '../utils/validate'
@@ -36,7 +35,6 @@ import {
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
-import { extraModelNames } from '../utils/parsePrisma'
 
 export interface BaseOption extends TealinaCommonOption {
   /** restful style */
@@ -446,9 +444,7 @@ const collectContext = asyncFlow(
       checkTestHelper(option).then(toKeyValue('testHelperInfo')),
       toKeyValue('testTemplate')(config.template.test),
       toKeyValue('commonOption')(option),
-      readTsConfig(config.tsconfigPath)
-        .then(getSuffix)
-        .then(toKeyValue('suffix')),
+      ['suffix', config.suffix],
     ] as const,
   waitAll,
   kvs => Object.fromEntries(kvs) as FullContext,

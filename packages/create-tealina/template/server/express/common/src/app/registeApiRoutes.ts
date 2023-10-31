@@ -1,7 +1,7 @@
 import type { RequestHandler, Router } from 'express'
 import { flat, flow, groupBy } from 'fp-lite'
-import { catchErrorWrapper } from './catchErrorWrapper'
-import { ResolvedAPIs } from './resolveBatchExport'
+import { catchErrorWrapper } from './catchErrorWrapper.js'
+import { ResolvedAPIs } from './resolveBatchExport.js'
 
 const orderBySlashCount = (xs: string[] = []) =>
   xs

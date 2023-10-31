@@ -1,5 +1,5 @@
 import type { preHandlerHookHandler, preHandlerAsyncHookHandler } from 'fastify'
-import type { CustomHandlerType } from '../types/handler'
+import type { CustomHandlerType } from '../types/handler.js'
 
 type PreHanlder = preHandlerHookHandler | preHandlerAsyncHookHandler
 

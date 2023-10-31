@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { catchErrorWrapper } from './catchErrorWrapper'
+import { catchErrorWrapper } from './catchErrorWrapper.js'
 
 const handler: RequestHandler = async (req, res, next) => {
   //TODO: verify token

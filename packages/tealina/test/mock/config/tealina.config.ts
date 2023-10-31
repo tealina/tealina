@@ -12,5 +12,4 @@ export default defineConfig({
   },
   testDir: '',
   typesDir: '',
-  tsconfigPath: 'packages/tealina/test/mock/config/_tsconfig.json',
 })

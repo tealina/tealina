@@ -1,18 +1,18 @@
 import express, { Router } from 'express'
 import { asyncFlow, omitFn, pickFn } from 'fp-lite'
 import path from 'node:path'
-import apisV1 from '../api-v1/index'
-import { VDOC_BASENAME, docRouter } from './docRouter'
-import { handleError } from './handleError'
+import apisV1 from '../api-v1/index.js'
+import { VDOC_BASENAME, docRouter } from './docRouter.js'
+import { handleError } from './handleError.js'
 import {
   handleApiNotFound,
   handleNotFound,
   handleStaticNotFound,
-} from './handleNotFound'
-import { registeApiRoutes } from './registeApiRoutes'
-import { loadAPIs } from './resolveBatchExport'
-import { setupApiHeaders } from './setupApiHeaders'
-import { verifyToken } from './verifyToken'
+} from './handleNotFound.js'
+import { registeApiRoutes } from './registeApiRoutes.js'
+import { loadAPIs } from './resolveBatchExport.js'
+import { setupApiHeaders } from './setupApiHeaders.js'
+import { verifyToken } from './verifyToken.js'
 
 const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
   x: T,
