@@ -11,9 +11,11 @@ export interface TypeFileInfo {
 export const calcTypeFileSnapshot = ({
   typeFileInfo,
   commonOption,
+  suffix,
 }: {
   typeFileInfo: TypeFileInfo
   commonOption: DirInfo
+  suffix: string
 }): Snapshot[] => {
   if (typeFileInfo.isExists) return []
   return [
@@ -21,7 +23,7 @@ export const calcTypeFileSnapshot = ({
       group: 'types',
       action: 'create',
       filePath: typeFileInfo.filePath,
-      code: genTypeCode(commonOption),
+      code: genTypeCode(commonOption, suffix),
     },
   ]
 }

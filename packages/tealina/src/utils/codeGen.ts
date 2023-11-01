@@ -24,11 +24,11 @@ export const genWithWrapper = (contens: string[]) =>
     '\n',
   )
 
-export const genTypeCode = ({ apiDir, typesDir }: DirInfo) => {
+export const genTypeCode = ({ apiDir, typesDir }: DirInfo, suffix: string) => {
   const relativeDotStr = relative(typesDir, apiDir)
   return [
-    `import apis from '${relativeDotStr}/index'`,
-    `import type { ResolveApiType } from './handler'`,
+    `import apis from '${relativeDotStr}/index${suffix}'`,
+    `import type { ResolveApiType } from './handler${suffix}'`,
     '',
     'type RawApis = typeof apis',
     'export type ApiTypesRecord = {',
