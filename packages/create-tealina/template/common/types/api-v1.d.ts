@@ -1,5 +1,5 @@
-import apis from '../src/api-v1/index'
-import type { ResolveApiType } from './handler'
+import apis from '../src/api-v1/index.js'
+import type { ResolveApiType } from './handler.js'
 
 type RawApis = typeof apis
 export type ApiTypesRecord = {

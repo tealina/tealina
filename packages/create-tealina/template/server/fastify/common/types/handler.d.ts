@@ -1,5 +1,5 @@
-import type { AuthHeaders, AuthedLocals } from './common'
-import type { Simplify } from './utility'
+import type { AuthHeaders, AuthedLocals } from './common.js'
+import type { Simplify } from './utility.js'
 
 interface RawPayload {
   body?: any

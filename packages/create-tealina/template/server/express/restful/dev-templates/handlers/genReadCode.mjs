@@ -4,15 +4,15 @@ import { makeTemplate } from 'tealina'
 export default makeTemplate(
   ({ Filename: Model, relative2api, filename: model }) => {
     const imps = [
-      `import type { AuthedHandler } from '${relative2api}/../types/handler'`,
+      `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
       `import type {`,
       `  PageResult,`,
       `  RawFindManyArgs,`,
-      `} from '${relative2api}/../types/common'`,
+      `} from '${relative2api}/../types/common.js'`,
       `import { ${Model} } from '@prisma/client'`,
-      `import { convention } from '${relative2api}/convention'`,
-      `import { db } from '${relative2api}/db/prisma'`,
-      `import { findManyArgsZ } from '${relative2api}/validate/findManyArgs'`,
+      `import { convention } from '${relative2api}/convention.js'`,
+      `import { db } from '${relative2api}/db/prisma.js'`,
+      `import { findManyArgsZ } from '${relative2api}/validate/findManyArgs.js'`,
     ]
     const codes = [
       `type ApiType = AuthedHandler<{ query: RawFindManyArgs } ,PageResult<${Model}>>`,

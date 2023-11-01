@@ -3,15 +3,15 @@ import { makeTemplate } from 'tealina'
 
 export default makeTemplate(({ relative2api, Dir: Model, dir: model }) => {
   const imps = [
-    `import type { AuthedHandler } from '${relative2api}/../types/handler'`,
-    `import type { ModelId } from '${relative2api}/../types/common'`,
-    `import { convention } from '${relative2api}/convention'`,
-    `import { db } from '${relative2api}/db/prisma'`,
+    `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
+    `import type { ModelId } from '${relative2api}/../types/common.js'`,
+    `import { convention } from '${relative2api}/convention.js'`,
+    `import { db } from '${relative2api}/db/prisma.js'`,
   ]
   const codes = [
     `type ApiType = AuthedHandler<{ body: ModelId }>`,
     '',
-    `/** Delete ${Model} record by id */`,
+    `/** Delete ${Model} by id */`,
     `const deleteById: ApiType = async (req, res) => {`,
     `  await db.${model}.delete({ where: { id: req.body.id } })`,
     '  res.code(200).send()',

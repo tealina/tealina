@@ -47,5 +47,6 @@ export async function validate(dir: string) {
   await $`pnpm v1 capi get/health --with-test`
   await $`pnpm v1 gdoc`
   await $`pnpm test -- --run --testTimeout=0`
+  await $`pnpm v1 capi user crud`
   await $`pnpm tsc --noEmit`
 }

@@ -1,8 +1,8 @@
-import './config/env.js' /** Why next line left blank? @see {@link https://github.com/microsoft/TypeScript/pull/48330}*/
-
+import './config/env.js'
+//Make sure this 👆 line at the top of entry file
 import { asyncFlow } from 'fp-lite'
-import { buildApp } from './app/index.js'
 import { VDOC_BASENAME } from './app/docRouter.js'
+import { buildApp } from './app/index.js'
 
 const logAddress = () => {
   console.log(`Service started at http://localhost:${process.env.PORT}`)

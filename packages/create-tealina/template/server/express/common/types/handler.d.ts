@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
-import type { Simplify } from './utility'
-import type { AuthHeaders, AuthedLocals } from './common'
+import type { Simplify } from './utility.js'
+import type { AuthHeaders, AuthedLocals } from './common.js'
 
 // ------Types for generate doc -------
 
