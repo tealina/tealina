@@ -1,6 +1,6 @@
 import { test } from 'vitest'
 import { workflow } from '../../src/commands/gpure'
-const filePath = 'packages/tealina/test/utils/mock/mock.prisma'
+const filePath = 'test/utils/mock/mock.prisma'
 test('new gpure', async () => {
   const result = await workflow({
     input: filePath,

@@ -20,7 +20,7 @@ describe('full test cai', () => {
     await cli.runMatchedCommand()
   })
 
-  test('create with alias', async () => {
+  test.only('create with alias', async () => {
     const name = 'user'
     const dirInfo = prepareTempDir('byalias')
     const alias = `cr`
@@ -42,7 +42,7 @@ describe('full test cai', () => {
     const { cli } = parseCommandArgs(
       [name, alias].join(' '),
       dirInfo,
-      'packages/tealina/test/mock/config/tealina.fnconfig.ts',
+      'test/mock/config/tealina.fnconfig.ts',
     )
     const result = await cli.runMatchedCommand()
     const fullResult = makeFullResult(

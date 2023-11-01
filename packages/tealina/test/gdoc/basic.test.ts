@@ -12,7 +12,7 @@ import { describe, expect, test } from 'vitest'
 import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 
 describe('test genereta api documentation api/post/createUser', () => {
-  const mockDir = 'packages/tealina/test/gdoc/mock'
+  const mockDir = 'test/gdoc/mock'
   const configpath = path.join(mockDir, 'tsconfig.json')
   const result = parseDeclarationFile({
     entries: [path.join(mockDir, 'basic', 'api-v1.d.ts')],

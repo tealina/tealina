@@ -16,7 +16,7 @@ describe('test sapi in mock dir', function () {
     route: '',
     schema: '',
     apiDir,
-    configPath: 'packages/tealina/test/mock/config/tealina.config.ts',
+    configPath: 'test/mock/config/tealina.config.ts',
     testDir: apiTestDir,
     typesDir: apiTypesDir,
     withTest: false,

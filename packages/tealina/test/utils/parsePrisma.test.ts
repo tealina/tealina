@@ -2,7 +2,7 @@ import { pick } from 'fp-lite'
 import { expect, test } from 'vitest'
 import { extraModelNames, parseSchame } from '../../src/utils/parsePrisma'
 
-const filePath = 'packages/tealina/test/utils/mock/mock.prisma'
+const filePath = 'test/utils/mock/mock.prisma'
 
 test('extra outline', async () => {
   const reuslt = await extraModelNames(filePath)

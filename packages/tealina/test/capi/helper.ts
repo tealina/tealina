@@ -38,7 +38,7 @@ export function tempDirFactory(root: string) {
 export function parseCommandArgs(
   command: string,
   dirInfo: DirInfo,
-  configPath = 'packages/tealina/test/mock/config/tealina.config.ts',
+  configPath = 'test/mock/config/tealina.config.ts',
 ) {
   cli.option('--types-dir', '', { default: dirInfo.typesDir })
   cli.option('--test-dir', '', { default: dirInfo.testDir })

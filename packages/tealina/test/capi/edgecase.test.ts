@@ -31,7 +31,7 @@ describe('test capi edgecase', () => {
     const { cli } = parseCommandArgs(
       'get/health',
       dirInfo,
-      'packages/tealina/test/mock/config/edgecase.config.ts',
+      'test/mock/config/edgecase.config.ts',
     )
     await cli.runMatchedCommand()
   })

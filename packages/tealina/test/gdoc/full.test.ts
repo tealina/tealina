@@ -3,7 +3,7 @@ import path from 'node:path'
 import { afterAll, beforeAll, expect, test } from 'vitest'
 import { cli } from '../../src/commands/index.js'
 
-const mockDir = 'packages/tealina/test/gdoc/mock'
+const mockDir = 'test/gdoc/mock'
 const apiDir = 'api-v1'
 const outputDir = 'temp'
 

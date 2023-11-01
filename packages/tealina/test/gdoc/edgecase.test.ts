@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 
-const mockDir = 'packages/tealina/test/gdoc/mock'
+const mockDir = 'test/gdoc/mock'
 describe('test error handling', () => {
   test('invalid ts config', () => {
     try {
