@@ -23,10 +23,10 @@ const prepareExecFn =
       const p = spawn(leader, args, {
         cwd,
       })
-      p.stdout.on('data', chunk => {
-        const msg = chunk.toString()
-        console.log(msg)
-      })
+      // p.stdout.on('data', chunk => {
+      //   const msg = chunk.toString()
+      //   console.log(msg)
+      // })
       const errMsgLines: string[] = []
       p.stderr.on('data', c => {
         errMsgLines.push(c.toString())
@@ -49,4 +49,5 @@ export async function validate(dir: string) {
   await $`pnpm test -- --run --testTimeout=0`
   await $`pnpm v1 capi user crud`
   await $`pnpm tsc --noEmit`
+  console.log('test done')
 }
