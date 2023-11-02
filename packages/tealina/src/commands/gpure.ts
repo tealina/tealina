@@ -5,11 +5,11 @@ import {
   concat,
   filter,
   flat,
+  flow,
   groupBy,
   isEmpty,
   map,
   notNull,
-  pickFn,
   pipe,
 } from 'fp-lite'
 import { writeFile } from 'fs/promises'
@@ -100,8 +100,12 @@ const formatComment = (lines: string[]) =>
     ? [`/** ${lines[0]} */`]
     : ['/**', ...lines.map(v => ` * ${v}`), ' */']
 
+const isMatch = (a: string, b: string) => a == '*' || a == b
+
 const byMatch = (block: BlockAST, kind: MutationKind) => (v: MatheLocate) =>
-  v.blockName == block.name && v.keyword == block.keyword && v.kind == kind
+  isMatch(v.blockName, block.name) &&
+  isMatch(v.keyword, block.keyword) &&
+  isMatch(v.kind, kind)
 
 const getSpace = (num: number) => Array(num).fill(' ').join('')
 
@@ -134,8 +138,7 @@ const PropsExcludeStategies: ((x: PropAST) => boolean)[] = [
 ]
 
 const getFirstMatch = (strategies: GetTsType[]) => (x: PropAST) => {
-  if (x.kind != 'scalarType') return x.type
-  for (let i = 0; i < strategies.length; i++) {
+  for (let i = 0, len = strategies.length; i < len; i++) {
     const v = strategies[i](x)
     if (v) return v
   }
@@ -148,7 +151,6 @@ const defaultConfig: Record<
   MutationKind,
   {
     checkOptional: (prop: PropAST) => boolean
-    transformStrategies: GetTsType[]
   }
 > = {
   CreateInput: {
@@ -156,11 +158,9 @@ const defaultConfig: Record<
       prop.modifier == '?' ||
       prop.attribute.has('updatedAt') ||
       prop.attribute.has('default'),
-    transformStrategies: TypeTransformStrategies,
   },
   UpdateInput: {
     checkOptional: prop => true,
-    transformStrategies: TypeTransformStrategies,
   },
 }
 
@@ -251,6 +251,9 @@ const toDetermineFn =
   (predicates: ((x: PropAST) => boolean)[]) => (prop: PropAST) =>
     predicates.some(fn => fn(prop))
 
+const makeCopositeTypeBy = (kind: MutationKind) => (prop: PropAST) =>
+  prop.kind == 'compositeType' ? [prop.type, kind].join('') : null
+
 const makeMutationTsInterface = (
   kind: MutationKind,
   { overwrite, typeRemap }: PurifyConfig,
@@ -269,6 +272,7 @@ const makeMutationTsInterface = (
         [
           findBlockSpecificTransform(block, kind, overwrite?.transofrmType),
           typeRemap ? (prop: PropAST) => typeRemap(prop.type) : null,
+          makeCopositeTypeBy(kind),
           ...TypeTransformStrategies,
         ].filter(notNull),
       ),
@@ -327,41 +331,34 @@ const makeTypeCodes = (config: PurifyConfig) => (blockList: BlockAST[]) => {
             concat(makeMutationTsInterface('UpdateInput', config)(block)),
           ),
         ),
-        xs => {
-          if (!g.has('enum')) return xs
-          return pipe(
-            xs,
-            concat([ENUMS_BEGIN]),
-            concat(g.get('enum')!.map(enum2ts)),
-          )
-        },
+        g.has('enum')
+          ? flow(concat([ENUMS_BEGIN]), concat(g.get('enum')!.map(enum2ts)))
+          : x => x,
       ),
     flat,
     hasJsonValue ? concat(JSON_VALUE_TYPE) : x => x,
   )
 }
 
-const workflow = (config: PurifyOption & PurifyConfig) =>
+const workflow = (input: string, config: PurifyConfig) =>
   asyncPipe(
-    parseSchame(config.input),
+    parseSchame(input),
     filter(block => ConcernedKeywords.includes(block.keyword)),
     filter(block => !block.attribute.has('ignore')),
     makeTypeCodes(config),
-    wrapperWith(config),
-    xs => writeFile(config.output, xs.join('\n')),
-    () =>
-      consola.success(
-        chalk.green('Types Generated, save at: ' + config.output),
-      ),
   )
 
 const generatePureTypes = async (option: TealinaComonOption & PurifyOption) => {
   const config = await loadConfig(option)
   const purifyConfig = config.gpure ?? {}
-  return workflow({
-    ...pickFn(option, 'input', 'namespace', 'output'),
-    ...purifyConfig,
-  })
+  const lines = await workflow(option.input, purifyConfig)
+  return pipe(
+    lines,
+    wrapperWith(option),
+    xs => writeFile(option.output, xs.join('\n')),
+    () => chalk.green('Types Generated, save at: ' + option.output),
+    consola.success,
+  )
 }
 export { generatePureTypes, workflow }
 export type { PurifyConfig }

@@ -25,7 +25,7 @@ test('top index', () => {
     ...restCtxMock,
     topIndexFile: {
       content: '',
-      files: ['post/index.ts', 'get/index.ts'],
+      files: ['/post/index.ts', '/get/index.ts'],
       kind: '',
     },
     suffix: '.js',
