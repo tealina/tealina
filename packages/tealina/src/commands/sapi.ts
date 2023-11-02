@@ -70,13 +70,11 @@ const readIndexContent = (dir: string) =>
     () => '',
   )
 
-const makeExportCode = (suffix: string) =>
-  flow(
-    withoutSuffix,
-    x => x.replace(LeaderSlash, ''),
-    x => x.split('/'),
-    genIndexProp(suffix),
-  )
+const path2arr = flow(
+  withoutSuffix,
+  x => x.replace(LeaderSlash, ''),
+  x => x.split('/'),
+)
 
 const makeIndexFileSnapshot = (kind: string, code: string): Snapshot => ({
   group: 'api',
@@ -134,12 +132,16 @@ const toSnapshot = (genCodeFn: (x: string) => string) => (v: GatherPhase) =>
   )
 
 const topIndexSnapshot = (info: FileTreeInfo) =>
-  toSnapshot(f => genTopIndexProp(info.suffix)(dirname(f)))(info.topIndexFile)
+  pipe(
+    flow(path2arr, x => x[0], genTopIndexProp(info.suffix)),
+    toSnapshot,
+    fn => fn(info.topIndexFile),
+  )
 
 const calcSnapshots = (info: FileTreeInfo): Snapshot[] =>
   pipe(
     info.kindIndexFiles,
-    map(toSnapshot(makeExportCode(info.suffix))),
+    map(toSnapshot(flow(path2arr, genIndexProp(info.suffix)))),
     concat(topIndexSnapshot(info)),
     filter(notNull),
     map(completePath(info.commonOption)),
