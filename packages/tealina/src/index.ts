@@ -1,6 +1,16 @@
-import { PurifyConfig } from './commands/gpure'
-
+import { Overwrite } from './gpure.type'
 export * from '@tealina/doc-types'
+
+export interface PurifyConfig {
+  /**
+   *  Overwrite specific prop.type
+   *  eg: OrderNo should be optional or exclude in OrderUpdateInput
+   */
+  overwrite?: Overwrite
+  /** remap type, eg: DateTime => number */
+  typeRemap?: (type: string) => string | null
+}
+
 export interface CreationCtx {
   dir?: string
   /** captialized directory name */

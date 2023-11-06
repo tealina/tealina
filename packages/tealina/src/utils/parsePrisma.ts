@@ -1,24 +1,6 @@
 import { asyncFlow, filter, flow, map, pipe } from 'fp-lite'
 import { readFile } from 'fs/promises'
-
-type CommentType = Record<'private' | 'public', string[]>
-
-type BlockAST = {
-  name: string
-  comment: CommentType
-  keyword: string
-  props: PropAST[]
-  attribute: Map<string, string>
-}
-
-type PropAST = {
-  name: string
-  comment: CommentType
-  modifier?: string
-  attribute: Map<string, string>
-  type: string
-  kind: 'scalarType' | 'model' | 'enum' | 'compositeType'
-}
+import { BlockAST, CommentType, PropAST } from '../gpure.type'
 
 type KindFinderFn = (v: string) => PropAST['kind']
 
@@ -252,4 +234,3 @@ const parseSchame = asyncFlow(
 const extraModelNames = asyncFlow(readSchema, collectBlockNames(/^(model)/))
 
 export { extraModelNames, parseSchame }
-export type { BlockAST, PropAST }

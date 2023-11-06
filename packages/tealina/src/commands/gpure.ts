@@ -14,8 +14,18 @@ import {
 } from 'fp-lite'
 import { writeFile } from 'fs/promises'
 import { TealinaComonOption } from '../utils/options'
-import { BlockAST, PropAST, parseSchame } from '../utils/parsePrisma'
+import { parseSchame } from '../utils/parsePrisma'
 import { loadConfig } from '../utils/tool'
+import {
+  BlockAST,
+  MatchForExcludeProp,
+  MatchForOptionalChcek as MatchForOptionalCheck,
+  MatchForTypeTransform,
+  MatheLocate,
+  MutationKind,
+  PropAST,
+} from '../gpure.type'
+import { PurifyConfig } from '..'
 
 /**
  * static declaration, inject on demand,
@@ -50,47 +60,10 @@ const ENUMS_BEGIN = [
   '// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275',
   '',
 ]
-
-interface PurifyConfig {
-  /**
-   *  Overwrite specific prop.type
-   *  eg: OrderNo should be optional or exclude in OrderUpdateInput
-   */
-  overwrite?: Overwrite
-  /** remap type, eg: DateTime => number */
-  typeRemap?: (type: string) => string | null
-}
-
 interface PurifyOption {
   input: string
   output: string
   namespace: string
-}
-
-type MutationKind = 'CreateInput' | 'UpdateInput'
-
-interface MatheLocate {
-  kind: MutationKind
-  keyword: string
-  blockName: string
-}
-
-interface MatchForOptionalChcek extends MatheLocate {
-  predicate: (prop: PropAST) => boolean
-}
-
-interface MatchForTypeTransform extends MatheLocate {
-  transform: (prop: PropAST) => string
-}
-
-interface MatchForExcludeProp extends MatheLocate {
-  predicate: (prop: PropAST) => boolean
-}
-
-interface Overwrite {
-  isOptional?: MatchForOptionalChcek[]
-  transofrmType?: MatchForTypeTransform[]
-  excludeProps?: MatchForExcludeProp[]
 }
 
 const formatComment = (lines: string[]) =>
@@ -218,7 +191,7 @@ const block2ts =
 const findIsOptionalCheck = (
   block: BlockAST,
   kind: MutationKind,
-  matches?: MatchForOptionalChcek[],
+  matches?: MatchForOptionalCheck[],
 ) => {
   if (matches == null) return null
   const target = matches.find(byMatch(block, kind))
