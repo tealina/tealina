@@ -24,11 +24,13 @@ type KindFinderFn = (v: string) => PropAST['kind']
 
 const CommentPattern = /^[/]/
 const LeftBreackPattern = /{$/
-const PrivateCommentPattern = new RegExp('^// ')
-const PublicCommentPattern = new RegExp('^/// ')
+const PrivateCommentPattern = new RegExp('^//')
+const PublicCommentPattern = new RegExp('^///')
 const InBreackPairsPattern = /\(.*\)/
 const MultipleAtSymbolPattern = /@+/
 const BlockLeadEndPattern = /{$/
+const RegionBegin = new RegExp('^#region')
+const RegionEnd = new RegExp('^#endregion')
 
 const isPrivateComment = (line: string) => PrivateCommentPattern.test(line)
 const isPublicComment = (line: string) => PublicCommentPattern.test(line)
@@ -128,15 +130,17 @@ const makeDefaultComment = (): CommentType => ({
 })
 
 const assignComment = (comment: CommentType, line: string) => {
-  if (isPrivateComment(line)) {
-    comment.private.push(line.slice(2))
-    return true
-  }
   if (isPublicComment(line)) {
     comment.public.push(line.slice(3))
     return true
   }
-  return false
+  if (!isPrivateComment(line)) return false
+  const content = line.slice(2)
+  if (RegionBegin.test(content) || RegionEnd.test(content)) {
+    return true
+  }
+  comment.private.push(content)
+  return true
 }
 
 const parseRestColums = (rest: string[]) => {

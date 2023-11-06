@@ -7,6 +7,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+//#region user type parts
 model User {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
   email   String   @unique
@@ -21,3 +22,5 @@ type Address {
   state  String
   zip    String
 }
+
+//#endregion
