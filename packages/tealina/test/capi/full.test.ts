@@ -20,7 +20,7 @@ describe('full test cai', () => {
     await cli.runMatchedCommand()
   })
 
-  test.only('create with alias', async () => {
+  test('create with alias', async () => {
     const name = 'user'
     const dirInfo = prepareTempDir('byalias')
     const alias = `cr`
