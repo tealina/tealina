@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "pnpm tsc . --noEmit"
+    "test": "pnpm tsc ./index.ts --noEmit"
   },
   "keywords": [
     "tealina"

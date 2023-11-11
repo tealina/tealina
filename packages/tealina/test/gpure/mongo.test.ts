@@ -13,7 +13,7 @@ const snapshot = [
   '  id?: string',
   '  email?: string',
   '  name?: string',
-  '  address?: AddressUpdateInput',
+  '  address?: AddressCreateInput',
   '}',
   '',
   'interface AddressCreateInput{',

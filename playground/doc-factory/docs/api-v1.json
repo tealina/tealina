@@ -4,42 +4,406 @@
       "health": {
         "response": {
           "kind": 4,
-          "id": 325
+          "id": 275
         },
         "headers": {
           "kind": 4,
           "id": 39
         }
+      },
+      "proxy/photo": {
+        "query": {
+          "kind": 4,
+          "id": 6299
+        },
+        "response": {
+          "kind": 0,
+          "type": "null"
+        },
+        "headers": {
+          "kind": 4,
+          "id": 39
+        },
+        "comment": "proxy photo from kssr01 server, the actual URL is /photo/xx/some.png"
       }
     },
     "post": {
-      "user/create": {
+      "admin/create": {
         "body": {
           "kind": 4,
-          "id": 1761
+          "id": 6609
         },
         "response": {
           "kind": 4,
-          "id": 1761
+          "id": 6538
         },
         "headers": {
           "kind": 4,
-          "id": 1762
-        }
+          "id": 6577
+        },
+        "comment": "Create Admin"
       },
-      "user/update": {
+      "admin/delete": {
         "body": {
           "kind": 4,
-          "id": 1800
+          "id": 6667
         },
         "response": {
-          "kind": 4,
-          "id": 1800
+          "kind": 0,
+          "type": "null"
         },
         "headers": {
           "kind": 4,
-          "id": 1762
-        }
+          "id": 6577
+        },
+        "comment": "Delete Admin by id"
+      },
+      "admin/getList": {
+        "body": {
+          "kind": 4,
+          "id": 6731
+        },
+        "response": {
+          "kind": 4,
+          "id": 6708
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Get page datas from Admin"
+      },
+      "admin/update": {
+        "body": {
+          "kind": 4,
+          "id": 6791
+        },
+        "response": {
+          "kind": 4,
+          "id": 6538
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Update Admin by id"
+      },
+      "commitRecord/create": {
+        "body": {
+          "kind": 6,
+          "key": {
+            "kind": 3,
+            "types": [
+              {
+                "kind": 7,
+                "value": "repository"
+              },
+              {
+                "kind": 7,
+                "value": "revision"
+              },
+              {
+                "kind": 7,
+                "value": "committer"
+              },
+              {
+                "kind": 7,
+                "value": "date"
+              },
+              {
+                "kind": 7,
+                "value": "message"
+              },
+              {
+                "kind": 7,
+                "value": "changedDir"
+              }
+            ]
+          },
+          "value": {
+            "kind": 0,
+            "type": "string"
+          }
+        },
+        "response": {
+          "kind": 4,
+          "id": 6842
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Create CommitRecord"
+      },
+      "commitRecord/getList": {
+        "body": {
+          "kind": 4,
+          "id": 6731
+        },
+        "response": {
+          "kind": 4,
+          "id": 6935
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Get page datas from CommitRecord"
+      },
+      "project/create": {
+        "body": {
+          "kind": 4,
+          "id": 7040
+        },
+        "response": {
+          "kind": 4,
+          "id": 7009
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Create Project"
+      },
+      "project/delete": {
+        "body": {
+          "kind": 4,
+          "id": 6667
+        },
+        "response": {
+          "kind": 0,
+          "type": "null"
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Delete Project by id"
+      },
+      "project/getList": {
+        "body": {
+          "kind": 4,
+          "id": 6731
+        },
+        "response": {
+          "kind": 4,
+          "id": 7132
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Get page datas from Project"
+      },
+      "project/update": {
+        "body": {
+          "kind": 4,
+          "id": 7211
+        },
+        "response": {
+          "kind": 4,
+          "id": 7009
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Update Project by id"
+      },
+      "role/create": {
+        "body": {
+          "kind": 4,
+          "id": 7298
+        },
+        "response": {
+          "kind": 4,
+          "id": 7275
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Create Role"
+      },
+      "role/delete": {
+        "body": {
+          "kind": 4,
+          "id": 6667
+        },
+        "response": {
+          "kind": 0,
+          "type": "null"
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Delete Role by id"
+      },
+      "role/getList": {
+        "body": {
+          "kind": 4,
+          "id": 6731
+        },
+        "response": {
+          "kind": 4,
+          "id": 7422
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Get page datas from Role"
+      },
+      "role/update": {
+        "body": {
+          "kind": 4,
+          "id": 7501
+        },
+        "response": {
+          "kind": 4,
+          "id": 7275
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Update Role by id"
+      },
+      "route/create": {
+        "body": {
+          "kind": 4,
+          "id": 7598
+        },
+        "response": {
+          "kind": 4,
+          "id": 7568
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Create Route"
+      },
+      "route/delete": {
+        "body": {
+          "kind": 4,
+          "id": 6667
+        },
+        "response": {
+          "kind": 0,
+          "type": "null"
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Delete Route by id"
+      },
+      "route/getList": {
+        "body": {
+          "kind": 4,
+          "id": 6731
+        },
+        "response": {
+          "kind": 4,
+          "id": 7703
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Get page datas from Route"
+      },
+      "route/update": {
+        "body": {
+          "kind": 4,
+          "id": 7782
+        },
+        "response": {
+          "kind": 4,
+          "id": 7568
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Update Route by id"
+      },
+      "service/create": {
+        "body": {
+          "kind": 4,
+          "id": 7880
+        },
+        "response": {
+          "kind": 4,
+          "id": 7848
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Create Service"
+      },
+      "service/delete": {
+        "body": {
+          "kind": 4,
+          "id": 6667
+        },
+        "response": {
+          "kind": 0,
+          "type": "null"
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Delete Service by id"
+      },
+      "service/getList": {
+        "body": {
+          "kind": 4,
+          "id": 6731
+        },
+        "response": {
+          "kind": 4,
+          "id": 7990
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Get page datas from Service"
+      },
+      "service/update": {
+        "body": {
+          "kind": 4,
+          "id": 8069
+        },
+        "response": {
+          "kind": 4,
+          "id": 7848
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "Update Service by id"
+      },
+      "weakDeploy": {
+        "body": {
+          "kind": 4,
+          "id": 8149
+        },
+        "response": {
+          "kind": 1,
+          "type": "Stream"
+        },
+        "headers": {
+          "kind": 4,
+          "id": 6577
+        },
+        "comment": "deploy server"
       }
     }
   },
@@ -48,7 +412,7 @@
       "name": "{}",
       "props": []
     },
-    "325": {
+    "275": {
       "name": "{ status: string; }",
       "props": [
         {
@@ -58,9 +422,25 @@
         }
       ]
     },
-    "1761": {
-      "name": "UserCreateInput",
+    "6299": {
+      "name": "QueryPayload",
       "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "u",
+          "comment": "the URL without head two path,eg: /host/root/image/path/xxx.png; u = image/path/xxx.png"
+        }
+      ]
+    },
+    "6538": {
+      "name": "{ id: string; name: string; account: string; password: string; email: string; role: string; createdAt: Date; disabled: boolean; deletedAt: Date; type: AccountType; stuffID: string; pwdErrorRecord: string[]; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
         {
           "kind": 0,
           "type": "string",
@@ -68,8 +448,247 @@
         },
         {
           "kind": 0,
+          "type": "string",
+          "name": "account"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "password",
+          "comment": "不依赖公司邮箱时 有独立密码"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "role"
+        },
+        {
+          "kind": 1,
+          "type": "Date",
+          "name": "createdAt"
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "name": "disabled"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 1,
+              "type": "Date"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "deletedAt"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 7,
+              "value": "Company"
+            },
+            {
+              "kind": 7,
+              "value": "Independent"
+            }
+          ],
+          "name": "type"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "stuffID"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "pwdErrorRecord"
+        }
+      ]
+    },
+    "6577": {
+      "name": "AuthHeaders",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "Authorization"
+        }
+      ]
+    },
+    "6609": {
+      "name": "AdminCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "auto()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "account"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "password",
+          "comment": "不依赖公司邮箱时 有独立密码"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "role"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 1,
+              "type": "Date"
+            }
+          ],
+          "isOptional": true,
+          "name": "createdAt",
+          "jsDoc": {
+            "default": "now()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "isOptional": true,
+          "name": "disabled"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 1,
+              "type": "Date"
+            }
+          ],
+          "isOptional": true,
+          "name": "deletedAt"
+        },
+        {
+          "kind": 0,
+          "type": "any",
+          "name": "type"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "stuffID"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "pwdErrorRecord"
+        }
+      ]
+    },
+    "6667": {
+      "name": "ModelId",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    "6708": {
+      "name": "PageResult<{ id: string; name: string; account: string; password: string; email: string; role: string; createdAt: Date; disabled: boolean; deletedAt: Date; type: AccountType; stuffID: string; pwdErrorRecord: string[]; }>",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 6538
+          },
+          "name": "datas"
+        },
+        {
+          "kind": 0,
           "type": "number",
-          "name": "age"
+          "name": "total"
+        }
+      ]
+    },
+    "6731": {
+      "name": "FindManyArgs",
+      "props": [
+        {
+          "kind": 0,
+          "type": "number",
+          "isOptional": true,
+          "name": "skip"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "isOptional": true,
+          "name": "take"
         },
         {
           "kind": 6,
@@ -81,160 +700,1249 @@
             "kind": 0,
             "type": "any"
           },
-          "name": "extra"
+          "isOptional": true,
+          "name": "where"
         }
       ]
     },
-    "1762": {
-      "name": "AuthHeaders",
+    "6791": {
+      "name": "ModelId & AdminUpdateInput",
       "props": [
         {
           "kind": 0,
           "type": "string",
-          "name": "Authorization"
-        }
-      ]
-    },
-    "1800": {
-      "name": "UserCreateInput",
-      "props": [
-        {
-          "kind": 2,
-          "elements": [
-            {
-              "kind": 0,
-              "type": "number"
-            },
-            {
-              "kind": 0,
-              "type": "number"
-            },
-            {
-              "kind": 3,
-              "types": [
-                {
-                  "kind": 2,
-                  "elements": []
-                },
-                {
-                  "kind": 12,
-                  "id": 1813
-                }
-              ]
-            }
-          ],
-          "name": "recusiveTuple"
-        },
-        {
-          "kind": 2,
-          "elements": [
-            {
-              "kind": 4,
-              "id": 1820
-            },
-            {
-              "kind": 4,
-              "id": 1821
-            }
-          ],
-          "name": "deepRecusiveTuple"
-        },
-        {
-          "kind": 4,
-          "id": 1822,
-          "name": "recursiveEntity"
-        }
-      ]
-    },
-    "1820": {
-      "name": "One",
-      "props": [
-        {
-          "kind": 0,
-          "type": "string",
-          "name": "one"
-        },
-        {
-          "kind": 12,
-          "id": 1819,
-          "name": "t"
-        }
-      ]
-    },
-    "1821": {
-      "name": "Two",
-      "props": [
-        {
-          "kind": 0,
-          "type": "string",
-          "name": "two"
-        }
-      ]
-    },
-    "1822": {
-      "name": "NestOption",
-      "props": [
-        {
-          "kind": 0,
-          "type": "string",
-          "name": "label"
+          "name": "id"
         },
         {
           "kind": 0,
           "type": "string",
-          "name": "value"
-        },
-        {
-          "kind": 11,
-          "element": {
-            "kind": 13,
-            "id": 1822
-          },
-          "name": "children"
-        }
-      ]
-    }
-  },
-  "enumRefs": {},
-  "tupleRefs": {
-    "1813": {
-      "name": "RecursiveTuple",
-      "elements": [
-        {
-          "kind": 0,
-          "type": "number"
+          "isOptional": true,
+          "name": "name"
         },
         {
           "kind": 0,
-          "type": "number"
+          "type": "string",
+          "isOptional": true,
+          "name": "account"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "password",
+          "comment": "不依赖公司邮箱时 有独立密码"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "email"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "role"
         },
         {
           "kind": 3,
           "types": [
             {
-              "kind": 2,
-              "elements": []
+              "kind": 0,
+              "type": "string"
             },
             {
-              "kind": 12,
-              "id": 1813
+              "kind": 1,
+              "type": "Date"
             }
-          ]
+          ],
+          "isOptional": true,
+          "name": "createdAt",
+          "jsDoc": {
+            "default": "now()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "isOptional": true,
+          "name": "disabled"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 1,
+              "type": "Date"
+            }
+          ],
+          "isOptional": true,
+          "name": "deletedAt"
+        },
+        {
+          "kind": 0,
+          "type": "any",
+          "isOptional": true,
+          "name": "type"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "stuffID"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "isOptional": true,
+          "name": "pwdErrorRecord"
         }
       ]
     },
-    "1819": {
-      "name": "DeepRecursiveTuple",
-      "elements": [
+    "6842": {
+      "name": "{ id: string; repository: string; revision: number; committer: string; date: Date; message: string; changedDir: string; createdAt: Date; }",
+      "props": [
         {
-          "kind": 4,
-          "id": 1820
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "repository"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "revision"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "committer"
+        },
+        {
+          "kind": 1,
+          "type": "Date",
+          "name": "date"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "message"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "changedDir"
+        },
+        {
+          "kind": 1,
+          "type": "Date",
+          "name": "createdAt"
+        }
+      ]
+    },
+    "6935": {
+      "name": "PageResult<{ id: string; repository: string; revision: number; committer: string; date: Date; message: string; changedDir: string; createdAt: Date; }>",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 6842
+          },
+          "name": "datas"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "total"
+        }
+      ]
+    },
+    "7009": {
+      "name": "{ id: string; name: string; rootRepo: string; developers: string[]; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "rootRepo"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "developers"
+        }
+      ]
+    },
+    "7040": {
+      "name": "ProjectCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "auto()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "rootRepo"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "developers"
+        }
+      ]
+    },
+    "7132": {
+      "name": "PageResult<{ id: string; name: string; rootRepo: string; developers: string[]; }>",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 7009
+          },
+          "name": "datas"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "total"
+        }
+      ]
+    },
+    "7211": {
+      "name": "ModelId & ProjectUpdateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "name"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "rootRepo"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "isOptional": true,
+          "name": "developers"
+        }
+      ]
+    },
+    "7275": {
+      "name": "{ id: string; name: string; createdAt: Date; isSuperAdmin: boolean; deletedAt: Date; } & { permission: { webRoutes: string[]; } & { api: { get: string[]; post: string[]; }; }; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "kind": 1,
+          "type": "Date",
+          "name": "createdAt"
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "name": "isSuperAdmin"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 1,
+              "type": "Date"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "deletedAt"
         },
         {
           "kind": 4,
-          "id": 1821
+          "id": 7326,
+          "name": "permission"
+        }
+      ]
+    },
+    "7298": {
+      "name": "RoleCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "auto()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 1,
+              "type": "Date"
+            }
+          ],
+          "isOptional": true,
+          "name": "createdAt",
+          "jsDoc": {
+            "default": "now()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "isOptional": true,
+          "name": "isSuperAdmin"
+        },
+        {
+          "kind": 4,
+          "id": 7309,
+          "name": "permission"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 1,
+              "type": "Date"
+            }
+          ],
+          "isOptional": true,
+          "name": "deletedAt"
+        }
+      ]
+    },
+    "7309": {
+      "name": "RolePermissionCreateInput",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "webRoutes",
+          "comment": "route ids"
+        },
+        {
+          "kind": 4,
+          "id": 7310,
+          "name": "api"
+        }
+      ]
+    },
+    "7310": {
+      "name": "AccessibleApiCreateInput",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "get"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "post"
+        }
+      ]
+    },
+    "7326": {
+      "name": "{ webRoutes: string[]; } & { api: { get: string[]; post: string[]; }; }",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "webRoutes",
+          "comment": "route ids"
+        },
+        {
+          "kind": 4,
+          "id": 7338,
+          "name": "api"
+        }
+      ]
+    },
+    "7338": {
+      "name": "{ get: string[]; post: string[]; }",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "get"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "post"
+        }
+      ]
+    },
+    "7422": {
+      "name": "PageResult<{ id: string; name: string; createdAt: Date; isSuperAdmin: boolean; deletedAt: Date; } & { permission: { webRoutes: string[]; } & { api: { get: string[]; post: string[]; }; }; }>",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 7275
+          },
+          "name": "datas"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "total"
+        }
+      ]
+    },
+    "7501": {
+      "name": "ModelId & RoleUpdateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "name"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 1,
+              "type": "Date"
+            }
+          ],
+          "isOptional": true,
+          "name": "createdAt",
+          "jsDoc": {
+            "default": "now()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "isOptional": true,
+          "name": "isSuperAdmin"
+        },
+        {
+          "kind": 4,
+          "id": 7512,
+          "isOptional": true,
+          "name": "permission"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 1,
+              "type": "Date"
+            }
+          ],
+          "isOptional": true,
+          "name": "deletedAt"
+        }
+      ]
+    },
+    "7512": {
+      "name": "RolePermissionUpdateInput",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "isOptional": true,
+          "name": "webRoutes",
+          "comment": "route ids"
+        },
+        {
+          "kind": 4,
+          "id": 7513,
+          "isOptional": true,
+          "name": "api"
+        }
+      ]
+    },
+    "7513": {
+      "name": "AccessibleApiUpdateInput",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "isOptional": true,
+          "name": "get"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "isOptional": true,
+          "name": "post"
+        }
+      ]
+    },
+    "7568": {
+      "name": "{ id: string; sort: number; path: string; component: string; suffix: string; icon: string; isMenu: boolean; isDev: boolean; pid: string; } & { localeNames: { zhHK: string; enGB: string; }; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "sort"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "component"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "suffix"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "icon"
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "name": "isMenu"
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "name": "isDev"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "pid"
+        },
+        {
+          "kind": 4,
+          "id": 7619,
+          "name": "localeNames"
+        }
+      ]
+    },
+    "7598": {
+      "name": "RouteCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "auto()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "sort"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "component"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "suffix"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "icon"
+        },
+        {
+          "kind": 4,
+          "id": 7609,
+          "name": "localeNames"
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "name": "isMenu"
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "isOptional": true,
+          "name": "isDev"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "pid"
+        }
+      ]
+    },
+    "7609": {
+      "name": "RouteLocaleCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "zhHK"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "enGB"
+        }
+      ]
+    },
+    "7619": {
+      "name": "{ zhHK: string; enGB: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "zhHK"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "enGB"
+        }
+      ]
+    },
+    "7703": {
+      "name": "PageResult<{ id: string; sort: number; path: string; component: string; suffix: string; icon: string; isMenu: boolean; isDev: boolean; pid: string; } & { localeNames: { zhHK: string; enGB: string; }; }>",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 7568
+          },
+          "name": "datas"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "total"
+        }
+      ]
+    },
+    "7782": {
+      "name": "ModelId & RouteUpdateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "isOptional": true,
+          "name": "sort"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "path"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "component"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "suffix"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "icon"
+        },
+        {
+          "kind": 4,
+          "id": 7793,
+          "isOptional": true,
+          "name": "localeNames"
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "isOptional": true,
+          "name": "isMenu"
+        },
+        {
+          "kind": 0,
+          "type": "boolean",
+          "isOptional": true,
+          "name": "isDev"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "pid"
+        }
+      ]
+    },
+    "7793": {
+      "name": "RouteLocaleUpdateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "zhHK"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "enGB"
+        }
+      ]
+    },
+    "7848": {
+      "name": "{ id: string; projectId: string; name: string; repoURL: string; serverIP: string; relativeDir: string; entryFile: string; port: string; maxMemory: string; commands: string[]; } & { envoriments: { key: string; value: string; }[]; pm2Config: { ...; }[]; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "projectId"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name",
+          "comment": "pm2进程名称 Alex"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "repoURL",
+          "comment": "svn url 全路径,推荐正式服用trunk, 测试服用branches"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "serverIP",
+          "comment": "服务器 IP 地址,"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "relativeDir",
+          "comment": "服务器上实际路径,比如: ./PPMS/trunk/server"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "entryFile",
+          "comment": "pm2 start 执行的js文件路径, 比如: ./build/index.js"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "port",
+          "comment": "端口"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "maxMemory",
+          "comment": "pm2 最大内存, 格式=数字+单位,比如: 10M, 1G,"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "commands",
+          "comment": "svn checkout之后, pm2 start 之前需要执行的命令, 比如: pnpm i --prod"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 7898
+          },
+          "name": "envoriments",
+          "comment": "环境变量, 默认会给一个 PORT"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 7898
+          },
+          "name": "pm2Config",
+          "comment": "其他pm2 配置."
+        }
+      ]
+    },
+    "7880": {
+      "name": "ServiceCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "auto()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "projectId"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name",
+          "comment": "pm2进程名称 Alex"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "repoURL",
+          "comment": "svn url 全路径,推荐正式服用trunk, 测试服用branches"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "serverIP",
+          "comment": "服务器 IP 地址,"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "relativeDir",
+          "comment": "服务器上实际路径,比如: ./PPMS/trunk/server"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "entryFile",
+          "comment": "pm2 start 执行的js文件路径, 比如: ./build/index.js"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "port",
+          "comment": "端口"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "maxMemory",
+          "comment": "pm2 最大内存, 格式=数字+单位,比如: 10M, 1G,"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 7891
+          },
+          "name": "envoriments",
+          "comment": "环境变量, 默认会给一个 PORT"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 7891
+          },
+          "name": "pm2Config",
+          "comment": "其他pm2 配置."
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "name": "commands",
+          "comment": "svn checkout之后, pm2 start 之前需要执行的命令, 比如: pnpm i --prod"
+        }
+      ]
+    },
+    "7891": {
+      "name": "KeyValueRecordCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "value"
+        }
+      ]
+    },
+    "7898": {
+      "name": "{ key: string; value: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "value"
+        }
+      ]
+    },
+    "7990": {
+      "name": "PageResult<{ id: string; projectId: string; name: string; repoURL: string; serverIP: string; relativeDir: string; entryFile: string; port: string; maxMemory: string; commands: string[]; } & { envoriments: { ...; }[]; pm2Config: { ...; }[]; }>",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 7848
+          },
+          "name": "datas"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "total"
+        }
+      ]
+    },
+    "8069": {
+      "name": "ModelId & ServiceUpdateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "projectId"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "name",
+          "comment": "pm2进程名称 Alex"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "repoURL",
+          "comment": "svn url 全路径,推荐正式服用trunk, 测试服用branches"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "serverIP",
+          "comment": "服务器 IP 地址,"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "relativeDir",
+          "comment": "服务器上实际路径,比如: ./PPMS/trunk/server"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "entryFile",
+          "comment": "pm2 start 执行的js文件路径, 比如: ./build/index.js"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "port",
+          "comment": "端口"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "maxMemory",
+          "comment": "pm2 最大内存, 格式=数字+单位,比如: 10M, 1G,"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 8080
+          },
+          "isOptional": true,
+          "name": "envoriments",
+          "comment": "环境变量, 默认会给一个 PORT"
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 8080
+          },
+          "isOptional": true,
+          "name": "pm2Config",
+          "comment": "其他pm2 配置."
+        },
+        {
+          "kind": 11,
+          "element": {
+            "kind": 0,
+            "type": "string"
+          },
+          "isOptional": true,
+          "name": "commands",
+          "comment": "svn checkout之后, pm2 start 之前需要执行的命令, 比如: pnpm i --prod"
+        }
+      ]
+    },
+    "8080": {
+      "name": "KeyValueRecordUpdateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "key"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "value"
+        }
+      ]
+    },
+    "8149": {
+      "name": "{ serviceId: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "serviceId"
         }
       ]
     }
-  }
+  },
+  "enumRefs": {},
+  "tupleRefs": {}
 }

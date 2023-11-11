@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.build.json && vite build --emptyOutDir",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest --run"
   },
   "dependencies": {
     "@ant-design/icons": "5.0.1",

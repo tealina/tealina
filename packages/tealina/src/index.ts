@@ -1,5 +1,53 @@
-import { Overwrite } from './gpure.type'
+// Type definition here can avoid all `.ts` files generate a `.d.ts`
+
 export * from '@tealina/doc-types'
+
+// gpure tyes ---- begin
+
+export type MutationKind = 'CreateInput' | 'UpdateInput'
+
+export type CommentType = Record<'private' | 'public', string[]>
+
+export type BlockAST = {
+  name: string
+  comment: CommentType
+  keyword: string
+  props: PropAST[]
+  attribute: Map<string, string>
+}
+
+export type PropAST = {
+  name: string
+  comment: CommentType
+  modifier?: string
+  attribute: Map<string, string>
+  type: string
+  kind: 'scalarType' | 'model' | 'enum' | 'compositeType'
+}
+
+export interface MatheLocate {
+  kind: MutationKind
+  keyword: string
+  blockName: string
+}
+
+export interface MatchForOptionalChcek extends MatheLocate {
+  predicate: (prop: PropAST) => boolean
+}
+
+export interface MatchForTypeTransform extends MatheLocate {
+  transform: (prop: PropAST) => string
+}
+
+export interface MatchForExcludeProp extends MatheLocate {
+  predicate: (prop: PropAST) => boolean
+}
+
+export interface Overwrite {
+  isOptional?: MatchForOptionalChcek[]
+  transofrmType?: MatchForTypeTransform[]
+  excludeProps?: MatchForExcludeProp[]
+}
 
 export interface PurifyConfig {
   /**
@@ -10,6 +58,8 @@ export interface PurifyConfig {
   /** remap type, eg: DateTime => number */
   typeRemap?: (type: string) => string | null
 }
+
+// gpure tyes ---- end
 
 export interface CreationCtx {
   dir?: string

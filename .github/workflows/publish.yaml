@@ -1,0 +1,39 @@
+name: Publish Packages
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build and Test
+        run: |
+          pnpm run build
+          pnpm test
+
+      - name: Publish
+        run: |
+          npx changeset version
+          npx changeset publish
