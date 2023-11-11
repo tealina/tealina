@@ -1,7 +1,6 @@
 ---
 'create-tealina': patch
 '@tealina/doc-ui': patch
-'@tealina/doc-types': patch
 'tealina': patch
 ---
 
@@ -16,7 +15,3 @@
 ### @tealina/doc-ui
 
 - fix: Body section not showing correct content when the type is not object
-
-### @tealina/doc-types
-
-- fix: type export declaration
