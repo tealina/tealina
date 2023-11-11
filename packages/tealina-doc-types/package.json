@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "tsc",
     "test": "pnpm tsc ./index.ts --noEmit"
   },
   "keywords": [
