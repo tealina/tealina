@@ -13,10 +13,9 @@ import {
   pipe,
 } from 'fp-lite'
 import { writeFile } from 'fs/promises'
-import { TealinaComonOption } from '../utils/options'
-import { parseSchame } from '../utils/parsePrisma'
-import { loadConfig } from '../utils/tool'
-import {
+import path from 'node:path'
+import type { PurifyConfig } from '..'
+import type {
   BlockAST,
   MatchForExcludeProp,
   MatchForOptionalChcek as MatchForOptionalCheck,
@@ -24,33 +23,10 @@ import {
   MatheLocate,
   MutationKind,
   PropAST,
-} from '../gpure.type'
-import { PurifyConfig } from '..'
-
-/**
- * static declaration, inject on demand,
- * for avoid unnecesary reference to Prisma.
- */
-const JSON_VALUE_TYPE = [
-  '/**',
-  '* From https://github.com/sindresorhus/type-fest/',
-  '* Matches a JSON object.',
-  '* This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. ',
-  '*/',
-  'export type JsonObject = {[Key in string]?: JsonValue}',
-  '',
-  '/**',
-  '* From https://github.com/sindresorhus/type-fest/',
-  '* Matches a JSON array.',
-  '*/',
-  'export interface JsonArray extends Array<JsonValue> {}',
-  '',
-  '/**',
-  '* From https://github.com/sindresorhus/type-fest/',
-  '* Matches any valid JSON value.',
-  '*/',
-  'export type JsonValue = string | number | boolean | JsonObject ',
-]
+} from '../index'
+import { TealinaComonOption } from '../utils/options'
+import { parseSchame } from '../utils/parsePrisma'
+import { loadConfig } from '../utils/tool'
 
 const ENUMS_BEGIN = [
   '/**',
@@ -224,7 +200,7 @@ const toDetermineFn =
   (predicates: ((x: PropAST) => boolean)[]) => (prop: PropAST) =>
     predicates.some(fn => fn(prop))
 
-const makeCopositeTypeBy = (kind: MutationKind) => (prop: PropAST) =>
+const makeCompositeTypeBy = (kind: MutationKind) => (prop: PropAST) =>
   prop.kind == 'compositeType' ? [prop.type, kind].join('') : null
 
 const makeMutationTsInterface = (
@@ -245,7 +221,7 @@ const makeMutationTsInterface = (
         [
           findBlockSpecificTransform(block, kind, overwrite?.transofrmType),
           typeRemap ? (prop: PropAST) => typeRemap(prop.type) : null,
-          makeCopositeTypeBy(kind),
+          makeCompositeTypeBy('CreateInput'), //always create input for compositeType
           ...TypeTransformStrategies,
         ].filter(notNull),
       ),
@@ -276,16 +252,60 @@ const enum2ts = ({ name, comment, props }: BlockAST): string[] => [
 
 const ConcernedKeywords = ['model', 'enum', 'type']
 
+const calcRelativeInputPath = (input: string, output: string) => {
+  const fullOutPutPathArr = path.resolve(output).split(path.sep)
+  const fullInputPutPathArr = path.resolve(input).split(path.sep)
+  const outPathLen = fullOutPutPathArr.length
+  const inputPathLen = fullInputPutPathArr.length
+  const min = Math.min(outPathLen, inputPathLen)
+  const sameParentIndex = Array(min)
+    .fill(0)
+    .findIndex((_v, i) => fullInputPutPathArr[i] != fullOutPutPathArr[i])
+  const relativeInputPath = path.relative(
+    fullOutPutPathArr.slice(sameParentIndex + 1).join('/'),
+    fullInputPutPathArr.slice(sameParentIndex).join('/'),
+  )
+  return relativeInputPath
+}
+
+/**
+ * static declaration, inject on demand,
+ * for avoid unnecesary reference to Prisma.
+ */
+const JSON_VALUE_TYPE = [
+  '/**',
+  '* From https://github.com/sindresorhus/type-fest/',
+  '* Matches a JSON object.',
+  '* This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. ',
+  '*/',
+  'export type JsonObject = {[Key in string]?: JsonValue}',
+  '',
+  '/**',
+  '* From https://github.com/sindresorhus/type-fest/',
+  '* Matches a JSON array.',
+  '*/',
+  'export interface JsonArray extends Array<JsonValue> {}',
+  '',
+  '/**',
+  '* From https://github.com/sindresorhus/type-fest/',
+  '* Matches any valid JSON value.',
+  '*/',
+  'export type JsonValue = string | number | boolean | JsonObject ',
+]
+
 const wrapperWith =
-  ({ input, namespace }: PurifyOption) =>
-  (lines: string[]) =>
-    [
-      ...formatComment([`Purified mutation types from [schema](${input})`]),
+  ({ input, output, namespace }: PurifyOption) =>
+  (lines: string[]) => {
+    const relativeInputPath = calcRelativeInputPath(input, output)
+    return [
+      ...formatComment([
+        `Purified mutation types from [schema](${relativeInputPath})`,
+      ]),
       `export namespace ${namespace} {`,
-      '',
       ...lines.map(v => `${TabSpace}${v}`),
       '}',
     ]
+  }
 
 const makeTypeCodes = (config: PurifyConfig) => (blockList: BlockAST[]) => {
   const hasJsonValue = blockList.some(v =>

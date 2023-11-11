@@ -1,6 +1,6 @@
 import { asyncFlow, filter, flow, map, pipe } from 'fp-lite'
 import { readFile } from 'fs/promises'
-import { BlockAST, CommentType, PropAST } from '../gpure.type'
+import type { BlockAST, CommentType, PropAST } from '../index'
 
 type KindFinderFn = (v: string) => PropAST['kind']
 
