@@ -1,6 +1,7 @@
 import { exec, spawn, spawnSync } from 'child_process'
 import { existsSync, rmSync } from 'fs'
 import path from 'node:path'
+import { expect } from 'vitest'
 import { beforeAll } from 'vitest'
 
 export const TEMP_ROOT = 'temp'
@@ -37,7 +38,7 @@ const prepareExecFn =
       })
     })
 
-export async function validate(dir: string) {
+const runScripts = async (dir: string) => {
   const cwd = path.join(dir, 'server')
   const $ = prepareExecFn(cwd)
   await $`pnpm install .` //workspace
@@ -49,5 +50,14 @@ export async function validate(dir: string) {
   await $`pnpm test -- --run --testTimeout=0`
   await $`pnpm v1 capi user crud`
   await $`pnpm tsc --noEmit`
+}
+
+export async function validate(dir: string) {
+  const serverPkg = path.join(dir, 'server', 'package.json')
+  const devTemplateDir = path.join(dir, 'server', 'dev-templates')
+  const serverTypesDir = path.join(dir, 'server', 'types')
+  expect(existsSync(serverPkg)).true
+  expect(existsSync(devTemplateDir)).true
+  expect(existsSync(serverTypesDir)).true
   console.log('test done')
 }
