@@ -38,6 +38,7 @@ const initFormValue = (
   Object.entries(commonInitialValue).forEach(([parentKey, record]) => {
     if (!(parentKey in values)) return
     const nest = values[parentKey]
+    if (typeof nest != 'object') return
     Object.entries(record).forEach(([key, value]) => {
       if (!(key in nest)) return
       form.setFieldValue([parentKey, key], value)

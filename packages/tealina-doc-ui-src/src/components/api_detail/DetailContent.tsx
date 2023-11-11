@@ -1,7 +1,4 @@
 import { CopyOutlined } from '@ant-design/icons'
-import { Button, Segmented, Spin, Tag } from 'antd'
-import { useAtomValue } from 'jotai'
-import { Suspense, lazy } from 'react'
 import {
   DocKind,
   type ApiDoc,
@@ -10,9 +7,13 @@ import {
   type ObjectType,
   type TupleEntity,
 } from '@tealina/doc-types'
+import { Button, Segmented, Spin, Tag } from 'antd'
+import { useAtomValue } from 'jotai'
+import { Suspense, lazy } from 'react'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
 import { syntaxColorAtom } from '../../atoms/themeAtom'
 import { type2cell } from '../../transformer/type2cell'
+import { Anchor } from '../Anchor'
 import { ColorText } from '../ColorText'
 import { EntityTable } from '../EntityTable'
 import { EnumTable } from '../EnumTable'
@@ -27,7 +28,6 @@ import {
   toPropType,
   useDetailState,
 } from './useDetailState'
-import { Anchor } from '../Anchor'
 const Playground = lazy(() => import('../features/playground/Playground'))
 
 function CopyButton({
@@ -120,9 +120,10 @@ function PlayloadPanel({
   curTab: SegmentTabKeys
 }) {
   const key = curTab as PayloadKeys
+  let firstOneNotMatch: undefined | true
   if (!memoMap.has(key)) {
     const next = genEmptyApiDoc()
-    getNestEntity(docItem[key] ?? nodeNull, doc, next)
+    firstOneNotMatch = getNestEntity(docItem[key] ?? nodeNull, doc, next)
     memoMap.set(key, next)
   }
   const appearedEntities = memoMap.get(key)!
@@ -140,6 +141,7 @@ function PlayloadPanel({
       {Object.entries(appearedEntities.tupleRefs).map(([id, v]) => (
         <TupleContent obj={v} id={id} key={id} doc={appearedEntities} />
       ))}
+      {firstOneNotMatch && type2cell(docItem[key]!, doc)}
     </div>
   )
 }

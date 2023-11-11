@@ -1,5 +1,3 @@
-import { SegmentedValue } from 'antd/es/segmented'
-import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   ApiDoc,
   DocItem,
@@ -8,6 +6,8 @@ import type {
   PropType,
 } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
+import { SegmentedValue } from 'antd/es/segmented'
+import { useEffect, useMemo, useRef, useState } from 'react'
 export type PayloadKeys = keyof Pick<
   DocItem,
   'headers' | 'body' | 'response' | 'query' | 'params'
@@ -20,6 +20,10 @@ export type OneApiScopeEntitie = Pick<
   nonLiterals: ObjectType[]
 }
 
+/**
+ *
+ * @returns  {true|undefined} if true, means first one not match
+ */
 export function getNestEntity(
   d: DocNode,
   doc: ApiDoc,
@@ -54,6 +58,11 @@ export function getNestEntity(
     case DocKind.RecursionTuple:
       inScope.tupleRefs[d.id] = doc.tupleRefs[d.id]
       break
+    default:
+      if (d.kind === DocKind.Record) {
+        getNestEntity(d.value, doc, inScope)
+      }
+      return true
   }
 }
 
@@ -111,7 +120,7 @@ const keys2tabOptions = (appearedKeys: PayloadKeys[]) =>
     value: key,
   }))
 
-export function useDetailState(doc: ApiDoc, docItem: DocItem) {
+export function useDetailState(_doc: ApiDoc, docItem: DocItem) {
   const appearedKeys = useMemo<PayloadKeys[]>(extraNotNull(docItem), [docItem])
   const tabOptions = useMemo(() => keys2tabOptions(appearedKeys), [docItem])
   const [curTab, setCurTab] = useState<SegmentTabKeys>(appearedKeys[0])
