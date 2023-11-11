@@ -20,7 +20,7 @@
   "dependencies": {
     "@fastify/static": "^6.10.2",
     "@prisma/client": "^5.3.1",
-    "@tealina/doc-ui": "^0.0.1",
+    "@tealina/doc-ui": "^0.0.2",
     "axios": "^1.4.0",
     "dotenv-cli": "^7.2.1",
     "fastify": "^4.17.0",
@@ -32,7 +32,7 @@
     "@types/node": "^18.11.18",
     "@types/qs": "^6.9.7",
     "prisma": "^5.3.1",
-    "tealina": "^0.2.2",
+    "tealina": "^0.3.2",
     "tsx": "^3.12.7",
     "typescript": "~5.2.2",
     "vitest": "^0.33.0"

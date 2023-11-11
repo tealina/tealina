@@ -9,7 +9,7 @@ import {
   handleNotFound,
   handleStaticNotFound,
 } from './handleNotFound.js'
-import { registeApiRoutes } from './registeApiRoutes.js'
+import { registeApiRoutes, validateMethod } from './registeApiRoutes.js'
 import { loadAPIs } from './resolveBatchExport.js'
 import { setupApiHeaders } from './setupApiHeaders.js'
 import { verifyToken } from './verifyToken.js'
@@ -21,6 +21,7 @@ const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
 
 const buildV1Router = async () => {
   const record = await loadAPIs(apisV1)
+  validateMethod(record)
   const openRouter = Router()
   const authRouter = Router().use(verifyToken)
   const { get, ...rest } = record
@@ -36,7 +37,12 @@ const buildApiRoute = async () => {
   return Router({ caseSensitive: true })
     .use('/api', setupApiHeaders)
     .use('/api/v1', v1ApiRouter)
+    .use(handleApiNotFound)
 }
+
+const staticResourceRouter = Router()
+  .use(express.static(path.resolve('public')))
+  .use(handleStaticNotFound)
 
 const buildAppRouter = (apiRouter: Router) =>
   Router()
@@ -44,15 +50,10 @@ const buildAppRouter = (apiRouter: Router) =>
     .use(express.json())
     .use(apiRouter)
     .use(VDOC_BASENAME, docRouter)
-    .use(express.static(path.resolve('public')))
+    .use(staticResourceRouter)
 
 const createExpressApp = (appRouter: Router) =>
-  express()
-    .use(appRouter)
-    .use('/api', handleApiNotFound) //The following is error handling
-    .get('*', handleStaticNotFound)
-    .use(handleNotFound)
-    .use(handleError)
+  express().use(appRouter).use(handleNotFound).use(handleError)
 
 const buildApp = asyncFlow(buildApiRoute, buildAppRouter, createExpressApp)
 
