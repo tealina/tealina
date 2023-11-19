@@ -125,15 +125,15 @@ describe('full test cai', () => {
     fs.rmSync(dirInfo.apiDir, { recursive: true })
   })
 
-  test.only('auto transform :id to [id]', async () => {
+  test('auto transform :id to [id]', async () => {
     const method = 'get'
-    const name = 'user/:id'
+    const name = 'book/:id'
     const route = [method, name].join('/')
-    const dirInfo = prepareTempDir('route-params')
+    const dirInfo = prepareTempDir('route-params-2')
     const { cli } = parseCommandArgs(route, dirInfo)
     const result = await cli.runMatchedCommand()
     const fullResult = makeFullResult(
-      'user/[id]',
+      'book/[id]',
       [{ method, name: '' }],
       dirInfo,
     )
