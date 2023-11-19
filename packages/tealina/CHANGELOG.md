@@ -1,5 +1,13 @@
 # tealina
 
+## 0.3.5
+
+### Patch Changes
+
+- a20dfba: fix: Missing build
+- Updated dependencies [a20dfba]
+  - @tealina/doc-types@1.0.1
+
 ## 0.3.4
 
 ### Patch Changes

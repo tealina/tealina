@@ -1,5 +1,11 @@
 # @tealina/doc-types
 
+## 1.0.1
+
+### Patch Changes
+
+- a20dfba: fix: Missing build
+
 ## 1.0.0
 
 ### Major Changes
