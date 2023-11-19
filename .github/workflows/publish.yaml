@@ -29,10 +29,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: |
-            pnpm build
-            pnpm changesets version
-            pnpm changesets publish
+          publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
