@@ -1,5 +1,15 @@
 # create-tealina
 
+## 0.2.5
+
+### Patch Changes
+
+- a20dfba: fix: Missing build
+- 8946c90: fix: missing dist
+- Updated dependencies [a20dfba]
+- Updated dependencies [8946c90]
+  - create-tealina@0.2.5
+
 ## 0.2.4
 
 ### Patch Changes
