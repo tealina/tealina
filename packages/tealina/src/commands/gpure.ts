@@ -67,7 +67,7 @@ const justMap = new Map<string, string>([
   ['Float', 'number'],
   ['Decimal', 'number'],
   ['String', 'string'],
-  ['DateTime', 'Date | string'],
+  ['DateTime', 'Date'],
   ['Boolean', 'boolean'],
   ['Json', 'JsonValue'],
   ['Bytes', 'Buffer'],
@@ -78,6 +78,7 @@ type GetTsType = (x: PropAST) => string | null | undefined
 const TypeTransformStrategies: GetTsType[] = [
   x => justMap.get(x.type),
   x => (x.type.startsWith('Unsupported') ? 'unknown' : null),
+  x => (x.kind != 'model' ? x.type : null),
 ]
 
 const PropsExcludeStategies: ((x: PropAST) => boolean)[] = [
@@ -97,7 +98,7 @@ const getFirstMatch = (strategies: GetTsType[]) => (x: PropAST) => {
 const useWhen = (s: string, isValid: boolean) => (isValid ? s : '')
 
 const defaultConfig: Record<
-  MutationKind,
+  Exclude<MutationKind, ''>,
   {
     checkOptional: (prop: PropAST) => boolean
   }
@@ -144,14 +145,14 @@ const block2ts =
     makeName: (block: BlockAST) => string
     checkIsOptional: (block: BlockAST) => (prop: PropAST) => boolean
     transformType: (block: BlockAST) => (prop: PropAST) => string
-    notExclude: (block: BlockAST) => (prop: PropAST) => boolean
+    exclude: (block: BlockAST) => (prop: PropAST) => boolean
   }) =>
   (block: BlockAST) => {
     const commentLines = formatComment(block.comment.public)
     const headLine = [`interface ${option.makeName(block)}{`]
     const propLines = pipe(
       block.props,
-      filter(option.notExclude(block)),
+      filter(option.exclude(block)),
       map(
         prop2ts({
           optinalChchek: option.checkIsOptional(block),
@@ -203,8 +204,29 @@ const toDetermineFn =
 const makeCompositeTypeBy = (kind: MutationKind) => (prop: PropAST) =>
   prop.kind == 'compositeType' ? [prop.type, kind].join('') : null
 
+const makeTsInterface = ({ overwrite }: PurifyConfig) =>
+  block2ts({
+    makeName: block => block.name,
+    checkIsOptional: _block => _prop => false, //use null instead
+    transformType: block => prop => {
+      const fn = getFirstMatch(
+        [
+          findBlockSpecificTransform(block, '', overwrite?.transofrmType),
+          ...TypeTransformStrategies,
+        ].filter(notNull),
+      )
+      const type = fn(prop)
+      return prop.modifier == '?' ? [type, 'null'].join(' | ') : type
+    },
+    exclude: _block =>
+      toFilterFn([
+        x => x.type.startsWith('Unsupported'),
+        ...PropsExcludeStategies,
+      ]),
+  })
+
 const makeMutationTsInterface = (
-  kind: MutationKind,
+  kind: Exclude<MutationKind, ''>,
   { overwrite, typeRemap }: PurifyConfig,
 ) =>
   block2ts({
@@ -225,7 +247,7 @@ const makeMutationTsInterface = (
           ...TypeTransformStrategies,
         ].filter(notNull),
       ),
-    notExclude: block =>
+    exclude: block =>
       toFilterFn(
         [
           findBlockSpecificExclude(block, kind, overwrite?.excludeProps),
@@ -320,7 +342,8 @@ const makeTypeCodes = (config: PurifyConfig) => (blockList: BlockAST[]) => {
         concat(g.get('type') ?? []),
         map(block =>
           pipe(
-            makeMutationTsInterface('CreateInput', config)(block),
+            makeTsInterface(config)(block),
+            concat(makeMutationTsInterface('CreateInput', config)(block)),
             concat(makeMutationTsInterface('UpdateInput', config)(block)),
           ),
         ),
