@@ -6,8 +6,7 @@
   "main": "index.js",
   "scripts": {
     "build": "pnpm recursive exec -- npm run build",
-    "prerelease": "pnpm build",
-    "release": "pnpm changeset version && pnpm changeset publish",
+    "release": "pnpm build && pnpm changeset version && pnpm changeset publish",
     "test": "pnpm recursive exec -- npm run test",
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install",
