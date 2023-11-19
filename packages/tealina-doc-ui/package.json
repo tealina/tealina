@@ -1,6 +1,6 @@
 {
   "name": "@tealina/doc-ui",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A web page for view and play APIs by parseing the json file which satisify @tealina/doc-types",
   "main": "./dist/index.js",
   "type": "module",
