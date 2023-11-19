@@ -1,5 +1,24 @@
 # create-tealina
 
+## 0.2.4
+
+### Patch Changes
+
+- dd866c9: fix: not found index.js
+- 782781b: ### @tealina/doc-types
+
+  ### tealina
+
+  feat: add docTypeVersion prop
+
+  ### create-tealina
+
+  fix(create-tealina): not found index.js
+
+- Updated dependencies [dd866c9]
+- Updated dependencies [782781b]
+  - create-tealina@0.2.4
+
 ## 0.2.3
 
 ### Patch Changes
