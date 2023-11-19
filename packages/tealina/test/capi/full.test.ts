@@ -125,6 +125,23 @@ describe('full test cai', () => {
     fs.rmSync(dirInfo.apiDir, { recursive: true })
   })
 
+  test.only('auto transform :id to [id]', async () => {
+    const method = 'get'
+    const name = 'user/:id'
+    const route = [method, name].join('/')
+    const dirInfo = prepareTempDir('route-params')
+    const { cli } = parseCommandArgs(route, dirInfo)
+    const result = await cli.runMatchedCommand()
+    const fullResult = makeFullResult(
+      'user/[id]',
+      [{ method, name: '' }],
+      dirInfo,
+    )
+    console.log(fullResult)
+    expect(result).deep.eq(fullResult)
+    fs.rmSync(dirInfo.apiDir, { recursive: true })
+  })
+
   test('batch create by parse prisma schema', async () => {
     const alias = 'crud'
     const dirInfo = prepareTempDir('by-model')

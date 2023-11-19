@@ -2,6 +2,14 @@ import { expect, test } from 'vitest'
 import { workflow } from '../../src/commands/gpure'
 
 const snapshot = [
+  'interface User{',
+  '  /** @default {auto()} */',
+  '  id: string',
+  '  email: string',
+  '  name: string | null',
+  '  address: Address | null',
+  '}',
+  '',
   'interface UserCreateInput{',
   '  email: string',
   '  name?: string',
@@ -14,6 +22,13 @@ const snapshot = [
   '  email?: string',
   '  name?: string',
   '  address?: AddressCreateInput',
+  '}',
+  '',
+  'interface Address{',
+  '  street: string',
+  '  city: string',
+  '  state: string',
+  '  zip: string',
   '}',
   '',
   'interface AddressCreateInput{',
