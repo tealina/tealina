@@ -21,4 +21,5 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: '**/pnpm-lock.yaml'
       - run: pnpm install --frozen-lockfile --prefer-offline
+      - run: pnpm build
       - run: pnpm test
