@@ -18,7 +18,7 @@ const handleError = async (e: unknown) => {
 
 const startServer = asyncFlow(
   buildApp,
-  app => app.listen({ port: process.env.PORT }),
+  app => app.listen(process.env.PORT),
   logAddress,
 )
 
