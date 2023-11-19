@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id          Int    @id @default(autoincrement())
+  username    String
+  password    String
+  email       String
+  address     String
+  phoneNumber String
+
+  orders  Order[]
+  Comment Comment[]
+}
+
+model Product {
+  id            Int    @id @default(autoincrement())
+  productName   String
+  description   String
+  price         Float
+  stockQuantity Int
+  categoryId    Int 
+
+  orderDetails OrderDetail[]
+
+  category Category  @relation(fields: [categoryId], references: [id])
+  Comment  Comment[]
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  orderDate   DateTime
+  orderStatus String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  orderDetails OrderDetail[]
+  Payment      Payment[]
+}
+
+model OrderDetail {
+  id        Int   @id @default(autoincrement())
+  quantity  Int
+  unitPrice Float
+
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  amount        Float
+  paymentDate   DateTime
+  paymentStatus String
+
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Category {
+  id           Int    @id @default(autoincrement())
+  categoryName String
+  description  String
+
+  products Product[]
+}
