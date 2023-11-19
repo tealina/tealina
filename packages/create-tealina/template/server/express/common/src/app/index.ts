@@ -17,7 +17,7 @@ import { verifyToken } from './verifyToken.js'
 const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
   x: T,
   ...keys: Keys
-) => [pickFn(x, ...keys), omitFn(x, ...keys)] as const
+) => [omitFn(x, ...keys), pickFn(x, ...keys)] as const
 
 const buildV1Router = async () => {
   const record = await loadAPIs(apisV1)
@@ -25,7 +25,8 @@ const buildV1Router = async () => {
   const openRouter = Router()
   const authRouter = Router().use(verifyToken)
   const { get, ...rest } = record
-  const [openGetApis, authGetApis] = separateObject(get, 'health')
+  // handle APIs whether should login or not here
+  const [authGetApis, openGetApis] = separateObject(get, 'health')
   registeApiRoutes(openRouter, { get: openGetApis })
   registeApiRoutes(authRouter, { get: authGetApis, ...rest })
   const router = Router().use(openRouter).use(authRouter)
@@ -36,8 +37,7 @@ const buildApiRoute = async () => {
   const v1ApiRouter = await buildV1Router()
   return Router({ caseSensitive: true })
     .use('/api', setupApiHeaders)
-    .use('/api/v1', v1ApiRouter)
-    .use(handleApiNotFound)
+    .use('/api/v1', v1ApiRouter, handleApiNotFound)
 }
 
 const staticResourceRouter = Router()
