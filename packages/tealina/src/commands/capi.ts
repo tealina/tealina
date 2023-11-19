@@ -316,6 +316,15 @@ const calcSnapshots = (ctx: FullContext): Snapshot[] =>
     concat(calcTypeFileSnapshot(ctx)),
   )
 
+const ColonPattern = /^:/
+const mayTransformParams = (route: string) => {
+  if (!route.includes(':')) return route
+  return route
+    .split('/')
+    .map(v => (ColonPattern.test(v) ? `[${v.slice(1)}]` : v))
+    .join('/')
+}
+
 const validateRegularOption = (
   args: (string | undefined)[],
   rawOption: BaseOption,
@@ -326,12 +335,13 @@ const validateRegularOption = (
     throw new Error(`Route is required, eg: ${command} user/create`)
   }
   const alisa = templateAlias ?? rawOption.templateAlias //-t 'crud'
-  if (alisa != null) return { templateAlias, ...rawOption, route: rawRoute }
+  if (alisa != null)
+    return { templateAlias, ...rawOption, route: mayTransformParams(rawRoute) }
   const [head] = rawRoute.split('/')
   const route = isValidHttpMethod(head)
     ? rawRoute
     : ['post', rawRoute].join('/')
-  return { templateAlias, ...rawOption, route }
+  return { templateAlias, ...rawOption, route: mayTransformParams(route) }
 }
 
 const validateByModelOption = (rawOption: ByModelOption) => {
