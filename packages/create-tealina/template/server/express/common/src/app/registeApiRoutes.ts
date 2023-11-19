@@ -32,7 +32,7 @@ type HttpMethod = keyof Pick<
   | 'trace'
 >
 
-const validateMethod = <T extends Record<HttpMethod, any>>(x: T) => x
+const validateMethod = <T extends HttpMethod>(x: Record<T, any>) => x
 
 type RegisteEachFn = (url: string, handlers: RequestHandler[]) => void
 
