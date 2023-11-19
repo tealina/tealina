@@ -11,10 +11,7 @@
     "prepare": "husky install",
     "cproj": "node packages/create-tealina/dist/index.mjs",
     "format:check": "prettier --check .",
-    "up-temp-versions": "node scripts/update-version-in-template.mjs",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "up-temp-versions": "node scripts/update-version-in-template.mjs"
   },
   "devDependencies": {
     "@types/node": "^18.17.1",
