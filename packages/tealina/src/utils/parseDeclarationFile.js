@@ -612,5 +612,6 @@ export const parseDeclarationFile = ({ entries, tsconfigPath }) => {
     entityRefs: Refs,
     enumRefs: EnumRefs,
     tupleRefs: TupleRefs,
+    docTypeVersion: 1.0,
   }
 }

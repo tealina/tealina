@@ -158,4 +158,10 @@ export interface ApiDoc {
   entityRefs: Record<Id, Entity>
   enumRefs: Record<Id, EnumEntity>
   tupleRefs: Record<Id, TupleEntity>
+  /**
+   * The Tealina doc type version,
+   * flow semver conventions.
+   * format: [major].[minor]
+   *  */
+  docTypeVersion: number
 }
