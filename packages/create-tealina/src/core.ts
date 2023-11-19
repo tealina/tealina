@@ -294,7 +294,7 @@ const createWebProject = async (ctx: ContextType) => {
       .join(answer.projectName, 'web')
       .split(path.sep)
       .join('/')
-    await mayOverwrite(dest)
+    await mayOverwrite(webDest)
     await runCreateVite(ctx, webDest)
     updatePackageJson(webDestDir)
   }
