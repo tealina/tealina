@@ -5,7 +5,6 @@ import minimist from 'minimist'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import prompts from 'prompts'
-import { Readable } from 'stream'
 
 const { blue, green, reset } = chalk
 const { join } = path
@@ -151,7 +150,10 @@ const collectUserAnswer = (argProjectName: string | undefined) =>
         name: 'server',
         type: 'select',
         choices: [
-          { title: 'Demo (Express + SQLite)', value: 'demo' },
+          {
+            title: 'Demo (Express + SQLite)',
+            value: 'demo',
+          },
           { title: 'Express', value: 'express' },
           { title: 'Fastify', value: 'fastify' },
         ],
@@ -202,12 +204,13 @@ const pkgFromUserAgent = (userAgent: string = '') => {
   return pkgSpec.length < 1 ? 'npm' : pkgSpec
 }
 
-const createServerProject = (ctx: ContextType) => {
+const createServerProject = async (ctx: ContextType) => {
   const { projectRootDir, answer, isDemo } = ctx
   const { server, apiStyle } = answer
+  const destServerDir = join(ctx.dest, 'server')
+  await mayOverwrite(destServerDir)
   const templateDir = join(projectRootDir, 'template')
   const templateServerDir = join(templateDir, 'server', server)
-  const destServerDir = join(ctx.dest, 'server')
   mayCopyCommonDir(templateDir, destServerDir)
   mayCopyCommonDir(templateServerDir, destServerDir)
   createProject(join(templateServerDir, 'common'), destServerDir)
@@ -226,32 +229,15 @@ const createServerProject = (ctx: ContextType) => {
   writeBasicInitDevFile(ctx.pkgManager, destServerDir)
 }
 
-const runCreateVite = async (ctx: ContextType, webName: string) =>
+const runCreateVite = async (ctx: ContextType, webDest: string) =>
   new Promise<void>(res => {
     const { answer, pkgManager } = ctx
+    const name = path.basename(webDest)
+    const dir = path.dirname(webDest)
     const leader = pkgManager == 'npm' ? 'npx' : pkgManager
-
-    const fullArgs = ['create', 'vite', `${webName}`, '-t', answer.web]
+    const fullArgs = ['create', 'vite', name, '-t', answer.web]
     console.log('  Running', leader, ...fullArgs)
-
-    const p = spawn(leader, fullArgs)
-    let shouldSilen = false
-    const inputSteam = new Readable({
-      read: function (_size) {
-        if (shouldSilen) return
-        this.push('\n')
-        shouldSilen = true
-      },
-    }).pipe(p.stdin)
-    // ignore this error
-    inputSteam.on('error', _err => {})
-    const reporter = (chunk: any) => {
-      if (shouldSilen) return
-      const line = chunk.toString().trim()
-      console.log(line, line.length)
-    }
-    p.stdout.on('data', reporter)
-    p.stderr.on('data', reporter)
+    const p = spawn(leader, fullArgs, { cwd: dir })
     p.on('error', err => {
       console.log('Run create vite faled, skip current step')
       console.error('errr', err)
@@ -283,30 +269,33 @@ const emptyDir = (dir: string) => {
   }
 }
 
+const mayOverwrite = async (dest: string) => {
+  if (!existsSync(dest)) return
+  const confirm = await prompts([
+    {
+      type: 'confirm',
+      name: 'overwrite',
+      message:
+        `Target directory "${dest}"` +
+        ` is not empty. Remove existing files and continue?`,
+    },
+  ])
+  if (!confirm.overwrite) {
+    throw 'Canceled'
+  }
+  emptyDir(dest)
+}
+
 const createWebProject = async (ctx: ContextType) => {
   const { projectRootDir, answer, dest } = ctx
   const webDestDir = join(dest, 'web')
   if (answer.web != 'none') {
-    const webName = path
+    const webDest = path
       .join(answer.projectName, 'web')
       .split(path.sep)
       .join('/')
-    if (existsSync(webName)) {
-      const confirm = await prompts([
-        {
-          type: 'confirm',
-          name: 'overwrite',
-          message:
-            `Target directory "${webName}"` +
-            ` is not empty. Remove existing files and continue?`,
-        },
-      ])
-      if (!confirm.overwrite) {
-        throw 'Canceled'
-      }
-      emptyDir(webName)
-    }
-    await runCreateVite(ctx, webName)
+    await mayOverwrite(dest)
+    await runCreateVite(ctx, webDest)
     updatePackageJson(webDestDir)
   }
   const webExtraTemplateDir = join(projectRootDir, 'template', 'web')
@@ -334,7 +323,7 @@ const createCtx = async () => {
 
 export const createScaffold = async () => {
   const ctx = await createCtx()
-  createServerProject(ctx)
+  await createServerProject(ctx)
   await createWebProject(ctx)
   showGuide(ctx)
 }
