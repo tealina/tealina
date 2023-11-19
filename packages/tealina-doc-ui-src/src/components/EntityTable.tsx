@@ -49,7 +49,7 @@ export function EntityTable({
       width: '20%',
       key: 'defaultValue',
       dataIndex: 'jsDoc',
-      render: v => v?.comment,
+      render: v => v?.default,
     },
   ]
   return (
