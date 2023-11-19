@@ -1,18 +1,21 @@
-name: Publish Packages
-
+name: Publish
 on:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
   push:
     branches:
-      - main
+      - 'main'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  build:
+  publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
         with:
           version: 8
@@ -22,16 +25,14 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
-
-      - name: Build and Test
-        run: |
-          pnpm run build
-          pnpm test
-
-      - name: Publish
-        run: |
-          npx changeset version
-          npx changeset publish
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: |
+            pnpm build
+            npx changeset version
+            npx changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
