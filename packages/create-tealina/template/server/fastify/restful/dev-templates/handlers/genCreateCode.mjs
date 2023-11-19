@@ -10,7 +10,7 @@ export default makeTemplate(
       `import { db } from '${relative2api}/db/prisma.js'`,
     ]
     const codes = [
-      `type ApiType = AuthedHandler<{ body: Pure.${Model}CreateInput; }, Pure.${Model}>`,
+      `type ApiType = AuthedHandler<{ body: Pure.${Model}CreateInput }, Pure.${Model}>`,
       '',
       `/** Create one ${Model} */`,
       `const handler: ApiType = async (req, res) => {`,

@@ -11,14 +11,14 @@ export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
     `import { modelIdZ } from '${relative2api}/validate/modelId.js'`,
   ]
   const codes = [
-    `type ApiType = AuthedHandler<{ params: RawId, body: Pure.${Model}UpdateInput }>`,
+    `type ApiType = AuthedHandler<{ params: RawId; body: Pure.${Model}UpdateInput }>`,
     '',
     `/** Update ${Model} by id */`,
     `const handler: ApiType = async (req, res) => {`,
     '  const { id } = modelIdZ.parse(req.params)',
     '  const data = req.body',
     `  const result = await db.${model}.update({`,
-    '    where:{ id },',
+    '    where: { id },',
     '    data,',
     '  })',
     '  res.code(200).send()',

@@ -3,7 +3,8 @@ import { makeTemplate } from 'tealina'
 
 export default makeTemplate(({ relative2api, dir: model, Dir: Model }) => {
   const imps = [
-    `import type { AuthedHandler, RawId } from '${relative2api}/../types/handler.js'`,
+    `import type { RawId } from '../../../../types/common.js'`,
+    `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
     `import { convention } from '${relative2api}/convention.js'`,
     `import { db } from '${relative2api}/db/prisma.js'`,
     `import { modelIdZ } from '${relative2api}/validate/modelId.js'`,
