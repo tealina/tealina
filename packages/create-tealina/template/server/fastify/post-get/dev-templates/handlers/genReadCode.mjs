@@ -4,6 +4,7 @@ import { makeTemplate } from 'tealina'
 export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
   const imps = [
     `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
+    `import type { Pure } from '../../../types/pure.js'`,
     `import type {`,
     `  FindManyArgs,`,
     `  PageResult,`,
@@ -25,6 +26,7 @@ export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
     '}',
     '',
     `export default convention(getList)`,
+    '',
   ]
   return [...imps, '', ...codes].join('\n')
 })

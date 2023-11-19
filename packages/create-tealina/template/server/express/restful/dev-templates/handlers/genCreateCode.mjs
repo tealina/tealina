@@ -21,6 +21,7 @@ export default makeTemplate(
       '}',
       '',
       `export default convention(handler)`,
+      '',
     ]
     return [...imps, '', ...codes].join('\n')
   },

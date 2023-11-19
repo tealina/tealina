@@ -5,6 +5,7 @@ export default makeTemplate(
   ({ Filename: Model, relative2api, filename: model }) => {
     const imps = [
       `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
+      `import type { Pure } from '../../../types/pure.js'`,
       `import type {`,
       `  PageResult,`,
       `  RawFindManyArgs,`,
@@ -27,6 +28,7 @@ export default makeTemplate(
       '}',
       '',
       `export default convention(handler)`,
+      '',
     ]
     return [...imps, '', ...codes].join('\n')
   },

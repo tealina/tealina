@@ -34,5 +34,6 @@ export const genTypeCode = ({ apiDir, typesDir }: DirInfo, suffix: string) => {
     'export type ApiTypesRecord = {',
     "  [Method in keyof RawApis]: ResolveApiType<Awaited<RawApis[Method]>['default']>",
     '}',
+    '',
   ].join('\n')
 }

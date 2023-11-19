@@ -11,6 +11,5 @@ export default makeTestSuiteTemplate(({ method, route, relative2ancestor }) =>
     '  expect(result.status).eq(200)',
     '})',
     '',
-    '',
   ].join('\n'),
 )

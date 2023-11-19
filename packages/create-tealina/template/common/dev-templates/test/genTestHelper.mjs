@@ -27,5 +27,6 @@ export default makeTestHelperTemplate(
       'const req = createReq<ApiTypesRecord>(instance)',
       '',
       'export { req }',
+      '',
     ].join('\n'),
 )

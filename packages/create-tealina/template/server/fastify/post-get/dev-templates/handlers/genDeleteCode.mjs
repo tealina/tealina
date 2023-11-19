@@ -18,6 +18,7 @@ export default makeTemplate(({ relative2api, Dir: Model, dir: model }) => {
     '}',
     '',
     `export default convention(deleteById)`,
+    '',
   ]
   return [...imps, '', ...codes].join('\n')
 })

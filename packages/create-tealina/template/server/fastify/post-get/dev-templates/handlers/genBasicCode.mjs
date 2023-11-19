@@ -12,5 +12,6 @@ export default makeTemplate(({ relative2api }) =>
     '}',
     '',
     `export default convention(handler)`,
+    '',
   ].join('\n'),
 )

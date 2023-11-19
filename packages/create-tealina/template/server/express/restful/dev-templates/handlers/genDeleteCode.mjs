@@ -1,7 +1,7 @@
 // @ts-check
 import { makeTemplate } from 'tealina'
 
-export default makeTemplate(({ relative2api, dir: model }) => {
+export default makeTemplate(({ relative2api, dir: model, Dir: Model }) => {
   const imps = [
     `import type { AuthedHandler, RawId } from '${relative2api}/../types/handler.js'`,
     `import { convention } from '${relative2api}/convention.js'`,
@@ -19,6 +19,7 @@ export default makeTemplate(({ relative2api, dir: model }) => {
     '}',
     '',
     `export default convention(handler)`,
+    '',
   ]
   return [...imps, '', ...codes].join('\n')
 })

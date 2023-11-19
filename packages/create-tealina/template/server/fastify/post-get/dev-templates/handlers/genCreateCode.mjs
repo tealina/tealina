@@ -20,6 +20,7 @@ export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
     '}',
     '',
     `export default convention(create)`,
+    '',
   ]
   return [...imps, '', ...codes].join('\n')
 })
