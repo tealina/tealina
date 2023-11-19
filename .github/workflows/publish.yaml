@@ -30,6 +30,7 @@ jobs:
         uses: changesets/action@v1
         with:
           publish: |
+            pnpm build
             npx changesets version
             npx changesets publish
         env:
