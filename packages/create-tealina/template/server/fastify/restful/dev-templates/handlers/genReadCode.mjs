@@ -9,13 +9,12 @@ export default makeTemplate(
       `  PageResult,`,
       `  RawFindManyArgs,`,
       `} from '${relative2api}/../types/common.js'`,
-      `import { ${Model} } from '@prisma/client'`,
       `import { convention } from '${relative2api}/convention.js'`,
       `import { db } from '${relative2api}/db/prisma.js'`,
       `import { findManyArgsZ } from '${relative2api}/validate/findManyArgs.js'`,
     ]
     const codes = [
-      `type ApiType = AuthedHandler<{ query: RawFindManyArgs } ,PageResult<${Model}>>`,
+      `type ApiType = AuthedHandler<{ query: RawFindManyArgs } ,PageResult<Pure.${Model}>>`,
       '',
       `/** Get page datas from ${Model} */`,
       `const handler: ApiType = async (req, res) => {`,

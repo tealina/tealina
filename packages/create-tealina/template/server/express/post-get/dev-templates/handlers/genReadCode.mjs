@@ -4,16 +4,16 @@ import { makeTemplate } from 'tealina'
 export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
   const imps = [
     `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
+    `import type { Pure } from '${relative2api}/../types/pure.js'`,
     `import type {`,
     `  FindManyArgs,`,
     `  PageResult,`,
     `} from '${relative2api}/../types/common.js'`,
-    `import { ${Model} } from '@prisma/client'`,
     `import { convention } from '${relative2api}/convention.js'`,
     `import { db } from '${relative2api}/db/prisma.js'`,
   ]
   const codes = [
-    `type ApiType = AuthedHandler<{ body: FindManyArgs }, PageResult<${Model}> >`,
+    `type ApiType = AuthedHandler<{ body: FindManyArgs }, PageResult<Pure.${Model}> >`,
     '',
     `/** Get page datas from ${Model} */`,
     `const handler: ApiType = async (req, res) => {`,

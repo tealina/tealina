@@ -59,12 +59,21 @@ const transformPayload = (
 type RequestFn<T extends Record<string, any>> = <K extends keyof T>(
   url: K,
   ...rest: MakeParams<T[K]>
+) => Promise<AxiosResponse<T[K]['response']>['data']>
+
+type RawRequestFn<T extends Record<string, any>> = <K extends keyof T>(
+  url: K,
+  ...rest: MakeParams<T[K]>
 ) => Promise<AxiosResponse<T[K]['response']>>
 
 type ApiShape = Record<string, Record<string, any>>
 
-type MakeReqType<T extends ApiShape> = {
+export type MakeReqType<T extends ApiShape> = {
   [Method in keyof T]: RequestFn<T[Method]>
+}
+
+export type MakeRawReqType<T extends ApiShape> = {
+  [Method in keyof T]: RawRequestFn<T[Method]>
 }
 
 /**
@@ -72,7 +81,7 @@ type MakeReqType<T extends ApiShape> = {
  * @param axiosInstance
  */
 const createReq = <T extends ApiShape>(axiosInstance: AxiosInstance) =>
-  new Proxy({} as MakeReqType<T>, {
+  new Proxy({} as T, {
     get:
       (_target, method: string) =>
       (url: string, ...rest: DynamicParmasType) =>

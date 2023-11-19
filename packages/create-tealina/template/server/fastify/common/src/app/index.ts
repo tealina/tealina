@@ -13,13 +13,13 @@ import { verifyToken } from './verifyToken.js'
 const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
   x: T,
   ...keys: Keys
-) => [pickFn(x, ...keys), omitFn(x, ...keys)] as const
+) => [omitFn(x, ...keys), pickFn(x, ...keys)] as const
 
 const buildV1Router: FastifyPluginAsync = async (fastify, option) => {
   checkMethodType(apisV1)
   const apiRecord = await loadAPIs(apisV1)
   const { get, ...rest } = apiRecord
-  const [openGetApis, authGetApis] = separateObject(get, 'health')
+  const [authGetApis, openGetApis] = separateObject(get, 'health')
   registeApiRoutes({ get: openGetApis }, fastify)
   fastify.register(function (restrictFastify, opts, done) {
     restrictFastify.addHook('preValidation', verifyToken)

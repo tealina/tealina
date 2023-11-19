@@ -8,12 +8,11 @@ export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
     `  FindManyArgs,`,
     `  PageResult,`,
     `} from '${relative2api}/../types/common.js'`,
-    `import { ${Model} } from '@prisma/client'`,
     `import { convention } from '${relative2api}/convention.js'`,
     `import { db } from '${relative2api}/db/prisma.js'`,
   ]
   const codes = [
-    `type ApiType = AuthedHandler<{ body: FindManyArgs }, PageResult<${Model}> >`,
+    `type ApiType = AuthedHandler<{ body: FindManyArgs }, PageResult<Pure.${Model}> >`,
     '',
     `/** Get page datas from ${Model} */`,
     `const getList: ApiType = async (req, res) => {`,
