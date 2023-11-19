@@ -35,7 +35,7 @@ import { CodeEditorItem } from '../components/CodeEditorItem'
 import { type2text } from './type2text'
 
 export const prop2item = (
-  doc: Omit<ApiDoc, 'apis'>,
+  doc: Omit<ApiDoc, 'apis' | 'docTypeVersion'>,
   prop: PropType,
   preNamepath: InternalNamePath = [],
 ): any => {

@@ -4,7 +4,10 @@ import { DocKind } from '@tealina/doc-types'
 
 const id2name = (id: number) => ['{', id, '}'].join(' ')
 
-export function type2text(d: DocNode, doc: Omit<ApiDoc, 'apis'>): string {
+export function type2text(
+  d: DocNode,
+  doc: Omit<ApiDoc, 'apis' | 'docTypeVersion'>,
+): string {
   const { entityRefs, enumRefs } = doc
   switch (d.kind) {
     case DocKind.Array:
