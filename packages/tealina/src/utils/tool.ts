@@ -4,7 +4,7 @@ import path from 'node:path'
 import { extname, normalize, resolve } from 'pathe'
 import ts from 'typescript'
 import { pathToFileURL } from 'url'
-import { CreationCtx, TealinaConifg } from '../index'
+import { TemplateContext, TealinaConifg } from '../index'
 import { TealinaComonOption } from './options'
 import { DirInfo } from './withTypeFile'
 
@@ -19,7 +19,7 @@ export const withoutSuffix = (x: string) => x.replace(extname(x), '')
 export const parseCreateInfo = (
   method: string,
   fullPathArr: string[],
-): CreationCtx => {
+): TemplateContext => {
   const dirPathArr = fullPathArr.slice(0, -1)
   const relativeDotStr = Array(fullPathArr.length + 1)
     .fill('..')

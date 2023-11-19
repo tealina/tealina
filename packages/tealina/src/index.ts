@@ -4,7 +4,7 @@ export * from '@tealina/doc-types'
 
 // gpure tyes ---- begin
 
-export type MutationKind = 'CreateInput' | 'UpdateInput'
+export type MutationKind = 'CreateInput' | 'UpdateInput' | ''
 
 export type CommentType = Record<'private' | 'public', string[]>
 
@@ -55,13 +55,13 @@ export interface PurifyConfig {
    *  eg: OrderNo should be optional or exclude in OrderUpdateInput
    */
   overwrite?: Overwrite
-  /** remap type, eg: DateTime => number */
+  /** remap type, eg: DateTime => number, effect mutation types only */
   typeRemap?: (type: string) => string | null
 }
 
 // gpure tyes ---- end
 
-export interface CreationCtx {
+export interface TemplateContext {
   dir?: string
   /** captialized directory name */
   Dir?: string
@@ -72,7 +72,7 @@ export interface CreationCtx {
   method: string
 }
 
-type CodeGenerateFnType = (ctx: CreationCtx) => string
+type CodeGenerateFnType = (ctx: TemplateContext) => string
 
 export type GenTestSuiteFnType = (ctx: {
   method: string
@@ -87,10 +87,6 @@ export type GenTestHelperFnType = (ctx: {
 }) => string
 
 export interface ApiTemplateType {
-  /**
-   * Where the file store
-   */
-  apiDir?: string
   /**
    * Short name for this template.\
    * one character, case sensitive.\
