@@ -15,6 +15,7 @@ const vDocCofig: TealinaVdocWebConfig = {
       name: 'v1',
     },
   ],
+  errorMessageKey: 'message',
   features: {
     playground: {
       commonFields: {
