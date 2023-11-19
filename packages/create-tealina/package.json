@@ -9,9 +9,10 @@
     "cproj": "tsx src/index.ts"
   },
   "bin": {
-    "create-tealina": "dist/index.mjs"
+    "create-tealina": "index.js"
   },
   "files": [
+    "index.js",
     "template",
     "dist"
   ],
