@@ -1,5 +1,11 @@
 # @tealina/doc-types
 
+## 1.0.2
+
+### Patch Changes
+
+- b2e2416: Update READMED.MD
+
 ## 1.0.1
 
 ### Patch Changes

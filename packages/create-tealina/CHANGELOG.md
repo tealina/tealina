@@ -1,5 +1,13 @@
 # create-tealina
 
+## 0.3.1
+
+### Patch Changes
+
+- b2e2416: Update READMED.MD
+- Updated dependencies [b2e2416]
+  - create-tealina@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes

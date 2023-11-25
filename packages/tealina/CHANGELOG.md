@@ -4,6 +4,18 @@
 
 ### Major Changes
 
+- b2e2416: Update READMED.MD
+- b2e2416: release: First major version
+
+### Patch Changes
+
+- Updated dependencies [b2e2416]
+  - @tealina/doc-types@1.0.2
+
+## 1.0.0
+
+### Major Changes
+
 - 1cc68d7: release: First major version
 
 ## 0.3.5
