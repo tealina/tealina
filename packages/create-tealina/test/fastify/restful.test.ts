@@ -11,7 +11,7 @@ const apiStyle = 'restful'
 const tempDir = path.join(TEMP_ROOT, server, apiStyle)
 cleanDir(tempDir)
 test('create Fastify restful', async () => {
-  process.argv = ['', '', '-d']
+  process.argv = ['', '']
   prompts.inject([tempDir, server, apiStyle, 'none'])
   await createScaffold()
   const validateDir = existsSync(

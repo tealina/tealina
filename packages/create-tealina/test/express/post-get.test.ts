@@ -9,7 +9,7 @@ const apiStyle = 'post-get'
 const tempDir = path.join(TEMP_ROOT, server, apiStyle)
 cleanDir(tempDir)
 test('create Express post-get', async () => {
-  process.argv = ['', '', '-d']
+  process.argv = ['', '']
   prompts.inject([tempDir, server, apiStyle, 'none'])
   await createScaffold()
   return validate(tempDir)

@@ -71,22 +71,7 @@ const writeInitDevFile = (
     command(' install'),
     command(' prisma db push'),
     command(' v1 gpure'),
-    command(' v1 capi get/health --with-test'),
-    command(' v1 gdoc'),
-  ]
-  writeFileSync(join(destServerDir, 'init-dev.mjs'), initCommands.join('\n'))
-}
-
-const writeBasicInitDevFile = (
-  pkgManager: ContextType['pkgManager'],
-  destServerDir: string,
-) => {
-  const command = (...args: string[]) =>
-    ['$`', getRunLeader(pkgManager), ...args, '`'].join('')
-  const initCommands = [
-    ...setupLines,
-    command(' install'),
-    command(' v1 capi get/health --with-test'),
+    command(' v1 capi get/status --with-test'),
     command(' v1 gdoc'),
   ]
   writeFileSync(join(destServerDir, 'init-dev.mjs'), initCommands.join('\n'))
@@ -103,7 +88,7 @@ const injectExtraTemplates = (dest: string, webExtraTemplateDir: string) => {
 const showBothGuid = (serverGuid: string[], webGuid: string[]) => {
   const all = [
     '',
-    green('     Full stack project is ready'),
+    green('     Fullstack project is ready'),
     blue('Server:'),
     serverGuid.map((v, i) => `  ${i + 1}. ${v}`).join('\n'),
     blue('Web:'),
@@ -152,10 +137,6 @@ const collectUserAnswer = (argProjectName: string | undefined) =>
         name: 'server',
         type: 'select',
         choices: [
-          {
-            title: 'Demo (Express + SQLite)',
-            value: 'demo',
-          },
           { title: 'Express', value: 'express' },
           { title: 'Fastify', value: 'fastify' },
         ],
@@ -207,7 +188,7 @@ const pkgFromUserAgent = (userAgent: string = '') => {
 }
 
 const createServerProject = async (ctx: ContextType) => {
-  const { projectRootDir, answer, isDemo } = ctx
+  const { projectRootDir, answer } = ctx
   const { server, apiStyle } = answer
   const destServerDir = join(ctx.dest, 'server')
   await mayOverwrite(destServerDir)
@@ -230,13 +211,7 @@ const createServerProject = async (ctx: ContextType) => {
   if (apiStyle == 'restful') {
     copyDir(join(templateDir, 'restful-only'), destServerDir)
   }
-  if (isDemo) {
-    const dbTemplateDir = join(templateDir, 'db-sqlite/prisma')
-    copyDir(dbTemplateDir, join(destServerDir, 'prisma'))
-    writeInitDevFile(ctx.pkgManager, destServerDir)
-    return
-  }
-  writeBasicInitDevFile(ctx.pkgManager, destServerDir)
+  writeInitDevFile(ctx.pkgManager, destServerDir)
 }
 
 const runCreateVite = async (ctx: ContextType, webDest: string) =>
@@ -249,7 +224,7 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
     console.log('  Running', leader, ...fullArgs)
     const p = spawn(leader, fullArgs, { cwd: dir })
     p.on('error', err => {
-      console.log('Run create vite faled, skip current step')
+      console.log('Run create vite failed, skip current step')
       console.error('errr', err)
       res()
     })
@@ -323,10 +298,10 @@ const createCtx = async () => {
   const pkgManager = pkgFromUserAgent(process.env.npm_config_user_agent)
   const isDemo = answer.server == 'demo'
   return {
-    answer: isDemo ? { ...answer, server: 'express' } : answer,
+    answer,
     dest,
     projectRootDir,
-    isDemo: isDemo || argv.d, //for test
+    isDemo,
     pkgManager,
   }
 }
