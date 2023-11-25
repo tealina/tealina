@@ -1,5 +1,13 @@
 # @tealina/doc-ui
 
+## 1.0.1
+
+### Patch Changes
+
+- b2e2416: Update READMED.MD
+- Updated dependencies [b2e2416]
+  - @tealina/doc-types@1.0.2
+
 ## 1.0.0
 
 ### Major Changes
