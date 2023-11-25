@@ -6,7 +6,7 @@ export const handleApiNotFound: RequestHandler = (req, res, next) => {
   next(new Error(`API not found: ${req.originalUrl}`))
 }
 
-export const handleStaticNotFound: RequestHandler = (req, res, next) => {
+export const handleStaticNotFound: RequestHandler = (_req, res, _next) => {
   res.sendFile(path.resolve('public/index.html'))
 }
 

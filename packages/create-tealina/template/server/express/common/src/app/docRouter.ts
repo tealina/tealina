@@ -32,10 +32,10 @@ const vDocCofig: TealinaVdocWebConfig = {
 }
 
 const docRouter = Router({ caseSensitive: true })
-  .get('/index.html', (req, res, next) => {
+  .get('/index.html', (_req, res, _next) => {
     assembleHTML(vDocCofig).then(html => res.send(html))
   })
-  .get('/v1.json', (req, res, next) => {
+  .get('/v1.json', (_req, res, _next) => {
     res.sendFile(path.resolve('docs/api-v1.json'))
   })
   .use(express.static(getAssetsPath()))

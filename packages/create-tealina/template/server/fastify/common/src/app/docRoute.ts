@@ -33,14 +33,11 @@ const vDocCofig: TealinaVdocWebConfig = {
   },
 }
 
-const docRouter: FastifyPluginCallback = function (fastify, opts, done) {
-  fastify.get('/hi', (req, res) => {
-    res.send()
-  })
-  fastify.get('/v1.json', (req, res) => {
+const docRouter: FastifyPluginCallback = function (fastify, _opts, done) {
+  fastify.get('/v1.json', (_req, res) => {
     readFile(path.resolve('docs/api-v1.json')).then(buffer => res.send(buffer))
   })
-  fastify.get('/index.html', (req, res) => {
+  fastify.get('/index.html', (_req, res) => {
     res.type('text/html')
     assembleHTML(vDocCofig).then(html => res.send(html))
   })
