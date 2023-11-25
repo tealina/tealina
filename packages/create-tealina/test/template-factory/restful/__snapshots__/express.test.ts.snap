@@ -88,7 +88,10 @@ exports[`make express restful templates 1`] = `
     \`import { modelIdZ } from '\${relative2api}/validate/modelId.js'\`,
   ]
   const codes = [
-  \`type ApiType = AuthedHandler<{ params: RawId; body: Pure.\${Model}UpdateInput }>\`,
+    \`type ApiType = AuthedHandler<\`,
+    \`  { params: RawId; body: Pure.\${Model}UpdateInput },\`,
+    \`  Pure.\${Model}\`,
+    \`>\`,
     '',
     \`/** Update \${Model} by id */\`,
     \`const handler: ApiType = async (req, res) => {\`,
