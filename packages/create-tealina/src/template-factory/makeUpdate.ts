@@ -6,9 +6,11 @@ const restfulStyle = {
     "    `import { modelIdZ } from '${relative2api}/validate/modelId.js'`,",
   ],
   apiType: [
-    '  `type ApiType = AuthedHandler<{ params: RawId; body: Pure.${Model}UpdateInput }>`,',
+    '    `type ApiType = AuthedHandler<`,',
+    '    `  { params: RawId; body: Pure.${Model}UpdateInput },`,',
+    '    `  Pure.${Model}`,',
+    '    `>`,',
   ],
-
   body: [
     "    '  const { id } = modelIdZ.parse(req.params)',",
     "    '  const data = req.body',",
