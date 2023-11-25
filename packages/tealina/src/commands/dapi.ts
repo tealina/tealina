@@ -9,10 +9,10 @@ import {
   notNull,
   pipe,
 } from 'fp-lite'
+import { basename, join } from 'pathe'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import { calcTypeFileSnapshot } from '../utils/withTypeFile'
 import {
   FullContext,
   Seeds,
@@ -20,7 +20,6 @@ import {
   seeds2kindScope,
   validateInput,
 } from './capi'
-import { basename, join } from 'pathe'
 
 const toKeyMapTrue = flow(
   map((x: string) => [x, true] as const),
@@ -94,7 +93,6 @@ const getRelativeFilesSnapshots = (ctx: FullContext): Snapshot[] =>
     flat,
     flat,
     map(completePath(ctx.commonOption)),
-    concat(calcTypeFileSnapshot(ctx)),
   )
 
 const toApiFileSnapshot = (update: Seeds, apiDir: string): Snapshot => ({

@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest'
 import {
-  FullContext,
   Seeds,
   getApiFilePath,
   getTestFilePath,
@@ -9,10 +8,10 @@ import {
   parseByRoute,
 } from '../../src/commands/capi.js'
 import { calcSnapshots } from '../../src/commands/dapi.js'
+import { cli } from '../../src/commands/index.js'
 import { DirInfo } from '../../src/utils/withTypeFile.js'
 import { FuncTemplates } from '../mock/config/funcCRUD.js'
 import { RestfulCRUD } from '../mock/config/restfulCRUD.js'
-import { cli } from '../../src/commands/index.js'
 
 describe('test dapi calculation part', function () {
   const dirInfo: DirInfo = {
