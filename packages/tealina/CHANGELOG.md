@@ -1,5 +1,11 @@
 # tealina
 
+## 1.0.0
+
+### Major Changes
+
+- 1cc68d7: release: First major version
+
 ## 0.3.5
 
 ### Patch Changes

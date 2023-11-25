@@ -1,5 +1,16 @@
 # create-tealina
 
+## 0.3.0
+
+### Minor Changes
+
+- 1cc68d7: fix: dev-templates incorrect when Restful style
+
+### Patch Changes
+
+- Updated dependencies [1cc68d7]
+  - create-tealina@0.3.0
+
 ## 0.2.5
 
 ### Patch Changes

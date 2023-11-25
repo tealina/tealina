@@ -1,5 +1,13 @@
 # @tealina/doc-ui-src
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [1cc68d7]
+  - @tealina/doc-ui@1.0.0
+  - @tealina/doc-ui-src@0.0.5
+
 ## 0.0.4
 
 ### Patch Changes
