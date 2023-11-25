@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.mjs",
-  "description": "A cli for develop APIs with end to end typesave, document generation",
+  "description": "A CLI for build end-to-end typesafety APIs, and code, types, document generation",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {

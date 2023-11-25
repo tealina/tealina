@@ -1,7 +1,7 @@
 {
   "name": "@tealina/doc-types",
   "version": "1.0.1",
-  "description": "The tealina gdoc output types",
+  "description": "API document type designed for transformation tools",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

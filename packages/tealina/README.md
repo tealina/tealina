@@ -1,7 +1,3 @@
-### Alpha stage
-
 ### Usage
 
-```
-pnpm tealina -h
-```
+Please go to the [document](https://www.tealina.dev) page for more detail.

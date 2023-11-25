@@ -1,5 +1,3 @@
-### Alpha stage
-
 ### Usage
 
 ```bash

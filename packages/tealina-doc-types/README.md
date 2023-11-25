@@ -1,8 +1,8 @@
-The output type of `tealina gdoc`, it is designed for transformation tools.
+API document type designed for transformation tools
 
 #### Pre-knowledge
 
-> There's a package call [tealina](https://www.npmjs.com/package/tealina), it offer some cli commands make develop API server more easier, one of the command is `tealina gdoc`, it generate a `doc.json` file according the api.d.ts
+> There's a package call [tealina](https://www.npmjs.com/package/tealina), it offer some CLI commands make create API service more easier, one of the command is `tealina gdoc`, it generate a `doc.json` file.
 
 ### Install
 
