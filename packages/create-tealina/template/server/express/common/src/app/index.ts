@@ -26,7 +26,7 @@ const buildV1Router = async () => {
   const authRouter = Router().use(verifyToken)
   const { get, ...rest } = record
   // handle APIs whether should login or not here
-  const [authGetApis, openGetApis] = separateObject(get, 'health')
+  const [authGetApis, openGetApis] = separateObject(get, 'status')
   registeApiRoutes(openRouter, { get: openGetApis })
   registeApiRoutes(authRouter, { get: authGetApis, ...rest })
   const router = Router().use(openRouter).use(authRouter)

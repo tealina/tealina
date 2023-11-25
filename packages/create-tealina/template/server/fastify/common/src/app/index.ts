@@ -15,20 +15,20 @@ const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
   ...keys: Keys
 ) => [omitFn(x, ...keys), pickFn(x, ...keys)] as const
 
-const buildV1Router: FastifyPluginAsync = async (fastify, option) => {
+const buildV1Router: FastifyPluginAsync = async (fastify, _option) => {
   checkMethodType(apisV1)
   const apiRecord = await loadAPIs(apisV1)
   const { get, ...rest } = apiRecord
-  const [authGetApis, openGetApis] = separateObject(get, 'health')
+  const [authGetApis, openGetApis] = separateObject(get, 'status')
   registeApiRoutes({ get: openGetApis }, fastify)
-  fastify.register(function (restrictFastify, opts, done) {
+  fastify.register(function (restrictFastify, _opts, done) {
     restrictFastify.addHook('preValidation', verifyToken)
     registeApiRoutes({ get: authGetApis, ...rest }, restrictFastify)
     done()
   })
 }
 
-const buildAppRouter: FastifyPluginAsync = async (fastify, option) => {
+const buildAppRouter: FastifyPluginAsync = async (fastify, _option) => {
   fastify.register(plugin4static, { root: path.resolve('public') })
   fastify.register(docRouter, { prefix: VDOC_BASENAME })
   await fastify.register(buildV1Router, { prefix: '/api/v1' })
