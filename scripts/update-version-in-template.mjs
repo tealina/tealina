@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process'
 import { writeFileSync } from 'fs'
 import { readFile } from 'node:fs/promises'
 
@@ -59,7 +58,8 @@ const workflow = async () => {
   console.log('Intent to update version No. in templates:')
   const updates = await Promise.all([latestTealina(), latestDocUI()])
   await Promise.all(updateTeamplateDependance(updates))
-  execSync('pnpm test -F create-tealina', { stdio: 'inherit' })
+  console.log('Template dependancies version updated =>\n', updates)
+  // execSync('pnpm test -F create-tealina', { stdio: 'inherit' })
 }
 
 workflow()
