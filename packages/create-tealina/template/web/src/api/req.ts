@@ -12,8 +12,8 @@ export const req = createReq<MakeReqType<ApiTypesRecord>>(instance)
 export type TakeGetResponse<Endpoind extends keyof ApiTypesRecord['get']> =
   ApiTypesRecord['get'][Endpoind]['response']
 
-export type TakePostResponse<Endpoind extends keyof ApiTypesRecord['get']> =
-  ApiTypesRecord['get'][Endpoind]['response']
+export type TakePostResponse<Endpoind extends keyof ApiTypesRecord['post']> =
+  ApiTypesRecord['post'][Endpoind]['response']
 
 export type TakePostBody<Endpoind extends keyof ApiTypesRecord['post']> =
   ApiTypesRecord['post'][Endpoind]['body']

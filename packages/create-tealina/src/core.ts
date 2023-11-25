@@ -5,6 +5,8 @@ import minimist from 'minimist'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import prompts from 'prompts'
+import { createTemplates } from './template-factory/create'
+import { writeTemplates } from './template-factory/write'
 
 const { blue, green, reset } = chalk
 const { join } = path
@@ -213,6 +215,14 @@ const createServerProject = async (ctx: ContextType) => {
   const templateServerDir = join(templateDir, 'server', server)
   mayCopyCommonDir(templateDir, destServerDir)
   mayCopyCommonDir(templateServerDir, destServerDir)
+  const templateSnaps = createTemplates({
+    isRestful: answer.apiStyle == 'restful',
+    framwork: answer.server,
+  })
+  writeTemplates(
+    path.join(destServerDir, 'dev-templates/handlers'),
+    templateSnaps,
+  )
   createProject(join(templateServerDir, 'common'), destServerDir)
   const apiStyleDir = join(templateServerDir, apiStyle)
   copyDir(apiStyleDir, destServerDir)

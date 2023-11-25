@@ -1,0 +1,181 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`make fastify restful templates 1`] = `
+[
+  {
+    "code": "export default makeTemplate(({ relative2api }) =>
+  [
+    \`import type { AuthedHandler } from '\${relative2api}/../types/handler.js'\`,
+    \`import { convention } from '\${relative2api}/convention.js'\`,
+    '',
+    \`/** TODO: describe what it does */\`,
+    \`const handler: AuthedHandler = async (req, res) => {\`,
+     '  res.send()',
+    '}',
+    '',
+    \`export default convention(handler)\`,
+    '',
+  ].join('\\\\n')
+)",
+    "filename": "genBasicCode.mjs",
+  },
+  {
+    "code": "export default makeTemplate(
+  ({ Filename: Model, relative2api, filename: model }) => {
+  const imps = [
+    \`import type { AuthedHandler } from '\${relative2api}/../types/handler.js'\`,
+    \`import type { Pure } from '\${relative2api}/../types/pure.js'\`,
+    \`import { convention } from '\${relative2api}/convention.js'\`,
+    \`import { db } from '\${relative2api}/db/prisma.js'\`,
+  ]
+  const codes = [
+    \`type ApiType = AuthedHandler<{ body: Pure.\${Model}CreateInput }, Pure.\${Model}>\`,
+    '',
+    \`/** Create \${Model} */\`,
+    \`const handler: ApiType = async (req, res) => {\`,
+    \`  const result = await db.\${model}.create({\`,
+    '    data: req.body,',
+    '  })',
+    '  res.send(result)',
+    '}',
+    '',
+    \`export default convention(handler)\`,
+    '',
+  ]
+  return [...imps, '', ...codes].join('\\\\n')
+})",
+    "filename": "genCreateCode.mjs",
+  },
+  {
+    "code": "export default makeTemplate(
+  ({ Filename: Model, relative2api, filename: model }) => {
+  const imps = [
+    \`import type { AuthedHandler } from '\${relative2api}/../types/handler.js'\`,
+    \`import type { Pure } from '\${relative2api}/../types/pure.js'\`,
+    \`import { findManyArgsZ } from '\${relative2api}/validate/findManyArgs.js'\`,
+    \`import type { PageResult, RawFindManyArgs } from '\${relative2api}/../types/common.js'\`,
+    \`import { convention } from '\${relative2api}/convention.js'\`,
+    \`import { db } from '\${relative2api}/db/prisma.js'\`,
+  ]
+  const codes = [
+    \`type ApiType = AuthedHandler<{ query: RawFindManyArgs }, PageResult<Pure.\${Model}>>\`,
+    '',
+    \`/** Get page datas from \${Model} */\`,
+    \`const handler: ApiType = async (req, res) => {\`,
+    \`  const findManyArgs = findManyArgsZ.parse(req.query)\`,
+    '  const [total, datas] = await db.$transaction([',
+    \`    db.\${model}.count({ where: findManyArgs.where }),\`,
+    \`    db.\${model}.findMany(findManyArgs),\`,
+    '  ])',
+    '  res.send({ total, datas })',
+    '}',
+    '',
+    \`export default convention(handler)\`,
+    '',
+  ]
+  return [...imps, '', ...codes].join('\\\\n')
+})",
+    "filename": "genReadCode.mjs",
+  },
+  {
+    "code": "export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
+  const imps = [
+    \`import type { AuthedHandler } from '\${relative2api}/../types/handler.js'\`,
+    \`import type { Pure } from '\${relative2api}/../types/pure.js'\`,
+    \`import { convention } from '\${relative2api}/convention.js'\`,
+    \`import { db } from '\${relative2api}/db/prisma.js'\`,
+    \`import type { RawId } from '\${relative2api}/../types/common.js'\`,
+    \`import { modelIdZ } from '\${relative2api}/validate/modelId.js'\`,
+  ]
+  const codes = [
+  \`type ApiType = AuthedHandler<{ params: RawId; body: Pure.\${Model}UpdateInput }>\`,
+    '',
+    \`/** Update \${Model} by id */\`,
+    \`const handler: ApiType = async (req, res) => {\`,
+    '  const { id } = modelIdZ.parse(req.params)',
+    '  const data = req.body',
+    \`  const result = await db.\${model}.update({\`,
+    '    where: { id },',
+    '    data,',
+    '  })',
+    '  res.send(result)',
+    '}',
+    '',
+    \`export default convention(handler)\`,
+    '',
+  ]
+  return [...imps, '', ...codes].join('\\\\n')
+})",
+    "filename": "genUpdateCode.mjs",
+  },
+  {
+    "code": "export default makeTemplate(({ relative2api, Dir: Model, dir: model }) => {
+  const imps = [
+    \`import type { AuthedHandler } from '\${relative2api}/../types/handler.js'\`,
+    \`import type { RawId } from '\${relative2api}/../types/common.js'\`,
+    \`import { modelIdZ } from '\${relative2api}/validate/modelId.js'\`,
+    \`import { convention } from '\${relative2api}/convention.js'\`,
+    \`import { db } from '\${relative2api}/db/prisma.js'\`,
+  ]
+  const codes = [
+  \`type ApiType = AuthedHandler<{ params: RawId }>\`,
+    '',
+    \`/** Delete \${Model} by id */\`,
+    \`const handler: ApiType = async (req, res) => {\`,
+    '  const { id } = modelIdZ.parse(req.params)',
+    \`  await db.\${model}.delete({ where: { id } })\`,
+    '  res.send()',
+    '}',
+    '',
+    \`export default convention(handler)\`,
+    '',
+  ]
+  return [...imps, '', ...codes].join('\\\\n')
+})",
+    "filename": "genDeleteCode.mjs",
+  },
+  {
+    "code": "// @ts-check
+import genCreateCode from './genCreateCode.mjs'
+import genUpdateCode from './genUpdateCode.mjs'
+import genDeleteCode from './genDeleteCode.mjs'
+import genReadCode from './genReadCode.mjs'
+import genBasicCode from './genBasicCode.mjs'
+import { defineApiTemplates } from 'tealina'
+
+export default defineApiTemplates([
+  {
+    alias: 'c',
+    name: '',
+    method: 'post',
+    generateFn: genCreateCode,
+  },
+  {
+    alias: 'r',
+    name: '',
+    method: 'get',
+    generateFn: genReadCode,
+  },
+  {
+    alias: 'u',
+    name: '[id]',
+    method: 'put',
+    generateFn: genUpdateCode,
+  },
+  {
+    alias: 'd',
+    name: '[id]',
+    method: 'delete',
+    generateFn: genDeleteCode,
+  },
+  {
+    alias: '*', //fallback
+    name: '',
+    method: 'post',
+    generateFn: genBasicCode,
+  },
+])",
+    "filename": "index.mjs",
+  },
+]
+`;
