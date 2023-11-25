@@ -115,10 +115,7 @@ exports[`make fastify post-get templates 1`] = `
     \`import { db } from '\${relative2api}/db/prisma.js'\`,
   ]
   const codes = [
-    \`type ApiType = AuthedHandler<\`,
-    \`  { body: ModelId & Pure.\${Model}UpdateInput },\`,
-    \`  Pure.\${Model}\`,
-    \`>\`,
+    \`type ApiType = AuthedHandler<{ body: ModelId }>\`,
     '',
     \`/** Delete \${Model} by id */\`,
     \`const handler: ApiType = async (req, res) => {\`,
