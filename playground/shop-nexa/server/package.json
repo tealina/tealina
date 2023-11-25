@@ -8,9 +8,9 @@
     "./api/v1": "./types/api-v1.d.ts"
   },
   "scripts": {
+    "v1": "tealina --api-dir src/api-v1",
     "dev": "dotenv -c -- tsx watch src",
     "build": "tsc --project tsconfig.build.json",
-    "v1": "tealina --api-dir src/api-v1",
     "test": "vitest --dir test-integration"
   },
   "dependencies": {
@@ -20,7 +20,6 @@
     "dotenv-cli": "^7.2.1",
     "express": "^4.18.2",
     "fp-lite": "^2.0.0",
-    "server": "link:",
     "zod": "^3.22.2"
   },
   "devDependencies": {

@@ -7,16 +7,12 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-model User {
-  id          Int    @id @default(autoincrement())
-  username    String
-  password    String
-  email       String
-  address     String
-  phoneNumber String
+model Category {
+  id           Int    @id @default(autoincrement())
+  categoryName String
+  description  String
 
-  orders  Order[]
-  Comment Comment[]
+  products Product[]
 }
 
 model Product {
@@ -32,6 +28,20 @@ model Product {
   category Category  @relation(fields: [categoryId], references: [id])
   Comment  Comment[]
 }
+
+model User {
+  id          Int    @id @default(autoincrement())
+  username    String
+  password    String
+  email       String
+  address     String
+  phoneNumber String
+
+  orders  Order[]
+  Comment Comment[]
+}
+
+
 
 model Order {
   id          Int      @id @default(autoincrement())
@@ -79,10 +89,4 @@ model Comment {
   product   Product @relation(fields: [productId], references: [id])
 }
 
-model Category {
-  id           Int    @id @default(autoincrement())
-  categoryName String
-  description  String
 
-  products Product[]
-}

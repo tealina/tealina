@@ -21,9 +21,10 @@
     "lint-staged": "^14.0.1",
     "prettier": "^2.8.8",
     "tsup": "^6.7.0",
-    "typescript": "~5.2.2",
+    "typescript": "~5.3.2",
     "unbuild": "^2.0.0",
-    "vitest": "^0.34.1"
+    "vitest": "^0.34.1",
+    "tsx": "3.12.7"
   },
   "dependencies": {
     "@changesets/cli": "^2.26.2",

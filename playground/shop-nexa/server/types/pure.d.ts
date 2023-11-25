@@ -1,31 +1,22 @@
 /** Purified mutation types from [schema](../prisma/schema.prisma) */
 export namespace Pure {
-  interface User {
+  interface Category {
     /** @default {autoincrement()} */
     id: number
-    username: string
-    password: string
-    email: string
-    address: string
-    phoneNumber: string
+    categoryName: string
+    description: string
   }
 
-  interface UserCreateInput {
-    username: string
-    password: string
-    email: string
-    address: string
-    phoneNumber: string
+  interface CategoryCreateInput {
+    categoryName: string
+    description: string
   }
 
-  interface UserUpdateInput {
+  interface CategoryUpdateInput {
     /** @default {autoincrement()} */
     id?: number
-    username?: string
-    password?: string
-    email?: string
-    address?: string
-    phoneNumber?: string
+    categoryName?: string
+    description?: string
   }
 
   interface Product {
@@ -54,6 +45,34 @@ export namespace Pure {
     price?: number
     stockQuantity?: number
     categoryId?: number
+  }
+
+  interface User {
+    /** @default {autoincrement()} */
+    id: number
+    username: string
+    password: string
+    email: string
+    address: string
+    phoneNumber: string
+  }
+
+  interface UserCreateInput {
+    username: string
+    password: string
+    email: string
+    address: string
+    phoneNumber: string
+  }
+
+  interface UserUpdateInput {
+    /** @default {autoincrement()} */
+    id?: number
+    username?: string
+    password?: string
+    email?: string
+    address?: string
+    phoneNumber?: string
   }
 
   interface Order {
@@ -154,24 +173,5 @@ export namespace Pure {
     createdAt?: Date
     userId?: number
     productId?: number
-  }
-
-  interface Category {
-    /** @default {autoincrement()} */
-    id: number
-    categoryName: string
-    description: string
-  }
-
-  interface CategoryCreateInput {
-    categoryName: string
-    description: string
-  }
-
-  interface CategoryUpdateInput {
-    /** @default {autoincrement()} */
-    id?: number
-    categoryName?: string
-    description?: string
   }
 }
