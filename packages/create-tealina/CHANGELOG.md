@@ -1,5 +1,16 @@
 # create-tealina
 
+## 0.4.0
+
+### Minor Changes
+
+- 349426e: feat: All template now out of box
+
+### Patch Changes
+
+- Updated dependencies [349426e]
+  - create-tealina@0.4.0
+
 ## 0.3.1
 
 ### Patch Changes
