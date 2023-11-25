@@ -1,5 +1,11 @@
 # tealina
 
+## 1.0.1
+
+### Patch Changes
+
+- 0be747a: Republish
+
 ## 1.0.0
 
 ### Major Changes
