@@ -1,6 +1,6 @@
 import type { RequestHandler, Router } from 'express'
 import { flat, flow, groupBy } from 'fp-lite'
-import { catchErrorWrapper } from './catchErrorWrapper.js'
+import { catchErrorWrapper } from '../middlewares/catchErrorWrapper.js'
 import { ResolvedAPIs } from './resolveBatchExport.js'
 
 const orderBySlashCount = (xs: string[] = []) =>
@@ -54,16 +54,15 @@ interface RegisteOptions {
 
 const registeApiRoutes = (
   router: Router,
-  allApi: ResolvedAPIs,
+  method: string,
+  sameMethodApis: Record<string, ResolvedAPIs[string][string]>,
   options?: RegisteOptions,
 ): Router => {
   const { beforeEach } = options ?? {}
   const registeEach: RegisterFn = beforeEach
     ? matcher => (url, hanlders) => matcher(url, beforeEach, ...hanlders)
     : matcher => (url, hanlders) => matcher(url, ...hanlders)
-  Object.entries(allApi).forEach(([method, sameMethodApis]) => {
-    walk(sameMethodApis, registeEach(router[method as HttpMethod].bind(router)))
-  })
+  walk(sameMethodApis, registeEach(router[method as HttpMethod].bind(router)))
   return router
 }
 

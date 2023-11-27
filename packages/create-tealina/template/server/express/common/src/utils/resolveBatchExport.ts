@@ -1,8 +1,27 @@
 import { asyncPipe, map, waitAll } from 'fp-lite'
 import { CustomHandlerType } from '../../types/handler.js'
+import { toKeyValues } from './separateObject.js'
 
-const toKeyValues = <T extends Record<string, any>>(obj: T) =>
-  Object.entries<T>(obj)
+interface KindImps {
+  [k: string]: Promise<{
+    default: CustomHandlerType | ReadonlyArray<CustomHandlerType>
+  }>
+}
+
+type Kind2Map<T extends KindImps> = {
+  [K in keyof T]: Awaited<T[K]>['default']
+}
+
+type Obj2Map<T extends BatchExportApiType<any>> = {
+  [K in keyof T]: Kind2Map<Awaited<Awaited<T[K]>['default']>>
+}
+
+type BatchExportApiType<T extends Promise<{ default: any }>> = Record<string, T>
+
+type ResolvedAPIs = Record<
+  string,
+  Record<string, CustomHandlerType | ReadonlyArray<CustomHandlerType>>
+>
 
 const loadEachMethod = <T extends Record<string, Promise<KindImps>>>([
   method,
@@ -15,15 +34,9 @@ const loadEachMethod = <T extends Record<string, Promise<KindImps>>>([
       handlerImp.then(handlerModule => [urlKey, handlerModule.default]),
     ),
     waitAll,
-    urlHandlers => [method, Object.fromEntries(urlHandlers)],
+    Object.fromEntries,
+    urlHandlerObj => [method, urlHandlerObj],
   )
-
-type Kind2Map<T extends KindImps> = {
-  [K in keyof T]: Awaited<T[K]>['default']
-}
-type Obj2Map<T extends BatchExportApiType<any>> = {
-  [K in keyof T]: Kind2Map<Awaited<Awaited<T[K]>['default']>>
-}
 
 const loadAPIs = async <T extends BatchExportApiType<any>>(
   obj: T,
@@ -32,22 +45,8 @@ const loadAPIs = async <T extends BatchExportApiType<any>>(
     Promise.resolve(Object.entries(obj)),
     map(loadEachMethod),
     waitAll,
-    kvs => Object.fromEntries(kvs),
+    Object.fromEntries,
   )
-
-interface KindImps {
-  [k: string]: Promise<{
-    default: CustomHandlerType | ReadonlyArray<CustomHandlerType>
-  }>
-}
-
-type BatchExportApiType<T extends Promise<{ default: Promise<KindImps> }>> =
-  Record<string, T>
-
-type ResolvedAPIs = Record<
-  string,
-  Record<string, CustomHandlerType | ReadonlyArray<CustomHandlerType>>
->
 
 export { loadAPIs }
 export type { ResolvedAPIs }

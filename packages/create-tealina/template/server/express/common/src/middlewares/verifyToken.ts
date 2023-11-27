@@ -7,6 +7,4 @@ const handler: RequestHandler = async (req, _res, next) => {
   next()
 }
 
-const verifyToken = catchErrorWrapper(handler)
-
-export { verifyToken }
+export const verifyToken = catchErrorWrapper(handler)
