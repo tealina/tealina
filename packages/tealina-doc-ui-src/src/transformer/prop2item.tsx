@@ -258,6 +258,7 @@ const makeFormItem =
         key={namePath.join('.')}
         label={String(prop.name)}
         name={namePath}
+        normalize={v => (v == null ? void 0 : v)}
         rules={
           prop.isOptional
             ? void 0
