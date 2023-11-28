@@ -1,37 +1,15 @@
 import plugin4static from '@fastify/static'
-import type { FastifyPluginAsync } from 'fastify'
-import Fastify from 'fastify'
-import { omitFn, pickFn } from 'fp-lite'
-import path from 'node:path'
+import { VDOC_BASENAME } from '@tealina/doc-ui'
+import Fastify, { FastifyPluginAsync } from 'fastify'
+import path from 'path'
 import qs from 'qs'
-import apisV1 from '../api-v1/index.js'
-import { VDOC_BASENAME, docRouter } from './docRoute.js'
-import { registeApiRoutes } from './registeApiRoutes.js'
-import { checkMethodType, loadAPIs } from './resolveBatchExport.js'
-import { verifyToken } from './verifyToken.js'
-
-const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
-  x: T,
-  ...keys: Keys
-) => [omitFn(x, ...keys), pickFn(x, ...keys)] as const
-
-const buildV1Router: FastifyPluginAsync = async (fastify, _option) => {
-  checkMethodType(apisV1)
-  const apiRecord = await loadAPIs(apisV1)
-  const { get, ...rest } = apiRecord
-  const [authGetApis, openGetApis] = separateObject(get, 'status')
-  registeApiRoutes({ get: openGetApis }, fastify)
-  fastify.register(function (restrictFastify, _opts, done) {
-    restrictFastify.addHook('preValidation', verifyToken)
-    registeApiRoutes({ get: authGetApis, ...rest }, restrictFastify)
-    done()
-  })
-}
+import { buildApiRouter } from './buildApiRouter.js'
+import { docRouter } from './docRoute.js'
 
 const buildAppRouter: FastifyPluginAsync = async (fastify, _option) => {
   fastify.register(plugin4static, { root: path.resolve('public') })
   fastify.register(docRouter, { prefix: VDOC_BASENAME })
-  await fastify.register(buildV1Router, { prefix: '/api/v1' })
+  await fastify.register(buildApiRouter, { prefix: '/api' })
   // fastify.ready(() => {
   //   console.log(fastify.printRoutes())
   // })

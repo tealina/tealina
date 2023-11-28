@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { setupApiHeaders } from '../middlewares/setupApiHeaders.js'
 import { buildV1Router } from './buildV1Router.js'
-import { ApiNotFoundHandler } from '../middlewares/notFoundHandler.js'
+import { apiNotFoundHandler } from '../middlewares/notFoundHandler.js'
 
 export const buildApiRoute = async () => {
   const v1ApiRouter = await buildV1Router()
@@ -10,6 +10,6 @@ export const buildApiRoute = async () => {
       .use(setupApiHeaders)
       .use('/v1', v1ApiRouter)
       // .use('/v2', v2ApiRouter)
-      .use(ApiNotFoundHandler)
+      .use(apiNotFoundHandler)
   )
 }

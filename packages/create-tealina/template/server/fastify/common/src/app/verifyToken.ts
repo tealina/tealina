@@ -9,6 +9,7 @@ const verifyToken: preValidationAsyncHookHandler = async function (
     reply.code(402).send({ error_reason: 'Authorization Failed' })
     return reply
   }
+  //TODO: verify token
 }
 
 export { verifyToken }

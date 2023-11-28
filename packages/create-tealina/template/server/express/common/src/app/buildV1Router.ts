@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { map, pipe } from 'fp-lite'
+import { map, pipe, omitFn } from 'fp-lite'
 import { Simplify } from '../../types/utility.js'
 import apisV1 from '../api-v1/index.js'
 import { verifyToken } from '../middlewares/verifyToken.js'
@@ -23,6 +23,7 @@ const OpenApis: Partial<MethodEndpoint<typeof apisV1>> = {
 const registeSeparetely = (record: ResolvedAPIs) => {
   const openRouter = Router()
   const authRouter = Router().use(verifyToken)
+  const fullAuth = omitFn(record, ...Object.keys(OpenApis))
   pipe(
     toKeyValues(OpenApis),
     map(([method, urls]) => {
@@ -31,6 +32,12 @@ const registeSeparetely = (record: ResolvedAPIs) => {
         ...(urls as any),
       )
       registeApiRoutes(openRouter, method, openApis)
+      registeApiRoutes(authRouter, method, authApis)
+    }),
+  )
+  pipe(
+    toKeyValues(fullAuth),
+    map(([method, authApis]) => {
       registeApiRoutes(authRouter, method, authApis)
     }),
   )

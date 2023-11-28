@@ -26,33 +26,32 @@ interface RegisteOptions {
 
 // https://www.fastify.io/docs/latest/Reference/Routes/
 const registeApiRoutes = (
-  allApi: ResolvedAPIs,
   fastify: FastifyInstance,
+  method: string,
+  sameMethodApis: Record<string, ResolvedAPIs[string][string]>,
   options?: RegisteOptions,
 ) => {
   const { beforeEach } = options ?? {}
   const mayMergeHandler: (h: any[]) => any[] = beforeEach
     ? h => [beforeEach, ...h]
     : h => h
-  Object.entries(allApi).forEach(([method, sameMethodApis]) =>
-    pipe(
-      Object.keys(sameMethodApis),
-      sortRoute,
-      map(url => {
-        pipe(
-          sameMethodApis[url],
-          handler => (Array.isArray(handler) ? handler : [handler]),
-          mayMergeHandler,
-          handlers => ({
-            url: `/${url}`,
-            method: method.toUpperCase() as HTTPMethods,
-            handler: handlers.pop(),
-            preHandler: handlers,
-          }),
-          opt => fastify.route(opt),
-        )
-      }),
-    ),
+  pipe(
+    Object.keys(sameMethodApis),
+    sortRoute,
+    map(url => {
+      pipe(
+        sameMethodApis[url],
+        handler => (Array.isArray(handler) ? handler : [handler]),
+        mayMergeHandler,
+        handlers => ({
+          url: `/${url}`,
+          method: method.toUpperCase() as HTTPMethods,
+          handler: handlers.pop(),
+          preHandler: handlers,
+        }),
+        opt => fastify.route(opt),
+      )
+    }),
   )
 }
 
