@@ -273,16 +273,12 @@ const mayOverwrite = async (dest: string) => {
 
 const createWebProject = async (ctx: ContextType) => {
   const { projectRootDir, answer, dest } = ctx
+  if (answer.web == 'none') return
   const webDestDir = join(dest, 'web')
-  if (answer.web != 'none') {
-    const webDest = path
-      .join(answer.projectName, 'web')
-      .split(path.sep)
-      .join('/')
-    await mayOverwrite(webDest)
-    await runCreateVite(ctx, webDest)
-    updatePackageJson(webDestDir)
-  }
+  const webDest = path.join(answer.projectName, 'web').split(path.sep).join('/')
+  await mayOverwrite(webDest)
+  await runCreateVite(ctx, webDest)
+  updatePackageJson(webDestDir)
   const webExtraTemplateDir = join(projectRootDir, 'template', 'web')
   injectExtraTemplates(webDestDir, webExtraTemplateDir)
 }
