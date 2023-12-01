@@ -13,11 +13,11 @@ type MethodEndpoint<T extends Record<string, any>> = Simplify<{
 
 /**
  * APIs without the need to log in
- * Don't forget use OpenHandler to delcare your handler type
+ * Don't forget use OpenHandler to declare your handler type
  */
 const OpenApis: Partial<MethodEndpoint<typeof apisV1>> = {
   get: ['status'],
-  post: ['user/login'],
+  // post: ['user/login'],
 }
 
 const registeSeparetely = (record: ResolvedAPIs) => {
