@@ -14,7 +14,7 @@
     "dev": "dotenv -c -- tsx watch src",
     "build": "tsc --project tsconfig.build.json",
     "v1": "tealina src/api-v1",
-    "test": "vitest --dir test-integration"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "dependencies": {
@@ -34,8 +34,7 @@
     "prisma": "^5.3.1",
     "tealina": "^0.3.2",
     "tsx": "^3.12.7",
-    "typescript": "~5.2.2",
-    "vitest": "^0.33.0"
+    "typescript": "~5.2.2"
   },
   "license": "ISC"
 }
