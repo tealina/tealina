@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "dotenv -c -- tsx watch src",
     "build": "tsc --project tsconfig.build.json",
-    "v1": "tealina --api-dir src/api-v1",
+    "v1": "tealina src/api-v1",
     "test": "vitest --dir test-integration"
   },
   "dependencies": {
