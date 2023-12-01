@@ -35,7 +35,9 @@ describe('test sapi in mock dir', function () {
 
   it('should auto genereate missing files', async () => {
     const apiFilePath = path.join(apiDir, 'post', 'user', '/create.ts')
+    const dotFilePath = path.join(apiDir, 'post', 'user', '.ignore.ts')
     ensureWrite(apiFilePath, 'export default null')
+    ensureWrite(dotFilePath, 'export default null')
     const result = await syncApiByFile(ctx)
     const typeFile = path.join(
       getApiTypeFilePath({ typesDir: ctx.typesDir, apiDir }),

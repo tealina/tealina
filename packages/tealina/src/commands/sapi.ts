@@ -14,7 +14,8 @@ import {
 } from 'fp-lite'
 import { statSync } from 'fs'
 import { readFile, readdir } from 'node:fs/promises'
-import { basename, dirname, join } from 'pathe'
+import { basename, join } from 'pathe'
+import { filename } from 'pathe/utils'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
@@ -55,13 +56,18 @@ const walkDeep = (
     asyncFlow(waitAll, flat, concat((g.get('file') ?? []).map(takeFirst))),
   )
 
+const ignoredFilename = flow(
+  filename,
+  name => name != 'index' && !name.startsWith('.'),
+)
+
 const walkDir = (dir: string): Promise<string[]> =>
   asyncPipe(
     readdir(dir),
     map(flow(prepend(dir), withIsDir)),
     groupBy(([, isDir]) => (isDir ? 'dir' : 'file')),
     walkDeep,
-    filter(v => !v.endsWith('/index.ts')),
+    filter(ignoredFilename),
   )
 
 const readIndexContent = (dir: string) =>
