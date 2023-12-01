@@ -70,8 +70,8 @@ const writeInitDevFile = (
     ...setupLines,
     command(' install'),
     command(' prisma db push'),
-    command(' v1 gpure'),
-    command(' v1 capi get/status --with-test'),
+    command(' v1 gtype'),
+    command(' v1 get/status'),
     command(' v1 gdoc'),
   ]
   writeFileSync(join(destServerDir, 'init-dev.mjs'), initCommands.join('\n'))
@@ -85,33 +85,47 @@ const injectExtraTemplates = (dest: string, webExtraTemplateDir: string) => {
   fs.readdirSync(webExtraTemplateDir).forEach(file => write(file))
 }
 
-const showBothGuid = (serverGuid: string[], webGuid: string[]) => {
+type GuidType = {
+  title: string
+  steps: string[]
+}
+
+const showBothGuid = (guids: GuidType[]) => {
   const all = [
     '',
-    green('     Fullstack project is ready'),
-    blue('Server:'),
-    serverGuid.map((v, i) => `  ${i + 1}. ${v}`).join('\n'),
-    blue('Web:'),
-    webGuid.map((v, i) => `  ${i + 1}. ${v}`).join('\n'),
+    green('     Scafold project is ready'),
+    guids
+      .map(v => [v.title, ...v.steps.map((s, i) => `  ${i + 1}. ${s}`)])
+      .flat()
+      .join('\n'),
   ]
   console.log(all.join('\n'))
 }
 
 const showGuide = ({ answer, pkgManager }: ContextType) => {
-  const { projectName } = answer
+  const { projectName, web } = answer
   const leader = getRunLeader(pkgManager)
-  const webGuid = [
-    `cd ${projectName}/web`,
-    `${leader} install`,
-    `${leader} dev`,
-  ]
+  const webGuid =
+    web == 'none'
+      ? []
+      : {
+          title: blue('Web:'),
+          steps: [
+            `cd ${projectName}/web`,
+            `${leader} install`,
+            `${leader} dev`,
+          ],
+        }
   const runtime = leader == 'bun' ? 'bun' : 'node'
-  const serverGuid = [
-    `cd ${projectName}/server`,
-    `${runtime} init-dev.mjs`,
-    `${leader} dev`,
-  ]
-  showBothGuid(serverGuid, webGuid)
+  const serverGuid: GuidType = {
+    title: blue('Server:'),
+    steps: [
+      `cd ${projectName}/server`,
+      `${runtime} init-dev.mjs`,
+      `${leader} dev`,
+    ],
+  }
+  showBothGuid([serverGuid].concat(webGuid))
 }
 
 const mayCopyCommonDir = (templateDir: string, destDir: string) => {
