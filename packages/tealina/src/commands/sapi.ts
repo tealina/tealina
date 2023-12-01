@@ -9,6 +9,7 @@ import {
   invoke,
   map,
   notNull,
+  pickFn,
   pipe,
   waitAll,
 } from 'fp-lite'
@@ -19,7 +20,7 @@ import { filename } from 'pathe/utils'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import { MinimalInput, loadConfig, withoutSuffix } from '../utils/tool'
+import { MinimalInput, withoutSuffix } from '../utils/tool'
 import { validateKind } from '../utils/validate'
 import {
   DirInfo,
@@ -27,6 +28,8 @@ import {
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
+import { FullOptions } from './capi'
+import { TealinaConifg } from '..'
 
 interface GatherPhase {
   kind: string
@@ -114,11 +117,11 @@ interface FileTreeInfo {
   kindIndexFiles: GatherPhase[]
   topIndexFile: GatherPhase
   typeFileInfo: TypeFileInfo
-  commonOption: MinimalInput
+  options: Omit<DirInfo, 'testDir'>
   suffix: string
 }
 
-const collectApiInfo = ({ apiDir }: DirInfo) =>
+const collectApiInfo = ({ apiDir }: Pick<DirInfo, 'apiDir'>) =>
   asyncPipe(
     readdir(apiDir),
     map(prepend(apiDir)),
@@ -150,24 +153,30 @@ const calcSnapshots = (info: FileTreeInfo): Snapshot[] =>
     map(toSnapshot(flow(path2arr, genIndexProp(info.suffix)))),
     concat(topIndexSnapshot(info)),
     filter(notNull),
-    map(completePath(info.commonOption)),
+    map(completePath(info.options)),
     concat(calcTypeFileSnapshot(info)),
   )
 
-const collectContext = (commonOption: MinimalInput) =>
+export type AlignOption = FileTreeInfo['options'] & Pick<FullOptions, 'suffix'>
+
+const collectContext = (options: AlignOption): Promise<FileTreeInfo> =>
   asyncPipe(
-    waitAll([collectApiInfo(commonOption), collectTypeFileInfo(commonOption)]),
+    waitAll([collectApiInfo(options), collectTypeFileInfo(options)]),
     ([[kindIndexFiles, topIndexFile], typeFileInfo]) => ({
       kindIndexFiles,
       topIndexFile,
       typeFileInfo,
-      commonOption,
-      suffix: commonOption.suffix,
+      options,
+      suffix: options.suffix,
     }),
   )
 
+const pickOption4align = (full: FullOptions): AlignOption => {
+  const x = pickFn(full, 'apiDir', 'typesDir', 'suffix')
+  return x
+}
+
 const syncApiByFile = asyncFlow(
-  loadConfig,
   collectContext,
   calcSnapshots,
   effectFiles,
@@ -175,4 +184,4 @@ const syncApiByFile = asyncFlow(
   logResults,
 )
 
-export { calcSnapshots, syncApiByFile }
+export { calcSnapshots, syncApiByFile, pickOption4align }

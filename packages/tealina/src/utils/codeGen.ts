@@ -24,7 +24,10 @@ export const genWithWrapper = (contens: string[]) =>
     '\n',
   )
 
-export const genTypeCode = ({ apiDir, typesDir }: DirInfo, suffix: string) => {
+export const genTypeCode = (
+  { apiDir, typesDir }: Omit<DirInfo, 'testDir'>,
+  suffix: string,
+) => {
   const relativeDotStr = relative(typesDir, apiDir)
   return [
     `import apis from '${relativeDotStr}/index${suffix}'`,

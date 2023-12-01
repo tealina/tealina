@@ -2,24 +2,19 @@ import { unique } from 'fp-lite'
 import fs from 'fs-extra'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { OptionTypes } from '../../src/commands/capi.js'
-import { syncApiByFile } from '../../src/commands/sapi.js'
-import { DirInfo, getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
+import { AlignOption, syncApiByFile } from '../../src/commands/sapi.js'
+import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
 
 describe('test sapi in mock dir', function () {
   const tempDir = 'temp/sapi/full'
   const apiDir = path.join(tempDir, '/api')
   const apiTypesDir = path.join(tempDir, '/types')
   const apiTestDir = path.join(tempDir, '/test')
-  const ctx: OptionTypes & DirInfo = {
-    byModel: false,
-    route: '',
-    schema: '',
+  const ctx: AlignOption = {
     apiDir,
-    configPath: 'test/mock/config/tealina.config.ts',
     testDir: apiTestDir,
     typesDir: apiTypesDir,
-    withTest: false,
+    suffix: '.js',
   }
 
   beforeAll(() => {

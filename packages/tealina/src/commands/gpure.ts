@@ -10,6 +10,7 @@ import {
   isEmpty,
   map,
   notNull,
+  pickFn,
   pipe,
 } from 'fp-lite'
 import { writeFile } from 'fs/promises'
@@ -24,9 +25,8 @@ import type {
   MutationKind,
   PropAST,
 } from '../index'
-import { TealinaComonOption } from '../utils/options'
 import { parseSchame } from '../utils/parsePrisma'
-import { loadConfig } from '../utils/tool'
+import { FullOptions } from './capi'
 
 const ENUMS_BEGIN = [
   '/**',
@@ -364,10 +364,17 @@ const workflow = (input: string, config: PurifyConfig) =>
     makeTypeCodes(config),
   )
 
-const generatePureTypes = async (option: TealinaComonOption & PurifyOption) => {
-  const config = await loadConfig(option)
-  const purifyConfig = config.gpure ?? {}
-  const lines = await workflow(option.input, purifyConfig)
+type GpureOption = Required<
+  Pick<FullOptions, 'gpure' | 'output' | 'input' | 'namespace'>
+>
+const pickOption4gpure = (full: FullOptions): GpureOption => {
+  const x = pickFn(full, 'gpure', 'output', 'input', 'namespace')
+  const output = x.output ?? 'types/pure.d.ts'
+  const gpure = x.gpure ?? {}
+  return { ...x, output, gpure }
+}
+const generatePureTypes = async (option: GpureOption) => {
+  const lines = await workflow(option.input, option.gpure)
   return pipe(
     lines,
     wrapperWith(option),
@@ -376,5 +383,5 @@ const generatePureTypes = async (option: TealinaComonOption & PurifyOption) => {
     consola.success,
   )
 }
-export { generatePureTypes, workflow }
+export { generatePureTypes, pickOption4gpure, workflow }
 export type { PurifyConfig }

@@ -2,13 +2,7 @@ import { expect, test } from 'vitest'
 import { calcSnapshots } from '../../src/commands/sapi'
 
 const restCtxMock = {
-  commonOption: {
-    apiDir: '',
-    template: {} as any,
-    testDir: '',
-    typesDir: '',
-    suffix: '.js',
-  },
+  options: { apiDir: '', typesDir: '', testDir: '' },
   topIndexFile: {
     content: '',
     files: [],

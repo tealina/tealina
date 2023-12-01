@@ -13,13 +13,7 @@ import { basename, join } from 'pathe'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import {
-  FullContext,
-  Seeds,
-  collectContext,
-  seeds2kindScope,
-  validateInput,
-} from './capi'
+import { FullContext, Seeds, collectContext, seeds2kindScope } from './capi'
 
 const toKeyMapTrue = flow(
   map((x: string) => [x, true] as const),
@@ -92,7 +86,7 @@ const getRelativeFilesSnapshots = (ctx: FullContext): Snapshot[] =>
     calcByKinds(ctx),
     flat,
     flat,
-    map(completePath(ctx.commonOption)),
+    map(completePath(ctx.options)),
   )
 
 const toApiFileSnapshot = (update: Seeds, apiDir: string): Snapshot => ({
@@ -103,7 +97,7 @@ const toApiFileSnapshot = (update: Seeds, apiDir: string): Snapshot => ({
 
 const toTestApiSnapshot = (
   update: Seeds,
-  { commonOption: { apiDir, testDir } }: FullContext,
+  { options: { apiDir, testDir } }: FullContext,
 ): Snapshot => ({
   group: 'test',
   action: 'delete',
@@ -116,12 +110,12 @@ const toTestApiSnapshot = (
 })
 
 const mayWithTestFile = (ctx: FullContext) =>
-  ctx.commonOption.withTest
+  ctx.options.withTest
     ? (s: Seeds) => [
-        toApiFileSnapshot(s, ctx.commonOption.apiDir),
+        toApiFileSnapshot(s, ctx.options.apiDir),
         toTestApiSnapshot(s, ctx),
       ]
-    : (s: Seeds) => [toApiFileSnapshot(s, ctx.commonOption.apiDir)]
+    : (s: Seeds) => [toApiFileSnapshot(s, ctx.options.apiDir)]
 
 const calcSnapshots = (ctx: FullContext): Snapshot[] =>
   pipe(
@@ -130,7 +124,6 @@ const calcSnapshots = (ctx: FullContext): Snapshot[] =>
   )
 
 const deleteApis = asyncFlow(
-  validateInput,
   collectContext,
   calcSnapshots,
   effectFiles,

@@ -2,7 +2,6 @@ import { notNull } from 'fp-lite'
 import fs from 'fs-extra'
 import path from 'node:path'
 import { afterAll, beforeAll } from 'vitest'
-import { BaseOption } from '../../src/commands/capi.js'
 import { cli } from '../../src/commands/index.js'
 import { DirInfo } from '../../src/utils/withTypeFile.js'
 
@@ -47,15 +46,16 @@ export function parseCommandArgs(
     [
       '',
       'tealina',
-      'capi',
+      dirInfo.apiDir,
       ...command.split(' '),
       ...(command.includes('--no-with-test') ? [] : ['--with-test']),
-      '--api-dir',
-      dirInfo.apiDir,
       '--config-path',
       configPath,
     ],
     { run: false },
   )
-  return { parsedResult, cli }
+  return {
+    parsedResult,
+    cli,
+  }
 }

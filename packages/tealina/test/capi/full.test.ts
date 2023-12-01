@@ -3,10 +3,10 @@ import { writeFileSync } from 'fs'
 import fs from 'fs-extra'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { ensureWrite } from '../../src/utils/tool.js'
-import { cleanDir, parseCommandArgs, tempDirFactory } from './helper.js'
-import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
 import { Snapshot } from '../../src/utils/effectFiles.js'
+import { ensureWrite } from '../../src/utils/tool.js'
+import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
+import { cleanDir, parseCommandArgs, tempDirFactory } from './helper.js'
 
 const TEMP_ROOT = 'temp/capi'
 const prepareTempDir = tempDirFactory('temp/capi')
@@ -28,7 +28,7 @@ describe('full test cai', () => {
       { name: '', method: 'post' },
       { name: '', method: 'get' },
     ]
-    const { cli } = parseCommandArgs(`${name} ${alias}`, dirInfo)
+    const { cli } = parseCommandArgs(`${name} -t ${alias}`, dirInfo)
     const result = await cli.runMatchedCommand()
     const fullResult = makeFullResult(name, seeds, dirInfo)
     expect(result).deep.eq(fullResult)
@@ -40,7 +40,7 @@ describe('full test cai', () => {
     const alias = 'cr'
     const dirInfo = prepareTempDir('alias-post-style')
     const { cli } = parseCommandArgs(
-      [name, alias].join(' '),
+      `${name} -t ${alias}`,
       dirInfo,
       'test/mock/config/tealina.fnconfig.ts',
     )
@@ -137,7 +137,6 @@ describe('full test cai', () => {
       [{ method, name: '' }],
       dirInfo,
     )
-    console.log(fullResult)
     expect(result).deep.eq(fullResult)
     fs.rmSync(dirInfo.apiDir, { recursive: true })
   })
@@ -155,7 +154,7 @@ describe('full test cai', () => {
         .join('\n'),
     )
     const { cli } = parseCommandArgs(
-      `--by-model -t ${alias} --schema ${schema}`,
+      `--model -t ${alias} --input ${schema}`,
       dirInfo,
     )
     const result = await cli.runMatchedCommand()

@@ -1,71 +1,109 @@
 import { cac } from 'cac'
+import consola from 'consola'
+import { loadConfig } from '../utils/tool'
 import { createApis } from './capi'
 import { deleteApis } from './dapi'
-import { generatePureTypes } from './gpure'
-import { syncApiByFile } from './sapi'
-import { registerGlobalOption } from '../utils/options'
-import { startGenerateDoc } from './gdoc'
-import consola from 'consola'
+import { pickOption4gdoc, startGenerateDoc } from './gdoc'
+import { generatePureTypes, pickOption4gpure } from './gpure'
+import { pickOption4align, syncApiByFile } from './sapi'
+
+export interface RawOptions {
+  apiDir: string
+  route?: string
+  model: boolean
+  output?: string
+  input: string
+  templateAlias?: string
+  withTest: boolean
+  tsconfigPath: string
+  configPath: string
+  namespace: string
+  align: boolean
+  deleteApi: boolean
+}
+
+const isDeprecateUsage = (leader: string) => {
+  if (leader == 'capi') {
+    consola.warn(`capi is deprecated, without capi and try again,
+    and use -t if you need template alias
+    eg: yarn v1 user -t crud
+    `)
+    return true
+  }
+  if (leader == 'sapi') {
+    consola.warn(`sapi is deprecated, use -a or --align instead.
+    eg: yarn v1 -a
+    `)
+    return true
+  }
+  if (leader == 'dapi') {
+    consola.warn(`dapi is deprecated, without dapi and use -d instead,
+    eg: yarn v1 user -t crud -d
+    `)
+    return true
+  }
+}
+
+const distribuite = async (...rawArgs: any) => {
+  const options = rawArgs.pop() as Omit<RawOptions, 'apiDir' | 'route'>
+  const args = rawArgs as ReadonlyArray<string>
+  const [apiDir, route] = args
+  if (isDeprecateUsage(apiDir)) {
+    return process.exit(1)
+  }
+  const rawOptions = { ...options, apiDir, route }
+  const config = await loadConfig(rawOptions)
+  if (options.align) {
+    return syncApiByFile(pickOption4align(config))
+  }
+  if (route == 'gdoc') {
+    return startGenerateDoc(pickOption4gdoc(config))
+  }
+  if (route == 'gtype') {
+    return generatePureTypes(pickOption4gpure(config))
+  }
+  if (options.deleteApi) {
+    return deleteApis(config)
+  }
+  return createApis(config)
+}
 
 const cli = cac('tealina')
 
-registerGlobalOption(cli)
+cli.command('<api-dir> gdoc [options]', 'Generate API document (json format)')
+
+cli.command(
+  '<api-dir> gtype [options]',
+  'Generate purifed types from schema.prisma',
+)
 
 cli
-  .command('capi [route] [alias]', 'Create API')
-  .option('-t,--template-alias <string>', `[string] template alias`)
-  .option('--with-test', '[boolean] Generate test file too')
+  .command('<api-dir> [route] [options]', 'Create APIs')
   .option(
-    '--by-model',
-    `[boolean] create batch APIs by model name in schema file`,
+    '-a,--align',
+    'Align APIs, update all relative files according to files in --api-dir',
   )
-  .option('--schema <path>', `[string] prisma schema path`, {
+  .option('-d --delete-api', 'Delete APIs')
+  .option('-i,--input <path>', `Prisma schema path`, {
     default: './prisma/schema.prisma',
   })
-  .action(createApis)
-
-cli
-  .command('dapi [route] [alias]', 'Delete API')
-  .option('-t,--template-alias <string>', `[string] template alias`)
-  .option('--with-test', '[boolean] Generate test file too')
-  .action(deleteApis)
-
-cli
-  .command('gdoc', 'Generate API document (json format)')
-  .option('-o,--output-dir <path>', `[string] output dir`, {
-    default: 'docs',
-  })
-  .option('--tsconfig <path>', `[string] output dir`, {
-    default: './tsconfig.json',
-  })
-  .action(startGenerateDoc)
-
-cli
-  .command(
-    'sapi',
-    'Sync API, update all relative files according to files in --api-dir',
-  )
-  .action(syncApiByFile)
-
-cli
-  .command('gpure', 'Generate purifed mutation types from schema.prisma')
-  .option('-i,--input <path>', `[string] input path`, {
-    default: './prisma/schema.prisma',
-  })
-  .option('-o,--output <path>', `[string] output path`, {
-    default: './types/pure.d.ts',
-  })
-  .option('-n,--namespace <name>', `[string] Namespace of purified types`, {
+  .option('-n,--namespace <name>', 'Namespace of purified types', {
     default: 'Pure',
   })
-  .action(generatePureTypes)
-
-// Listen to unknown commands
-cli.on('command:*', () => {
-  consola.error('Invalid command: %s', cli.args.join(' '))
-  process.exit(1)
-})
+  .option('-m,--model', 'Batch create APIs by model name in .prisma file')
+  .option('-o,--output <string>', 'Output dir (gdoc) or file path (gtype)')
+  .option('-t,--template-alias <alias>', 'Template alias')
+  .option('--with-test', 'Effect test file too when create or delete APIs')
+  .option('--tp,--tsconfig-path <path>', `Typescript config path`, {
+    default: './tsconfig.json',
+  })
+  .option('--config-path <path>', 'Tealina config path', {
+    default: './tealina.config.mjs',
+  })
+  .option('--verbose', 'Show excution stack when error')
+  .option('--api-dir <path>', 'The API directory (Deprecated)')
+  .action(distribuite)
 
 cli.help()
-
+cli.version('1.0.0')
 export { cli }

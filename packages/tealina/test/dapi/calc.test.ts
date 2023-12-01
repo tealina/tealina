@@ -54,7 +54,7 @@ describe('test dapi calculation part', function () {
         "  'delete': import('./delete/index.js'),",
       ],
       typeFileInfo,
-      commonOption: { ...dirInfo, withTest: true } as any,
+      options: { ...dirInfo, withTest: true } as any,
       ...restCtx,
     })
     const newFiles = [
@@ -96,7 +96,7 @@ describe('test dapi calculation part', function () {
       ]),
       topIndexContent: [],
       typeFileInfo,
-      commonOption: dirInfo as any,
+      options: dirInfo as any,
       ...restCtx,
     })
     const [postIndex, ...deletions] = snapshots
@@ -120,7 +120,7 @@ describe('test dapi calculation part', function () {
       ]),
       topIndexContent: [],
       typeFileInfo,
-      commonOption: dirInfo as any,
+      options: dirInfo as any,
       ...restCtx,
       suffix: '',
     })
@@ -138,7 +138,7 @@ describe('test dapi calculation part', function () {
       kindIndexContentMap: new Map([]),
       topIndexContent: [],
       typeFileInfo,
-      commonOption: { ...dirInfo, withTest: true } as any,
+      options: { ...dirInfo, withTest: true } as any,
       ...restCtx,
     })
     const newFiles = [
@@ -176,7 +176,7 @@ describe('test dapi calculation part', function () {
         "  'post': import('./post/index.js'),",
       ],
       typeFileInfo,
-      commonOption: { ...dirInfo, withTest: true } as any,
+      options: { ...dirInfo, withTest: true } as any,
       ...restCtx,
     })
     const [apiIndex, putIndex, apiHandler] = snapshots
@@ -213,7 +213,7 @@ describe('test dapi calculation part', function () {
         "  'post': import('./post/index.js'),",
       ],
       typeFileInfo,
-      commonOption: { ...dirInfo, withTest: false } as any,
+      options: { ...dirInfo, withTest: false } as any,
       ...restCtx,
     })
     expect(snapshots.some(v => v.group == 'test')).false

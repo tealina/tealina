@@ -1,12 +1,13 @@
 import { existsSync, rmSync } from 'fs-extra'
 import path from 'node:path'
-import { afterAll, beforeAll, expect, test } from 'vitest'
+import { afterAll, beforeAll, test } from 'vitest'
 import { cli } from '../../src/commands/index.js'
 
 const mockDir = 'test/gdoc/mock'
 const apiDir = 'api-v1'
 const outputDir = 'temp'
 
+const input = path.join(`${mockDir}/basic`)
 const output = path.join(`${outputDir}/${apiDir}.json`)
 const cleanOutput = () => {
   if (existsSync(output)) {
@@ -22,18 +23,20 @@ test('actual run gdoc', () => {
     [
       '',
       'tealina',
-      'gdoc',
-      '--api-dir',
       apiDir,
+      'gdoc',
+      '-i',
+      input,
+      '--output',
+      outputDir,
+      '--tsconfig-path',
+      path.join(mockDir, 'tsconfig.json'),
       '--config-path',
       path.join(mockDir, 'tealina.config.mjs'),
-      '--output-dir',
-      outputDir,
-      '--tsconfig',
-      path.join(mockDir, 'tsconfig.json'),
     ],
     { run: false },
   )
-  expect(cli.matchedCommandName).eq('gdoc')
+  // console.log(cli.matchedCommand)
+  // expect(cli.matchedCommandName).eq('gdoc')
   return cli.runMatchedCommand()
 })

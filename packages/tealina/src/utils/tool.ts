@@ -4,8 +4,9 @@ import path from 'node:path'
 import { extname, normalize, resolve } from 'pathe'
 import ts from 'typescript'
 import { pathToFileURL } from 'url'
-import { TemplateContext, TealinaConifg } from '../index'
-import { TealinaComonOption } from './options'
+import { RawOptions } from '../commands'
+import { FullOptions } from '../commands/capi'
+import { TealinaConifg, TemplateContext } from '../index'
 import { DirInfo } from './withTypeFile'
 
 export const capitalize = (str: string) =>
@@ -67,8 +68,8 @@ export type MinimalInput = Required<Omit<TealinaConifg, 'gpure'>> &
   DirInfo
 
 export const loadConfig = async (
-  opt: TealinaComonOption,
-): Promise<MinimalInput> =>
+  opt: RawOptions & { apiDir: string; route?: string },
+): Promise<FullOptions> =>
   import(pathToFileURL(resolve(opt.configPath)).href)
     .then(v => v.default as TealinaConifg)
     .then(v => ({
@@ -77,6 +78,8 @@ export const loadConfig = async (
       testDir: normalize(v.testDir),
       suffix: v.suffix ?? '.js',
       ...opt,
+      apiDir: normalize(opt.apiDir),
+      route: opt.route ?? '',
     }))
 
 export interface TsConfig {

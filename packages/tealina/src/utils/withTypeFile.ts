@@ -10,11 +10,11 @@ export interface TypeFileInfo {
 
 export const calcTypeFileSnapshot = ({
   typeFileInfo,
-  commonOption,
+  options,
   suffix,
 }: {
   typeFileInfo: TypeFileInfo
-  commonOption: DirInfo
+  options: Omit<DirInfo, 'testDir'>
   suffix: string
 }): Snapshot[] => {
   if (typeFileInfo.isExists) return []
@@ -23,7 +23,7 @@ export const calcTypeFileSnapshot = ({
       group: 'types',
       action: 'create',
       filePath: typeFileInfo.filePath,
-      code: genTypeCode(commonOption, suffix),
+      code: genTypeCode(options, suffix),
     },
   ]
 }
@@ -37,7 +37,7 @@ export const getApiTypeFilePath = (dirInfo: Omit<DirInfo, 'testDir'>) =>
   path.join(dirInfo.typesDir, path.basename(dirInfo.apiDir) + '.d.ts')
 
 export const collectTypeFileInfo = async (
-  dirInfo: DirInfo,
+  dirInfo: Omit<DirInfo, 'testDir'>,
 ): Promise<TypeFileInfo> => {
   const filePath = getApiTypeFilePath(dirInfo)
   const isExists = await access(filePath).then(

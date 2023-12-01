@@ -14,7 +14,7 @@ import { ensureWrite } from './tool'
 import { DirInfo } from './withTypeFile'
 
 export const completePath =
-  ({ apiDir }: DirInfo) =>
+  ({ apiDir }: Pick<DirInfo, 'apiDir'>) =>
   (v: Snapshot) => ({
     ...v,
     filePath: join(apiDir, v.filePath),

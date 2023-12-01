@@ -15,14 +15,13 @@ import {
 } from 'fp-lite'
 import { pathExists } from 'fs-extra'
 import { basename, join, normalize } from 'pathe'
+import { RawOptions } from '.'
 import type { ApiTemplateType, TealinaConifg } from '../index'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import { TealinaComonOption as TealinaCommonOption } from '../utils/options'
 import { extraModelNames } from '../utils/parsePrisma'
 import {
-  MinimalInput,
   loadConfig,
   parseCreateInfo as parseCreationInfo,
   readIndexFile,
@@ -36,30 +35,11 @@ import {
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
 
-export interface BaseOption extends TealinaCommonOption {
-  /** restful style */
-  templateAlias?: string
-  withTest: boolean
-}
-
-interface ByModelOption extends BaseOption {
-  /** create APIs by model name in schema file */
-  byModel: boolean
-  templateAlias: string
-  /** the schema file path */
-  schema: string
-}
-
-interface RegularOption extends BaseOption {
-  route: string
-}
 interface Seeds {
   kind: string
   namePaths: string[]
   generateFn: ApiTemplateType['generateFn']
 }
-
-type OptionTypes = RegularOption | ByModelOption
 
 interface FileSummary {
   filePath: string
@@ -71,21 +51,21 @@ interface FullSeeds extends Seeds {
   testFileSummary: FileSummary
 }
 
-export type MergedOption = OptionTypes & DirInfo
+type FullOptions = Omit<RawOptions, 'route' | 'suffix'> & {
+  route: string
+  suffix: string
+} & TealinaConifg
 
 interface FullContext {
   seeds: FullSeeds[]
   kindIndexContentMap: Map<string, string[]>
   topIndexContent: string[]
   typeFileInfo: TypeFileInfo
-  commonOption: MergedOption
+  options: FullOptions
   testHelperInfo: { isExists: boolean; filePath: string }
   testTemplate: TealinaConifg['template']['test']
   suffix: string
 }
-
-const isByModel = (option: BaseOption): option is ByModelOption =>
-  'byModel' in option
 
 const parseByAlias = (
   preNames: string[],
@@ -107,30 +87,14 @@ const parseByAlias = (
 }
 
 const loadTemplateConfig = async (
-  rawOptions: OptionTypes,
-): Promise<{ config: MinimalInput; option: MergedOption }> => {
-  const config = await loadConfig(rawOptions)
+  rawOptions: FullOptions,
+): Promise<FullOptions> => {
+  const { route } = rawOptions
+  const arr = mayTransformParams(route.split('/'))
+  const routeParts = isValidHttpMethod(arr[0]) ? arr : ['post', ...arr]
   return {
-    config,
-    option: {
-      testDir: config.testDir,
-      typesDir: config.typesDir,
-      ...rawOptions, //test mode can override the config
-      apiDir: normalize(rawOptions.apiDir),
-    },
-  }
-}
-
-const validateInput = (...dynamicArgs: any[]): Promise<OptionTypes> => {
-  const option = dynamicArgs.pop()
-  const args = dynamicArgs
-  try {
-    const opt = isByModel(option)
-      ? validateByModelOption(option)
-      : validateRegularOption(args, option)
-    return Promise.resolve(opt)
-  } catch (error) {
-    return Promise.reject(error)
+    ...rawOptions, //test mode can override the config
+    route: routeParts.join('/'),
   }
 }
 
@@ -157,17 +121,20 @@ const parseByRoute = (route: string, tempConfig: ApiTemplateType[]): Seeds => {
 }
 
 const prepareKindArgsByModel = async (
-  opt: ByModelOption,
+  opt: RawOptions,
   tempConfig: ApiTemplateType[],
 ): Promise<Seeds[]> => {
   const { templateAlias } = opt
-  const nameGroup = await extraModelNames(opt.schema)
+  if (templateAlias == null) {
+    throw new Error('Missing template alias')
+  }
+  const nameGroup = await extraModelNames(opt.input)
   const rawNames = nameGroup.get('model') ?? []
   return parseByAlias(rawNames.map(unCapitalize), tempConfig, templateAlias)
 }
 
-const getTouchedKinds = (opt: BaseOption, tempConfig: ApiTemplateType[]) => {
-  const resftulOpt = opt as RegularOption
+const getTouchedKinds = (opt: FullOptions, tempConfig: ApiTemplateType[]) => {
+  const resftulOpt = opt
   const { templateAlias, route } = resftulOpt
   if (templateAlias == null) return route.split('/').slice(0, 1)
   const aliasMap = new Map(templateAlias.split('').map(v => [v, true]))
@@ -238,7 +205,7 @@ const calcRelativeFilesSnapshots = ({
   seeds,
   kindIndexContentMap,
   topIndexContent,
-  commonOption: dirInfo,
+  options: dirInfo,
   suffix,
 }: FullContext): Snapshot[] =>
   pipe(seeds2kindScope(seeds), kinds =>
@@ -278,7 +245,7 @@ const toApiTestSnapshot =
 const toTestHelperSnapshot = ({
   testHelperInfo: { filePath },
   testTemplate: { genHelper },
-  commonOption: { apiDir, typesDir },
+  options: { apiDir, typesDir },
   seeds: [{ namePaths }],
 }: FullContext): Snapshot => ({
   group: 'test',
@@ -312,55 +279,22 @@ const calcSnapshots = (ctx: FullContext): Snapshot[] =>
   pipe(
     calcRelativeFilesSnapshots(ctx),
     concat(calcApiSnpashots(ctx)),
-    ctx.commonOption.withTest ? concat(calcTestSnapshots(ctx)) : x => x,
+    ctx.options.withTest ? concat(calcTestSnapshots(ctx)) : x => x,
     concat(calcTypeFileSnapshot(ctx)),
   )
 
 const ColonPattern = /^:/
-const mayTransformParams = (route: string) => {
-  if (!route.includes(':')) return route
-  return route
-    .split('/')
-    .map(v => (ColonPattern.test(v) ? `[${v.slice(1)}]` : v))
-    .join('/')
-}
-
-const validateRegularOption = (
-  args: (string | undefined)[],
-  rawOption: BaseOption,
-  command = 'capi',
-): RegularOption => {
-  const [rawRoute, templateAlias] = args //['user','crud']
-  if (rawRoute == null) {
-    throw new Error(`Route is required, eg: ${command} user/create`)
-  }
-  const alisa = templateAlias ?? rawOption.templateAlias //-t 'crud'
-  if (alisa != null)
-    return { templateAlias, ...rawOption, route: mayTransformParams(rawRoute) }
-  const [head] = rawRoute.split('/')
-  const route = isValidHttpMethod(head)
-    ? rawRoute
-    : ['post', rawRoute].join('/')
-  return { templateAlias, ...rawOption, route: mayTransformParams(route) }
-}
-
-const validateByModelOption = (rawOption: ByModelOption) => {
-  if (rawOption.templateAlias != null) return rawOption
-  throw new Error(
-    [
-      'Missing template alias, when use --by-model, -t is required',
-      'eg: capi --by-model -t crud',
-    ].join('\n'),
-  )
+const mayTransformParams = (arr: string[]) => {
+  return arr.map(v => (ColonPattern.test(v) ? `[${v.slice(1)}]` : v))
 }
 
 const prepareKindArgs = async (
-  opt: RegularOption,
+  opt: FullOptions,
   tempConfig: ApiTemplateType[],
 ): Promise<Seeds[]> => {
   const { templateAlias, route } = opt
   const targeTemplates = templateAlias
-    ? parseByAlias([route], tempConfig, templateAlias)
+    ? parseByAlias(route.split('/').slice(1), tempConfig, templateAlias)
     : [parseByRoute(route, tempConfig)]
   return Promise.resolve(targeTemplates)
 }
@@ -388,7 +322,7 @@ const getFileSummary = (filePath: string): Promise<FileSummary> =>
   pathExists(filePath).then(isExists => ({ filePath, isExists }))
 
 const getTestFileSummary = async (
-  opt: MergedOption,
+  opt: FullOptions,
   seeds: Seeds,
 ): Promise<FileSummary> =>
   opt.withTest
@@ -399,7 +333,7 @@ const getTestFileSummary = async (
       }
 
 const withFileState =
-  (opt: MergedOption) =>
+  (opt: FullOptions) =>
   async (seeds: Seeds): Promise<FullSeeds> =>
     asyncPipe(
       waitAll([
@@ -414,11 +348,11 @@ const withFileState =
     )
 
 const getSeeds = (
-  opt: MergedOption,
+  opt: FullOptions,
   tempConfig: ApiTemplateType[],
 ): Promise<FullSeeds[]> =>
   asyncPipe(
-    isByModel(opt)
+    opt.model
       ? prepareKindArgsByModel(opt, tempConfig)
       : prepareKindArgs(opt, tempConfig),
     map(withFileState(opt)),
@@ -426,7 +360,7 @@ const getSeeds = (
   )
 
 const checkTestHelper = async (
-  opt: MergedOption,
+  opt: FullOptions,
 ): Promise<FullContext['testHelperInfo']> => {
   const filePath = getTestHeplerPath(opt)
   const isExists = opt.withTest ? await pathExists(filePath) : false
@@ -440,20 +374,20 @@ const toKeyValue =
 
 const collectContext = asyncFlow(
   loadTemplateConfig,
-  ({ config, option }) =>
+  config =>
     [
-      getSeeds(option, config.template.handlers).then(toKeyValue('seeds')),
+      getSeeds(config, config.template.handlers).then(toKeyValue('seeds')),
       pipe(
-        getTouchedKinds(option, config.template.handlers),
-        gatherIndexContent(option.apiDir),
+        getTouchedKinds(config, config.template.handlers),
+        gatherIndexContent(config.apiDir),
       ).then(toKeyValue('kindIndexContentMap')),
-      readIndexFile(join(option.apiDir, 'index.ts')).then(
+      readIndexFile(join(config.apiDir, 'index.ts')).then(
         toKeyValue('topIndexContent'),
       ),
-      collectTypeFileInfo(option).then(toKeyValue('typeFileInfo')),
-      checkTestHelper(option).then(toKeyValue('testHelperInfo')),
+      collectTypeFileInfo(config).then(toKeyValue('typeFileInfo')),
+      checkTestHelper(config).then(toKeyValue('testHelperInfo')),
       toKeyValue('testTemplate')(config.template.test),
-      toKeyValue('commonOption')(option),
+      toKeyValue('options')(config),
       ['suffix', config.suffix],
     ] as const,
   waitAll,
@@ -461,7 +395,6 @@ const collectContext = asyncFlow(
 )
 
 const createApis = asyncFlow(
-  validateInput,
   collectContext,
   calcSnapshots,
   effectFiles,
@@ -477,13 +410,10 @@ export {
   getSeeds,
   getTestFilePath,
   getTestHeplerPath,
-  isByModel,
   parseByAlias,
   parseByRoute,
   prepareKindArgs,
   seeds2kindScope,
-  validateInput,
-  validateRegularOption,
 }
 
-export type { ByModelOption, FullContext, OptionTypes, RegularOption, Seeds }
+export type { FullContext, FullOptions, Seeds }
