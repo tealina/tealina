@@ -1,5 +1,5 @@
 import { cac } from 'cac'
-import consola from 'consola'
+import { exitIfHasDeprecated } from '../utils/exitIfHasDeprecated'
 import { loadConfig } from '../utils/tool'
 import { createApis } from './capi'
 import { deleteApis } from './dapi'
@@ -22,35 +22,11 @@ export interface RawOptions {
   deleteApi: boolean
 }
 
-const isDeprecateUsage = (leader: string) => {
-  if (leader == 'capi') {
-    consola.warn(`capi is deprecated, without capi and try again,
-    and use -t if you need template alias
-    eg: yarn v1 user -t crud
-    `)
-    return true
-  }
-  if (leader == 'sapi') {
-    consola.warn(`sapi is deprecated, use -a or --align instead.
-    eg: yarn v1 -a
-    `)
-    return true
-  }
-  if (leader == 'dapi') {
-    consola.warn(`dapi is deprecated, without dapi and use -d instead,
-    eg: yarn v1 user -t crud -d
-    `)
-    return true
-  }
-}
-
 const distribuite = async (...rawArgs: any) => {
   const options = rawArgs.pop() as Omit<RawOptions, 'apiDir' | 'route'>
   const args = rawArgs as ReadonlyArray<string>
   const [apiDir, route] = args
-  if (isDeprecateUsage(apiDir)) {
-    return process.exit(1)
-  }
+  exitIfHasDeprecated(apiDir, route, options)
   const rawOptions = { ...options, apiDir, route }
   const config = await loadConfig(rawOptions)
   if (options.align) {
@@ -83,7 +59,7 @@ cli
     '-a,--align',
     'Align APIs, update all relative files according to files in --api-dir',
   )
-  .option('-d --delete-api', 'Delete APIs')
+  .option('-d,--delete-api', 'Delete APIs')
   .option('-i,--input <path>', `Prisma schema path`, {
     default: './prisma/schema.prisma',
   })
