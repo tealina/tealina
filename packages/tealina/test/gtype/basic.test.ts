@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest'
-import { workflow } from '../../src/commands/gpure'
+import { workflow } from '../../src/commands/gtype'
 
-test('mongo database has composite type', async () => {
-  const result = await workflow('test/utils/mock/mongo.prisma', {
+test('relation database', async () => {
+  const result = await workflow('test/utils/mock/mock.prisma', {
     typeRemap: t => (t == 'DateTime' ? 'number' : null),
     overwrite: {
       excludeProps: [
@@ -11,6 +11,14 @@ test('mongo database has composite type', async () => {
           keyword: 'model',
           kind: 'CreateInput',
           predicate: p => p.name == 'id',
+        },
+      ],
+      isOptional: [
+        {
+          blockName: 'User',
+          keyword: 'model',
+          kind: 'CreateInput',
+          predicate: p => p.name == 'email',
         },
       ],
     },

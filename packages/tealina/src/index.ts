@@ -49,7 +49,7 @@ export interface Overwrite {
   excludeProps?: MatchForExcludeProp[]
 }
 
-export interface PurifyConfig {
+export interface GtypeConfig {
   /**
    *  Overwrite specific prop.type
    *  eg: OrderNo should be optional or exclude in OrderUpdateInput
@@ -123,7 +123,12 @@ export interface TealinaConifg {
    * Where generated integration test file store
    */
   testDir: string
-  gpure?: PurifyConfig
+  /**
+   * @deprecated
+   * use gtype property
+   */
+  gpure?: GtypeConfig
+  gtype?: GtypeConfig
   /** the import statement suffix @default {".js"} */
   suffix?: string
 }

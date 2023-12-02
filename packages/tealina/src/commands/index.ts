@@ -4,7 +4,7 @@ import { loadConfig } from '../utils/tool'
 import { createApis } from './capi'
 import { deleteApis } from './dapi'
 import { pickOption4gdoc, startGenerateDoc } from './gdoc'
-import { generatePureTypes, pickOption4gpure } from './gpure'
+import { generatePureTypes, pickOption4gtype } from './gtype'
 import { pickOption4align, syncApiByFile } from './sapi'
 
 export interface RawOptions {
@@ -36,7 +36,7 @@ const distribuite = async (...rawArgs: any) => {
     return startGenerateDoc(pickOption4gdoc(config))
   }
   if (route == 'gtype') {
-    return generatePureTypes(pickOption4gpure(config))
+    return generatePureTypes(pickOption4gtype(config))
   }
   if (options.deleteApi) {
     return deleteApis(config)

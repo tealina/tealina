@@ -15,7 +15,7 @@ import {
 } from 'fp-lite'
 import { writeFile } from 'fs/promises'
 import path from 'node:path'
-import type { PurifyConfig } from '..'
+import type { GtypeConfig } from '..'
 import type {
   BlockAST,
   MatchForExcludeProp,
@@ -204,7 +204,7 @@ const toDetermineFn =
 const makeCompositeTypeBy = (kind: MutationKind) => (prop: PropAST) =>
   prop.kind == 'compositeType' ? [prop.type, kind].join('') : null
 
-const makeTsInterface = ({ overwrite }: PurifyConfig) =>
+const makeTsInterface = ({ overwrite }: GtypeConfig) =>
   block2ts({
     makeName: block => block.name,
     checkIsOptional: _block => _prop => false, //use null instead
@@ -227,7 +227,7 @@ const makeTsInterface = ({ overwrite }: PurifyConfig) =>
 
 const makeMutationTsInterface = (
   kind: Exclude<MutationKind, ''>,
-  { overwrite, typeRemap }: PurifyConfig,
+  { overwrite, typeRemap }: GtypeConfig,
 ) =>
   block2ts({
     makeName: block => [block.name, kind].join(''),
@@ -330,7 +330,7 @@ const wrapperWith =
     ]
   }
 
-const makeTypeCodes = (config: PurifyConfig) => (blockList: BlockAST[]) => {
+const makeTypeCodes = (config: GtypeConfig) => (blockList: BlockAST[]) => {
   const hasJsonValue = blockList.some(v =>
     v.props.some(p => p.type == 'JsonValue'),
   )
@@ -357,7 +357,7 @@ const makeTypeCodes = (config: PurifyConfig) => (blockList: BlockAST[]) => {
   )
 }
 
-const workflow = (input: string, config: PurifyConfig) =>
+const workflow = (input: string, config: GtypeConfig) =>
   asyncPipe(
     parseSchame(input),
     filter(block => ConcernedKeywords.includes(block.keyword)),
@@ -365,17 +365,17 @@ const workflow = (input: string, config: PurifyConfig) =>
     makeTypeCodes(config),
   )
 
-type GpureOption = Required<
-  Pick<FullOptions, 'gpure' | 'output' | 'input' | 'namespace'>
+type GtypeOption = Required<
+  Pick<FullOptions, 'gtype' | 'output' | 'input' | 'namespace'>
 >
-const pickOption4gpure = (full: FullOptions): GpureOption => {
-  const x = pickFn(full, 'gpure', 'output', 'input', 'namespace')
+const pickOption4gtype = (full: FullOptions): GtypeOption => {
+  const x = pickFn(full, 'gtype', 'gpure', 'output', 'input', 'namespace')
   const output = x.output ?? 'types/pure.d.ts'
-  const gpure = x.gpure ?? {}
-  return { ...x, output, gpure }
+  const gtype = x.gtype ?? x.gpure ?? {}
+  return { ...x, output, gtype }
 }
-const generatePureTypes = async (option: GpureOption) => {
-  const lines = await workflow(option.input, option.gpure)
+const generatePureTypes = async (option: GtypeOption) => {
+  const lines = await workflow(option.input, option.gtype)
   return pipe(
     lines,
     wrapperWith(option),
@@ -384,5 +384,5 @@ const generatePureTypes = async (option: GpureOption) => {
     consola.success,
   )
 }
-export { generatePureTypes, pickOption4gpure, workflow }
-export type { PurifyConfig }
+export { generatePureTypes, pickOption4gtype, workflow }
+export type { GtypeConfig as PurifyConfig }
