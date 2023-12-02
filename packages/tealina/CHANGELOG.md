@@ -1,5 +1,11 @@
 # tealina
 
+## 1.1.2
+
+### Patch Changes
+
+- 0541288: refector: use gtype instead gpure
+
 ## 1.1.1
 
 ### Patch Changes
