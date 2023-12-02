@@ -1,5 +1,13 @@
 # create-tealina
 
+## 1.0.1
+
+### Patch Changes
+
+- 4c3ca9c: fix: expess+post-get template missing align
+- Updated dependencies [4c3ca9c]
+  - create-tealina@1.0.1
+
 ## 1.0.0
 
 ### Major Changes
