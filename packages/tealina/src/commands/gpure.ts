@@ -149,7 +149,7 @@ const block2ts =
   }) =>
   (block: BlockAST) => {
     const commentLines = formatComment(block.comment.public)
-    const headLine = [`interface ${option.makeName(block)}{`]
+    const headLine = [`interface ${option.makeName(block)} {`]
     const propLines = pipe(
       block.props,
       filter(option.exclude(block)),
@@ -162,7 +162,7 @@ const block2ts =
       flat,
       map(v => [TabSpace, v].join('')), //indent
     )
-    return [commentLines, headLine, propLines, '}', ''].flat()
+    return [commentLines, headLine, propLines, '}'].flat()
   }
 
 const findIsOptionalCheck = (
@@ -326,6 +326,7 @@ const wrapperWith =
       `export namespace ${namespace} {`,
       ...lines.map(v => `${TabSpace}${v}`),
       '}',
+      '',
     ]
   }
 
