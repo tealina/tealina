@@ -1,5 +1,11 @@
 # tealina
 
+## 1.1.1
+
+### Patch Changes
+
+- 2465f38: fix: dependencies error
+
 ## 1.1.0
 
 ### Minor Changes
