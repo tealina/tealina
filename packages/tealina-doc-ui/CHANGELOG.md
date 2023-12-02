@@ -1,5 +1,11 @@
 # @tealina/doc-ui
 
+## 1.0.2
+
+### Patch Changes
+
+- 3b09a66: fix: avoid null value after clean input
+
 ## 1.0.1
 
 ### Patch Changes

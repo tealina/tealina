@@ -1,5 +1,19 @@
 # create-tealina
 
+## 1.0.0
+
+### Major Changes
+
+- 3b09a66: Big Change:
+
+  1. Improve templates file structure
+  2. Not create `web` when select 'none'
+
+### Patch Changes
+
+- Updated dependencies [3b09a66]
+  - create-tealina@1.0.0
+
 ## 0.4.0
 
 ### Minor Changes
