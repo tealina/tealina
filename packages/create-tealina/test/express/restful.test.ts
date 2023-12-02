@@ -14,9 +14,7 @@ test('create Express restful', async () => {
   process.argv = ['', '']
   prompts.inject([tempDir, server, apiStyle, 'none'])
   await createScaffold()
-  const validateDir = existsSync(
-    path.join(tempDir, 'server', 'src', 'validate'),
-  )
+  const validateDir = existsSync(path.join(tempDir, 'src', 'validate'))
   expect(validateDir).true
   return validate(tempDir)
 })

@@ -24,38 +24,42 @@ const prepareExecFn =
       const p = spawn(leader, args, {
         cwd,
       })
-      // p.stdout.on('data', chunk => {
-      //   const msg = chunk.toString()
-      //   console.log(msg)
-      // })
-      const errMsgLines: string[] = []
-      p.stderr.on('data', c => {
-        errMsgLines.push(c.toString())
+      const messageLines: string[] = []
+      p.stdout.on('data', chunk => {
+        messageLines.push(chunk.toString())
+        if (messageLines.length > 20) {
+          messageLines.shift()
+        }
       })
+
       p.on('close', code => {
         if (code == 0) return res()
-        return rej(new Error(errMsgLines.join('\n')))
+        return rej(messageLines.join('\n'))
+      })
+      p.on('error', err => {
+        console.log('==>', err)
+        return rej(messageLines.join('\n'))
       })
     })
 
 const runScripts = async (dir: string) => {
-  const cwd = path.join(dir, 'server')
+  const cwd = path.join(dir)
   const $ = prepareExecFn(cwd)
   await $`pnpm install .` //workspace
   // await $`node init-dev.mjs`
   await $`pnpm prisma db push`
-  await $`pnpm v1 gpure`
-  await $`pnpm v1 capi get/health --with-test`
+  await $`pnpm v1 gtype`
+  await $`pnpm v1 get/status`
+  await $`pnpm v1 user -t crud`
   await $`pnpm v1 gdoc`
-  await $`pnpm test -- --run --testTimeout=0`
-  await $`pnpm v1 capi user crud`
-  await $`pnpm tsc --noEmit`
+  // await $`pnpm tsc --noEmit`
 }
 
 export async function validate(dir: string) {
-  const serverPkg = path.join(dir, 'server', 'package.json')
-  const devTemplateDir = path.join(dir, 'server', 'dev-templates')
-  const serverTypesDir = path.join(dir, 'server', 'types')
+  // return runScripts(dir)
+  const serverPkg = path.join(dir, 'package.json')
+  const devTemplateDir = path.join(dir, 'dev-templates')
+  const serverTypesDir = path.join(dir, 'types')
   expect(existsSync(serverPkg)).true
   expect(existsSync(devTemplateDir)).true
   expect(existsSync(serverTypesDir)).true

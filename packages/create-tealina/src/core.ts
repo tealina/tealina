@@ -85,19 +85,11 @@ const injectExtraTemplates = (dest: string, webExtraTemplateDir: string) => {
   fs.readdirSync(webExtraTemplateDir).forEach(file => write(file))
 }
 
-type GuidType = {
-  title: string
-  steps: string[]
-}
-
-const showBothGuid = (guids: GuidType[]) => {
+const logGuids = (guids: string[]) => {
   const all = [
     '',
     green('     Scafold project is ready'),
-    guids
-      .map(v => [v.title, ...v.steps.map((s, i) => `  ${i + 1}. ${s}`)])
-      .flat()
-      .join('\n'),
+    guids.map((s, i) => `  ${i + 1}. ${s}`).join('\n'),
   ]
   console.log(all.join('\n'))
 }
@@ -105,27 +97,24 @@ const showBothGuid = (guids: GuidType[]) => {
 const showGuide = ({ answer, pkgManager }: ContextType) => {
   const { projectName, web } = answer
   const leader = getRunLeader(pkgManager)
-  const webGuid =
-    web == 'none'
-      ? []
-      : {
-          title: blue('Web:'),
-          steps: [
-            `cd ${projectName}/web`,
-            `${leader} install`,
-            `${leader} dev`,
-          ],
-        }
   const runtime = leader == 'bun' ? 'bun' : 'node'
-  const serverGuid: GuidType = {
-    title: blue('Server:'),
-    steps: [
-      `cd ${projectName}/server`,
+  if (web == 'none') {
+    return logGuids([
+      `cd ${projectName}`,
       `${runtime} init-dev.mjs`,
       `${leader} dev`,
-    ],
+    ])
   }
-  showBothGuid([serverGuid].concat(webGuid))
+  logGuids([
+    blue('Server:'),
+    `cd ${projectName}/server`,
+    `${runtime} init-dev.mjs`,
+    `${leader} dev`,
+    blue('Web:'),
+    `cd ${projectName}/web`,
+    `${leader} install`,
+    `${leader} dev`,
+  ])
 }
 
 const mayCopyCommonDir = (templateDir: string, destDir: string) => {
@@ -203,8 +192,8 @@ const pkgFromUserAgent = (userAgent: string = '') => {
 
 const createServerProject = async (ctx: ContextType) => {
   const { projectRootDir, answer } = ctx
-  const { server, apiStyle } = answer
-  const destServerDir = join(ctx.dest, 'server')
+  const { server, apiStyle, web } = answer
+  const destServerDir = web == 'none' ? ctx.dest : join(ctx.dest, 'server')
   await mayOverwrite(destServerDir)
   const templateDir = join(projectRootDir, 'template')
   const templateServerDir = join(templateDir, 'server', server)
@@ -287,7 +276,6 @@ const mayOverwrite = async (dest: string) => {
 
 const createWebProject = async (ctx: ContextType) => {
   const { projectRootDir, answer, dest } = ctx
-  if (answer.web == 'none') return
   const webDestDir = join(dest, 'web')
   const webDest = path.join(answer.projectName, 'web').split(path.sep).join('/')
   await mayOverwrite(webDest)
@@ -306,12 +294,10 @@ const createCtx = async () => {
   const dest = path.resolve(cwd, answer.projectName)
   const projectRootDir = path.resolve(fileURLToPath(import.meta.url), '../../')
   const pkgManager = pkgFromUserAgent(process.env.npm_config_user_agent)
-  const isDemo = answer.server == 'demo'
   return {
     answer,
     dest,
     projectRootDir,
-    isDemo,
     pkgManager,
   }
 }
@@ -319,6 +305,8 @@ const createCtx = async () => {
 export const createScaffold = async () => {
   const ctx = await createCtx()
   await createServerProject(ctx)
-  await createWebProject(ctx)
+  if (ctx.answer.web != 'none') {
+    await createWebProject(ctx)
+  }
   showGuide(ctx)
 }
