@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://github.com/tealina/docs-en/blob/main/docs/public/logo.svg" height="150">
+<img src="https://github.com/tealina/docs-en/blob/main/docs/public/logov2.svg" height="150">
 </p>
 
 <h1 align="center">
