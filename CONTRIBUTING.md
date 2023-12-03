@@ -12,8 +12,7 @@ To develop and test:
 
 2. Run `pnpm -F tealina test` to test `tealina` package
 
-3. Run
-   - `pnpm run test` to run all packages tests
+3. Run `pnpm run test` to run all packages tests
 
 The other commands declared in package.json also run in the same format
 
