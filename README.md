@@ -7,6 +7,7 @@ Tealina
 </h1>
 <p align="center">
 A CLI for build end-to-end type safety APIs
+and code, types, document generation
 <p>
 <p align="center">
   <a href="https://www.npmjs.com/package/tealina"><img src="https://img.shields.io/npm/v/tealina?color=289758&label="></a>
