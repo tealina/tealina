@@ -1,5 +1,13 @@
 # create-tealina
 
+## 1.0.2
+
+### Patch Changes
+
+- 323fb6c: refector: optimize templates
+- Updated dependencies [323fb6c]
+  - create-tealina@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes
