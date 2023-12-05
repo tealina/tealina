@@ -2,4 +2,4 @@
 'create-tealina': patch
 ---
 
-refector: optimize template
+refector: optimize templates
