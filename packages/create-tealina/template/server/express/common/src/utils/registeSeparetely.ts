@@ -1,6 +1,7 @@
-import type { FastifyInstance } from 'fastify'
+import { Router } from 'express'
 import { map, omitFn, pipe } from 'fp-lite'
 import { Simplify } from '../../types/utility.js'
+import { verifyToken } from '../middlewares/verifyToken.js'
 import { registeApiRoutes } from './registeApiRoutes.js'
 import { ResolvedAPIs } from './resolveBatchExport.js'
 import { separateObject, toKeyValues } from './separateObject.js'
@@ -8,15 +9,16 @@ import { separateObject, toKeyValues } from './separateObject.js'
 export type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
   [K in keyof T]: ReadonlyArray<keyof Awaited<T[K]>['default']>
 }>
+
 export const registeSeparetely = (
   record: ResolvedAPIs,
-  openPathRecord: Record<string, readonly string[]>,
-  openRouter: FastifyInstance,
-  authRouter: FastifyInstance,
+  openPathRecords: Record<string, readonly string[]>,
 ) => {
-  const fullAuth = omitFn(record, ...Object.keys(openPathRecord))
+  const openRouter = Router()
+  const authRouter = Router().use(verifyToken)
+  const fullAuth = omitFn(record, ...Object.keys(openPathRecords))
   pipe(
-    toKeyValues(openPathRecord),
+    toKeyValues(openPathRecords),
     map(([method, urls]) => {
       const [authApis, openApis] = separateObject(
         record[method],
@@ -32,4 +34,5 @@ export const registeSeparetely = (
       registeApiRoutes(authRouter, method, authApis)
     }),
   )
+  return [openRouter, authRouter] as const
 }

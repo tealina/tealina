@@ -56,7 +56,7 @@ const runScripts = async (dir: string) => {
 }
 
 export async function validate(dir: string) {
-  // return runScripts(dir)
+  return runScripts(dir)
   const serverPkg = path.join(dir, 'package.json')
   const devTemplateDir = path.join(dir, 'dev-templates')
   const serverTypesDir = path.join(dir, 'types')
