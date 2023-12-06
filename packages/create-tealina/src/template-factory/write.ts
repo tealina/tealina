@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { TemplateSnap } from './ctx'
 
 const leader = [
-  '//ts-check',
+  '//@ts-check',
   "import { makeTemplate } from 'tealina'",
   '',
   '',
@@ -15,6 +15,11 @@ export const writeTemplates = (dest: string, tempaltes: TemplateSnap[]) => {
     mkdirSync(dest, { recursive: true })
   }
   return Promise.all(
-    tempaltes.map(v => writeFile(join(dest, v.filename), leader + v.code)),
+    tempaltes.map(v =>
+      writeFile(
+        join(dest, v.filename),
+        v.filename == 'index.mjs' ? v.code : leader + v.code,
+      ),
+    ),
   )
 }
