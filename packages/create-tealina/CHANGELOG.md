@@ -1,5 +1,13 @@
 # create-tealina
 
+## 1.0.3
+
+### Patch Changes
+
+- 18232f1: fix: template index.mjs incorret
+- Updated dependencies [18232f1]
+  - create-tealina@1.0.3
+
 ## 1.0.2
 
 ### Patch Changes
