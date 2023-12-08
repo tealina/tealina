@@ -5,6 +5,12 @@ import { MakeReqType, createReq } from './createReq'
 const instance = axios.create({
   baseURL: '/api/v1/',
 })
+
+instance.interceptors.request.use(config => {
+  config.headers.Authorization = 'jwt token'
+  return config
+})
+
 instance.interceptors.response.use(v => v.data)
 
 export const req = createReq<MakeReqType<ApiTypesRecord>>(instance)
