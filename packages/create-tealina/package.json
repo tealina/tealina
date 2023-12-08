@@ -31,6 +31,7 @@
     "chalk": "^5.2.0",
     "create-tealina": "link:",
     "minimist": "^1.2.8",
+    "ora": "^7.0.1",
     "pathe": "^1.1.1",
     "prompts": "^2.4.2"
   }

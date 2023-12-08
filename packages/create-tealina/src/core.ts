@@ -4,6 +4,7 @@ import fs, { existsSync, writeFileSync } from 'fs'
 import minimist from 'minimist'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import ora from 'ora'
 import prompts from 'prompts'
 import { createTemplates } from './template-factory/create'
 import { writeTemplates } from './template-factory/write'
@@ -85,11 +86,15 @@ const injectExtraTemplates = (dest: string, webExtraTemplateDir: string) => {
   fs.readdirSync(webExtraTemplateDir).forEach(file => write(file))
 }
 
-const logGuids = (guids: string[]) => {
+const logGuids = (guids: { title?: string; items: string[] }[]) => {
   const all = [
     '',
     green('     Scafold project is ready'),
-    guids.map((s, i) => `  ${i + 1}. ${s}`).join('\n'),
+    guids
+      .map(v => [v.title, v.items.map((s, i) => `  ${i + 1}. ${s}`).join('\n')])
+      .flat()
+      .filter(v => v != null)
+      .join('\n'),
   ]
   console.log(all.join('\n'))
 }
@@ -100,20 +105,28 @@ const showGuide = ({ answer, pkgManager }: ContextType) => {
   const runtime = leader == 'bun' ? 'bun' : 'node'
   if (web == 'none') {
     return logGuids([
-      `cd ${projectName}`,
-      `${runtime} init-dev.mjs`,
-      `${leader} dev`,
+      {
+        items: [
+          `cd ${projectName}`,
+          `${runtime} init-dev.mjs`,
+          `${leader} dev`,
+        ],
+      },
     ])
   }
   logGuids([
-    blue('Server:'),
-    `cd ${projectName}/server`,
-    `${runtime} init-dev.mjs`,
-    `${leader} dev`,
-    blue('Web:'),
-    `cd ${projectName}/web`,
-    `${leader} install`,
-    `${leader} dev`,
+    {
+      title: blue('Server:'),
+      items: [
+        `cd ${projectName}/server`,
+        `${runtime} init-dev.mjs`,
+        `${leader} dev`,
+      ],
+    },
+    {
+      title: blue('Web:'),
+      items: [`cd ${projectName}/web`, `${leader} install`, `${leader} dev`],
+    },
   ])
 }
 
@@ -224,15 +237,17 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
     const dir = path.dirname(webDest)
     const leader = pkgManager == 'npm' ? 'npx' : pkgManager
     const fullArgs = ['create', 'vite', name, '-t', answer.web]
-    console.log('  Running', leader, ...fullArgs)
+    const spinner = ora({ spinner: 'dots' })
+    spinner.start(['Running', leader, ...fullArgs].join(' '))
     const p = spawn(leader, fullArgs, { cwd: dir })
     p.on('error', err => {
-      console.log('Run create vite failed, skip current step')
-      console.error('errr', err)
+      spinner.fail('Run create vite failed, skip current step')
+      console.error('error detail:', err)
       res()
     })
     p.on('close', code => {
       if (code != 0) return
+      spinner.stop()
       res()
     })
   })
