@@ -1,5 +1,16 @@
 # create-tealina
 
+## 1.1.0
+
+### Minor Changes
+
+- dfb58c6: feat: Show spinner when running create vite
+
+### Patch Changes
+
+- Updated dependencies [dfb58c6]
+  - create-tealina@1.1.0
+
 ## 1.0.3
 
 ### Patch Changes

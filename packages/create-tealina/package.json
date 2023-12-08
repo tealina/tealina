@@ -1,6 +1,6 @@
 {
   "name": "create-tealina",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "type": "module",
   "description": "create a full stack project ",
   "scripts": {
