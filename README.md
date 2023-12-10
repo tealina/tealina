@@ -6,7 +6,7 @@
 Tealina
 </h1>
 <p align="center">
-Make your TS project implements end-to-end type safety and API document generation
+Enable your full stack project to have end-to-end types and API documentation
 </p>
 
 <p align="center">
