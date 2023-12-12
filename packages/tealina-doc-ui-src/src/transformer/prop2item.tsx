@@ -34,8 +34,9 @@ import { DocKind } from '@tealina/doc-types'
 import { CodeEditorItem } from '../components/CodeEditorItem'
 import { type2text } from './type2text'
 
+type ScopedDoc = Omit<ApiDoc, 'apis' | 'docTypeVersion'>
 export const prop2item = (
-  doc: Omit<ApiDoc, 'apis' | 'docTypeVersion'>,
+  doc: ScopedDoc,
   prop: PropType,
   preNamepath: InternalNamePath = [],
 ): any => {
@@ -166,6 +167,7 @@ export const prop2item = (
           name={[...preNamepath, prop.name]}
           getText={v => type2text(v, doc)}
           render={v => prop2item(doc, v, preNamepath)}
+          getInitialValue={v => collectInitialValue(v, doc)}
         />
       )
     case DocKind.StringLiteral:
@@ -330,10 +332,12 @@ function UnionFormItemsWrapper({
   render,
   getText,
   name,
+  getInitialValue,
 }: {
   prop: UnionType & PropType
   render: (single: PropType) => ReactNode
   getText: (single: PropType) => string
+  getInitialValue: (single: PropType) => any
   name: NamePath
 }) {
   const eachTypeProp = prop.types.map(v =>
@@ -364,17 +368,24 @@ function UnionFormItemsWrapper({
   )
 }
 
-function getInitialValue(prop: DocNode) {
+const collectInitialValue = (prop: DocNode, doc: ScopedDoc): any => {
   switch (prop.kind) {
     case DocKind.NumberLiteral:
     case DocKind.StringLiteral:
       return prop.value
     case DocKind.Primitive:
-      switch (prop.type) {
-        case 'true':
-          return true
-        case 'false':
-          return false
-      }
+      if (prop.type == 'true') return true
+      if (prop.type == 'false') return false
+      return
+    case DocKind.EnumMemberRef:
+      const member = doc.enumRefs[prop.enumId].members.find(
+        v => v.memberId == prop.memberId,
+      )
+      return member?.value ?? void 0
+    case DocKind.EntityRef:
+      const shape = doc.entityRefs[prop.id]
+      return Object.fromEntries(
+        shape.props.map(p => [p.name, collectInitialValue(p, doc)] as const),
+      )
   }
 }
