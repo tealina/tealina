@@ -7,8 +7,7 @@
   "scripts": {
     "dev": "dotenv -c -- tsx watch src",
     "start": "dotenv -c -- tsx src",
-    "sapi": "tealina sapi --api-dir src/api-v1",
-    "gdoc": "tealina gdoc --api-dir src/api-v1"
+    "v1": "tealina src/api-v1"
   },
   "keywords": [],
   "dependencies": {
