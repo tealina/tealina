@@ -1,5 +1,11 @@
 # create-tealina
 
+## 1.1.1
+
+### Patch Changes
+
+- 100b8df: fix: bun not compatable whith link: statement
+
 ## 1.1.0
 
 ### Minor Changes
