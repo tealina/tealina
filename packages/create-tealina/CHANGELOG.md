@@ -1,5 +1,15 @@
 # create-tealina
 
+## 1.2.0
+
+### Minor Changes
+
+- cb23b0d: Support Bun runtime
+
+### Patch Changes
+
+- 12fe555: feat: Support Bun runtime
+
 ## 1.1.1
 
 ### Patch Changes
