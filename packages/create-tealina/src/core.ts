@@ -74,6 +74,7 @@ const writeInitDevFile = (
     command(' v1 gtype'),
     command(' v1 get/status'),
     command(' v1 gdoc'),
+    pkgManager == 'bun' ? command(' link') : '',
   ]
   writeFileSync(join(destServerDir, 'init-dev.mjs'), initCommands.join('\n'))
 }
@@ -236,28 +237,43 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
     const name = path.basename(webDest)
     const dir = path.dirname(webDest)
     const leader = pkgManager == 'npm' ? 'npx' : pkgManager
-    const fullArgs = ['create', 'vite', name, '-t', answer.web]
+    const fullArgs = ['create', 'vite', name, '--template', answer.web]
     const spinner = ora({ spinner: 'dots' })
     spinner.start(['Running', leader, ...fullArgs].join(' '))
     const p = spawn(leader, fullArgs, { cwd: dir })
-    p.on('error', err => {
-      spinner.fail('Run create vite failed, skip current step')
-      console.error('error detail:', err)
-      res()
+    // p.stdout.setEncoding('utf-8')
+    // p.stdout.on('data', v => {
+    //   console.log('--->', String(v))
+    // })
+    p.stderr.setEncoding('utf-8')
+    const errMessages: string[] = []
+    p.stderr.on('data', v => {
+      errMessages.push(String(v))
     })
-    p.on('close', code => {
-      if (code != 0) return
+    const skipCreateWeb = (err: any) => {
+      spinner.fail('Run create vite failed, skip current step')
+      console.error('Error detail: \n', err)
+      spinner.stop()
+      res()
+    }
+    p.on('exit', code => {
+      if (code == null || code == 0) return
+      skipCreateWeb(errMessages.join('\n'))
+    })
+    p.on('error', skipCreateWeb)
+    p.on('close', () => {
       spinner.stop()
       res()
     })
   })
 
-const updatePackageJson = (webDestDir: string) => {
+const updatePackageJson = (webDestDir: string, pkgManager: string) => {
   let pkg = JSON.parse(
     fs.readFileSync(join(webDestDir, 'package.json'), 'utf-8'),
   )
   pkg.dependencies.axios = '^1.4.1'
-  pkg.devDependencies['server'] = 'link:../server'
+  pkg.devDependencies['server'] =
+    pkgManager == 'bun' ? 'link:server' : 'link:../server'
   fs.writeFileSync(
     join(webDestDir, 'package.json'),
     JSON.stringify(pkg, null, 2),
@@ -295,7 +311,7 @@ const createWebProject = async (ctx: ContextType) => {
   const webDest = path.join(answer.projectName, 'web').split(path.sep).join('/')
   await mayOverwrite(webDest)
   await runCreateVite(ctx, webDest)
-  updatePackageJson(webDestDir)
+  updatePackageJson(webDestDir, ctx.pkgManager)
   const webExtraTemplateDir = join(projectRootDir, 'template', 'web')
   injectExtraTemplates(webDestDir, webExtraTemplateDir)
 }
