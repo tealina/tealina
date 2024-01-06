@@ -35,6 +35,22 @@ import { CodeEditorItem } from '../components/CodeEditorItem'
 import { type2text } from './type2text'
 
 type ScopedDoc = Omit<ApiDoc, 'apis' | 'docTypeVersion'>
+
+const AllNumberPattern = /^\d+$/
+
+const toNumber = (v: null | undefined | string) => {
+  if (v == null) return
+  const x = v.trim()
+  if (AllNumberPattern.test(x)) return Number(x)
+}
+
+const toBigInt = (v: null | undefined | string) => {
+  if (v == null) return
+  try {
+    return BigInt(v.trim())
+  } catch (error) {}
+}
+
 export const prop2item = (
   doc: ScopedDoc,
   prop: PropType,
@@ -97,12 +113,12 @@ export const prop2item = (
             initialValue: prop.jsDoc?.default,
           })
         case 'number':
+          return wrapperInItem(<InputNumber placeholder={prop.type} />, {
+            initialValue: toNumber(prop.jsDoc?.default),
+          })
         case 'bigInt':
           return wrapperInItem(<InputNumber placeholder={prop.type} />, {
-            initialValue:
-              prop.jsDoc?.default != null
-                ? BigInt(prop.jsDoc!.default)
-                : void 0,
+            initialValue: toBigInt(prop.jsDoc?.default),
           })
         case 'boolean':
           return wrapperInItem(
