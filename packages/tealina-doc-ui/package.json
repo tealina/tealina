@@ -1,6 +1,6 @@
 {
   "name": "@tealina/doc-ui",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "For visualize and interact API's resources.",
   "main": "./dist/index.js",
   "type": "module",

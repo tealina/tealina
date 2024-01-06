@@ -1,5 +1,11 @@
 # create-tealina
 
+## 1.2.1
+
+### Patch Changes
+
+- dc084cc: optimize: templates
+
 ## 1.2.0
 
 ### Minor Changes
