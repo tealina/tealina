@@ -1,5 +1,13 @@
 # @tealina/doc-ui-src
 
+## 0.0.10
+
+### Patch Changes
+
+- 1a00f7f: fix: Invalid initial value
+- Updated dependencies [1a00f7f]
+  - @tealina/doc-ui@1.0.5
+
 ## 0.0.9
 
 ### Patch Changes
