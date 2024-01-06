@@ -1,11 +1,10 @@
-import { fireEvent, render, waitFor } from '@testing-library/react'
 import type { CommonFieldsType } from '@tealina/doc-ui'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
+import { commonFieldsAtom } from '../src/atoms/jsonSourceAtom'
+import { ComonFields } from '../src/components/features/playground/CommonFields'
 import { kConfigKey } from '../src/constans/configKeys'
 import { TestProvider } from './helper'
-import { commonFieldsAtom } from '../src/atoms/jsonSourceAtom'
-import React from 'react'
-import { ComonFields } from '../src/components/features/playground/CommonFields'
 
 describe('test common field setting', () => {
   test('form', async () => {
