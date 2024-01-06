@@ -1,5 +1,11 @@
 # @tealina/doc-ui
 
+## 1.0.4
+
+### Patch Changes
+
+- dc084cc: fix: Value undefined when has Switch in Form.Item
+
 ## 1.0.3
 
 ### Patch Changes
