@@ -24,12 +24,18 @@ describe('test prop to form item', () => {
     // console.log(ui.container.innerHTML)
   })
 
-  test.only('primitive whith invalid initial value', async () => {
+  test('primitive whith invalid initial value', async () => {
     const numberItem = prop2item(EmptyDeps, {
       name: 'age',
       type: 'number',
       kind: DocKind.Primitive,
       jsDoc: { default: 'autoincrement()' },
+    })
+    const number2Item = prop2item(EmptyDeps, {
+      name: 'level',
+      type: 'number',
+      kind: DocKind.Primitive,
+      jsDoc: { default: '3' },
     })
     const bigValue = 9007199254740991n
     const bigintItem = prop2item(EmptyDeps, {
@@ -49,7 +55,7 @@ describe('test prop to form item', () => {
       const [form] = Form.useForm()
       return (
         <Form form={form}>
-          {numberItem},{bigintItem},
+          {numberItem},{number2Item},{bigintItem},
           <Button
             onClick={() => {
               handleSubmit(form.getFieldsValue())
@@ -62,7 +68,7 @@ describe('test prop to form item', () => {
     const btn = Array.from(ui.container.querySelectorAll('button')).at(-1)!
     fireEvent.click(btn)
     console.log(values)
-    expect(values).toMatchObject({ age: undefined, price: bigValue })
+    expect(values).toMatchObject({ age: undefined, level: 3, price: bigValue })
   })
 
   test('primitive whith initial value', async () => {
