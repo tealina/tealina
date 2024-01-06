@@ -1,26 +1,65 @@
-import { render } from '@testing-library/react'
 import { DocKind } from '@tealina/doc-types'
+import { fireEvent, render } from '@testing-library/react'
 import '@vitest/web-worker'
+import { Button, Form } from 'antd'
 import { describe, expect, test } from 'vitest'
 import { prop2item } from '../../src/transformer/prop2item'
-import { Form } from 'antd'
 
+const EmptyDeps = {
+  enumRefs: {},
+  entityRefs: {},
+  tupleRefs: {},
+}
 describe('test prop to form item', () => {
   test('basic', () => {
-    const item = prop2item(
-      {
-        enumRefs: {},
-        entityRefs: {},
-        tupleRefs: {},
-      },
-      { name: 'age', type: 'number', kind: DocKind.Primitive },
-    )
+    const item = prop2item(EmptyDeps, {
+      name: 'age',
+      type: 'number',
+      kind: DocKind.Primitive,
+    })
     const ui = render(<Form> {item}</Form>)
     const ageInput = ui.container.querySelector('input#age')
     // console.log(ageInput?.outerHTML)
     expect(ageInput).toBeInTheDocument()
     // console.log(ui.container.innerHTML)
   })
+
+  test('primitive whith initial value', async () => {
+    const isOkItem = prop2item(EmptyDeps, {
+      name: 'isOk',
+      type: 'boolean',
+      kind: DocKind.Primitive,
+    })
+    const isFineItem = prop2item(EmptyDeps, {
+      name: 'isFine',
+      type: 'boolean',
+      kind: DocKind.Primitive,
+      jsDoc: { default: 'true' },
+    })
+    let values: any = null
+    const handleSubmit = (input: any) => {
+      console.log('fire')
+      values = input
+    }
+    const App = () => {
+      const [form] = Form.useForm()
+      return (
+        <Form form={form}>
+          {isOkItem},{isFineItem},
+          <Button
+            onClick={() => {
+              handleSubmit(form.getFieldsValue())
+            }}
+          ></Button>
+        </Form>
+      )
+    }
+    const ui = render(<App />)
+    const btn = Array.from(ui.container.querySelectorAll('button')).at(-1)!
+    fireEvent.click(btn)
+    expect(values).toMatchObject({ isOk: false, isFine: true })
+  })
+
   test('recursive object dependence', async () => {
     const item = prop2item(
       {

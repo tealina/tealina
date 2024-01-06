@@ -93,14 +93,27 @@ export const prop2item = (
     case DocKind.Primitive:
       switch (prop.type) {
         case 'string':
-          return wrapperInItem(<Input placeholder="string" />)
+          return wrapperInItem(<Input placeholder="string" />, {
+            initialValue: prop.jsDoc?.default,
+          })
         case 'number':
         case 'bigInt':
-          return wrapperInItem(<InputNumber placeholder={prop.type} />)
+          return wrapperInItem(<InputNumber placeholder={prop.type} />, {
+            initialValue:
+              prop.jsDoc?.default != null
+                ? BigInt(prop.jsDoc!.default)
+                : void 0,
+          })
         case 'boolean':
           return wrapperInItem(
             <Switch checkedChildren="true" unCheckedChildren="false" />,
-            { valuePropName: 'checked' },
+            {
+              valuePropName: 'checked',
+              initialValue:
+                prop.jsDoc?.default != null
+                  ? Boolean(prop.jsDoc!.default)
+                  : false,
+            },
           )
         case 'true':
           return wrapperInItem(
