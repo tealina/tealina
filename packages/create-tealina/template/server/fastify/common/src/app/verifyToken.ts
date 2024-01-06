@@ -6,7 +6,7 @@ const verifyToken: preValidationAsyncHookHandler = async function (
 ) {
   const { authorization } = request.headers
   if (authorization == null) {
-    reply.code(402).send({ error_reason: 'Authorization Failed' })
+    reply.code(401).send({ error_reason: 'Authorization Failed' })
     return reply
   }
   //TODO: verify token
