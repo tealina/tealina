@@ -74,14 +74,14 @@ export function type2cell(
       return (
         <span className="inline-flex gap-[3px]">
           <span>[</span>
-          <span>
-            {d.elements.length
-              ? injectDivider(
-                  d.elements.map(t => type2cell(t, doc)),
-                  ', ',
-                )
-              : ''}
-          </span>
+          {d.elements.length ? (
+            <span>
+              {injectDivider(
+                d.elements.map(t => type2cell(t, doc)),
+                ', ',
+              )}
+            </span>
+          ) : null}
           <span>]</span>
         </span>
       )
