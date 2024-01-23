@@ -344,39 +344,51 @@ const wrapperWith =
     ]
   }
 
-const makeTypeCodes = (config: GtypeConfig) => (blockList: BlockAST[]) => {
-  const hasJsonValue = blockList.some(v =>
-    v.props.some(p => p.type == 'JsonValue'),
-  )
-  return pipe(
-    blockList,
-    groupBy(block => block.keyword),
-    g =>
-      pipe(
-        g.get('model') ?? [],
-        concat(g.get('type') ?? []),
-        map(block =>
-          pipe(
-            makeTsInterface(config)(block),
-            concat(makeMutationTsInterface('CreateInput', config)(block)),
-            concat(makeMutationTsInterface('UpdateInput', config)(block)),
-          ),
-        ),
-        g.has('enum')
-          ? flow(concat([ENUMS_BEGIN]), concat(g.get('enum')!.map(enum2ts)))
-          : x => x,
-      ),
-    flat,
-    hasJsonValue ? concat(JSON_VALUE_TYPE) : x => x,
-  )
+const isJsonValueIn = (blockList: BlockAST[]) =>
+  blockList.some(v => v.props.some(p => p.type == 'JsonValue'))
+
+type MainTranformType = (block: BlockAST) => string[]
+
+const prepareMainTransformer = (config: GtypeConfig): MainTranformType => {
+  const makers = [
+    makeTsInterface(config),
+    makeMutationTsInterface('CreateInput', config),
+    makeMutationTsInterface('UpdateInput', config),
+  ]
+  const toTsInterface: MainTranformType = block =>
+    pipe(
+      makers,
+      map(fn => fn(block)),
+      flat,
+    )
+  return toTsInterface
 }
+
+const makeTypeCodes =
+  (toTsInterface: MainTranformType) => (blockList: BlockAST[]) => {
+    return pipe(
+      blockList,
+      groupBy(block => block.keyword),
+      g =>
+        pipe(
+          g.get('model') ?? [],
+          concat(g.get('type') ?? []),
+          map(toTsInterface),
+          g.has('enum')
+            ? flow(concat([ENUMS_BEGIN]), concat(g.get('enum')!.map(enum2ts)))
+            : x => x,
+        ),
+      flat,
+      isJsonValueIn(blockList) ? concat(JSON_VALUE_TYPE) : x => x,
+    )
+  }
 
 const workflow = (input: string, config: GtypeConfig) =>
   asyncPipe(
     parseSchame(input),
     filter(block => ConcernedKeywords.includes(block.keyword)),
     filter(block => !block.attribute.has('ignore')),
-    makeTypeCodes(config),
+    pipe(config, prepareMainTransformer, makeTypeCodes),
   )
 
 type GtypeOption = Required<
