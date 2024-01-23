@@ -51,11 +51,18 @@ export interface Overwrite {
 
 export interface GtypeConfig {
   /**
-   *  Overwrite specific prop.type
-   *  eg: OrderNo should be optional or exclude in OrderUpdateInput
+   *  Overwrite specific prop.type\
+   *  eg: OrderNo should be optional or exclude in OrderUpdateInput\
+   *  **Attention**: Optional field will always append `| null`
    */
   overwrite?: Overwrite
-  /** remap type, eg: DateTime => number, effect mutation types only */
+  /**
+   * Remap type\
+   * eg: DateTime => number, \
+   * **Attention**:
+   *  1. Effect mutation types only
+   *  2. Optional field will always append `| null`
+   */
   typeRemap?: (type: string) => string | null
 }
 
