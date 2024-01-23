@@ -1,5 +1,11 @@
 # tealina
 
+## 1.1.3
+
+### Patch Changes
+
+- 86b3513: Fix(gtype): Missing null type for optional field when generate UpdateInput
+
 ## 1.1.2
 
 ### Patch Changes
