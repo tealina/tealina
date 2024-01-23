@@ -225,6 +225,27 @@ const makeTsInterface = ({ overwrite }: GtypeConfig) =>
       ]),
   })
 
+const getActualTransformer = (
+  block: BlockAST,
+  kind: MutationKind,
+  overwrite: GtypeConfig['overwrite'],
+  typeRemap: GtypeConfig['typeRemap'],
+): ((prop: PropAST) => string) => {
+  const fn = getFirstMatch(
+    [
+      findBlockSpecificTransform(block, kind, overwrite?.transofrmType),
+      typeRemap ? (prop: PropAST) => typeRemap(prop.type) : null,
+      makeCompositeTypeBy('CreateInput'), //always create input for compositeType
+      ...TypeTransformStrategies,
+    ].filter(notNull),
+  )
+  if (kind != 'UpdateInput') return fn
+  return (prop: PropAST) => {
+    const type = fn(prop)
+    return prop.modifier == '?' ? [type, 'null'].join(' | ') : type
+  }
+}
+
 const makeMutationTsInterface = (
   kind: Exclude<MutationKind, ''>,
   { overwrite, typeRemap }: GtypeConfig,
@@ -239,14 +260,7 @@ const makeMutationTsInterface = (
         ].filter(notNull),
       ),
     transformType: block =>
-      getFirstMatch(
-        [
-          findBlockSpecificTransform(block, kind, overwrite?.transofrmType),
-          typeRemap ? (prop: PropAST) => typeRemap(prop.type) : null,
-          makeCompositeTypeBy('CreateInput'), //always create input for compositeType
-          ...TypeTransformStrategies,
-        ].filter(notNull),
-      ),
+      getActualTransformer(block, kind, overwrite, typeRemap),
     exclude: block =>
       toFilterFn(
         [
