@@ -20,7 +20,7 @@ export const genIndexProp =
     )}${suffix}'),`
 
 export const genWithWrapper = (contens: string[]) =>
-  ['//prettier-ignore', 'export default {', ...contens.sort(), '}', ''].join(
+  ['export default {', ...contens.sort(), '}', ''].join(
     '\n',
   )
 

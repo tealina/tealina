@@ -25,7 +25,6 @@ test('top index', () => {
     suffix: '.js',
   })
   const code =
-    '//prettier-ignore\n' +
     'export default {\n' +
     "  'get': import('./get/index.js'),\n" +
     "  'post': import('./post/index.js'),\n" +
@@ -39,7 +38,6 @@ test('sync api in deep', () => {
       {
         kind: 'post',
         content: [
-          '//prettier-ignore',
           'export default {',
           "  'login': import('./user/login.js'),",
           "  'user/delete': import('./user/delete.js'),",
@@ -53,10 +51,37 @@ test('sync api in deep', () => {
   })
   expect(result[0].code).eq(
     [
-      '//prettier-ignore',
       'export default {',
       "  'user/delete': import('./user/delete.js'),",
       "  'user/login': import('./user/login.js'),",
+      '}',
+      '',
+    ].join('\n'),
+  )
+})
+
+test('sync api work other suffix, eg: tsx, mts', () => {
+  const result = calcSnapshots({
+    kindIndexFiles: [
+      {
+        kind: 'post',
+        content: [
+          'export default {',
+          "  'user/delete': import('./user/delete.js'),",
+          "  'user/login': import('./user/login.js'),",
+          '}',
+        ].join('\n'),
+        files: ['/page/pdf.tsx', '/user/delete.mts'],
+      },
+    ],
+    ...restCtxMock,
+    suffix: '.js',
+  })
+  expect(result[0].code).eq(
+    [
+      'export default {',
+      "  'page/pdf': import('./page/pdf.js'),",
+      "  'user/delete': import('./user/delete.js'),",
       '}',
       '',
     ].join('\n'),
