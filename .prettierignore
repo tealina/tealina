@@ -1,8 +1,0 @@
-dist
-temp
-assets
-coverage
-# template
-static 
-*.yaml
-*.json
