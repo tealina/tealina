@@ -2,6 +2,8 @@ import type { NextFunction, Request, Response } from 'express'
 import type { Simplify } from './utility.js'
 import type { AuthHeaders, AuthedLocals } from './common.js'
 
+export type EmptyObj = Record<string, unknown>
+
 // ------Types for generate doc -------
 
 interface RawPayload {
@@ -10,8 +12,8 @@ interface RawPayload {
   query?: unknown
 }
 
-type LastElement<T> = T extends ReadonlyArray<any>
-  ? T extends readonly [...any, infer U]
+type LastElement<T> = T extends ReadonlyArray<unknown>
+  ? T extends readonly [...unknown[], infer U]
     ? U
     : T
   : T
@@ -40,32 +42,34 @@ type ExtractApiType<T> = LastElement<T> extends AuthedHandler<
  * ```
  */
 export interface AuthedHandler<
-  T extends RawPayload = {},
+  T extends RawPayload = EmptyObj,
   Tresponse = null,
   Theaders extends Request['headers'] = AuthHeaders,
-  Tlocals extends Record<string, any> = AuthedLocals,
+  Tlocals extends EmptyObj = AuthedLocals,
 > {
   (
     req: Request<T['params'], Tresponse, T['body'], T['query']>,
     res: Response<Tresponse, Tlocals>,
     next: NextFunction,
-  ): any
+  ): unknown
 }
 
 /** no headers and locals preseted */
 export type OpenHandler<
   Tbody = null,
   Tresponse = null,
-  Theaders extends Record<string, any> = {},
-  Tlocals extends Record<string, any> = {},
+  Theaders extends EmptyObj = EmptyObj,
+  Tlocals extends EmptyObj = EmptyObj,
 > = AuthedHandler<
-  Tbody extends null ? {} : { body: Tbody },
+  Tbody extends null ? EmptyObj : { body: Tbody },
   Tresponse,
   Theaders,
   Tlocals
 >
 
-export type ResolveApiType<T extends Record<string, Promise<any>>> = {
+export type ResolveApiType<
+  T extends Record<string, Promise<{ default: unknown }>>,
+> = {
   [K in keyof T]: ExtractApiType<Awaited<T[K]>['default']>
 }
 

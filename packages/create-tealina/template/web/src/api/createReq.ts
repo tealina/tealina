@@ -5,7 +5,7 @@ type EmptyObject = { [emptyObjectSymbol]?: never }
 type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 type BaseShape = {
-  headers: Record<string, any>
+  headers: Record<string, unknown>
   response: unknown
 }
 
@@ -18,19 +18,19 @@ type MakeParams<
   : [payload: Simplify<Payload>, config?: Config]
 
 type PayloadType = {
-  query?: any
-  params?: any
-  body?: any
+  query?: unknown
+  params?: unknown
+  body?: unknown
 }
 
 type DynamicParmasType =
   | [config?: AxiosRequestConfig]
   | [payload: PayloadType, config?: AxiosRequestConfig]
 
-const descendByKeyLength = (kvs: [string, any][]): [string, any][] =>
+const descendByKeyLength = (kvs: [string, unknown][]): [string, unknown][] =>
   kvs.sort((a, b) => b[0].length - a[0].length)
 
-const replaceURL = (url: string, sortedKeyValues: [string, any][]) =>
+const replaceURL = (url: string, sortedKeyValues: [string, unknown][]) =>
   sortedKeyValues.reduce(
     (acc, [k, v]) => acc.replace(':'.concat(k), String(v)),
     url,
@@ -56,17 +56,19 @@ const transformPayload = (
   }
 }
 
-type RequestFn<T extends Record<string, any>> = <K extends keyof T>(
+type WideRanageRecord = Record<string, any>
+
+type RequestFn<T extends WideRanageRecord> = <K extends keyof T>(
   url: K,
   ...rest: MakeParams<T[K]>
 ) => Promise<AxiosResponse<T[K]['response']>['data']>
 
-type RawRequestFn<T extends Record<string, any>> = <K extends keyof T>(
+type RawRequestFn<T extends WideRanageRecord> = <K extends keyof T>(
   url: K,
   ...rest: MakeParams<T[K]>
 ) => Promise<AxiosResponse<T[K]['response']>>
 
-type ApiShape = Record<string, Record<string, any>>
+type ApiShape = Record<string, WideRanageRecord>
 
 export type MakeReqType<T extends ApiShape> = {
   [Method in keyof T]: RequestFn<T[Method]>
