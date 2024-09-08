@@ -1,94 +1,85 @@
+import {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  RawReplyDefaultExpression,
+  RawRequestDefaultExpression,
+  RawServerDefault,
+  RouteGenericInterface,
+} from 'fastify'
 import type { AuthHeaders, AuthedLocals } from './common.js'
 import type { Simplify } from './utility.js'
 
+export type EmptyObj = Record<string, unknown>
+
 interface RawPayload {
-  body?: any
-  params?: any
-  query?: any
+  body?: unknown
+  params?: unknown
+  query?: unknown
 }
 
-export interface AuthedHandler<
-  T extends RawPayload = {},
-  Tresponse = null,
-  Theaders extends Record<string, any> = AuthHeaders,
-  Tlocals extends Record<string, any> = AuthedLocals,
-> extends OriginHandler<
-    {
-      Body: T['body']
-      Headers: Theaders
-      Reply: Tresponse
-      Params: T['params']
-      Querystring: T['query']
-    },
-    {
-      /**
-       * Express like locals,\
-       * [ Reference ](https://github.com/fastify/fastify/issues/303)
-       * */
-      locals: Tlocals
-    }
-  > {}
+interface ExtendedRouteHandler<
+  T extends RawPayload = EmptyObj,
+  Tresponse = unknown,
+  Theaders extends EmptyObj = EmptyObj,
+  Tlocals extends EmptyObj = EmptyObj,
+  RouteGeneric extends RouteGenericInterface = {
+    Body: T['body']
+    Headers: Theaders
+    Reply: Tresponse
+    Params: T['params']
+    Querystring: T['query']
+  },
+> {
+  (
+    this: FastifyInstance,
+    request: FastifyRequest<RouteGeneric> & { locals: Tlocals }, // extend `locals` prop
+    reply: FastifyReply<
+      RawServerDefault,
+      RawRequestDefaultExpression<RawServerDefault>,
+      RawReplyDefaultExpression<RawServerDefault>,
+      RouteGeneric
+    >,
+  ): RouteGeneric['Reply'] | void | Promise<RouteGeneric['Reply'] | void>
+}
+
+// Shorter definition information when hovering
+interface ShortName<
+  T extends RawPayload = EmptyObj,
+  Response = unknown,
+  Headers extends EmptyObj = EmptyObj,
+  Locals extends EmptyObj = EmptyObj,
+> extends ExtendedRouteHandler<T, Response, Headers, Locals> {}
+
+export type AuthedHandler<
+  T extends RawPayload = EmptyObj,
+  Response = unknown,
+  Headers extends AuthHeaders = AuthHeaders,
+> = ShortName<T, Response, Headers, AuthedLocals>
 
 export type OpenHandler<
-  T extends RawPayload = {},
-  Tresponse = null,
-  Theaders extends Record<string, any> = {},
-  Tlocals extends Record<string, any> = {},
-> = AuthedHandler<T, Tresponse, Theaders, Tlocals>
+  T extends RawPayload = EmptyObj,
+  Response = unknown,
+  Headers extends EmptyObj = EmptyObj,
+> = ShortName<T, Response, Headers>
 
-type LastElement<T> = T extends ReadonlyArray<any>
-  ? T extends readonly [...any, infer U]
+type LastElement<T> = T extends ReadonlyArray<unknown>
+  ? T extends readonly [...unknown[], infer U]
     ? U
     : T
   : T
 
-export type ExtractApiType<T> = LastElement<T> extends AuthedHandler<
+export type ExtractApiType<T> = LastElement<T> extends ShortName<
   infer Payload,
   infer Response,
-  infer Headers
+  infer Headers,
+  infer _X
 >
   ? Simplify<Payload & { response: Response; headers: Headers }>
   : never
 
 export type ResolveApiType<
-  T extends Record<string, Promise<{ default: any }>>,
+  T extends Record<string, Promise<{ default: unknown }>>,
 > = {
   [K in keyof T]: ExtractApiType<Awaited<T[K]>['default']>
-}
-
-export type CustomHandlerType =
-  | AuthedHandler<any, any, any>
-  | OpenHandler<any, any, any>
-
-//prettier-ignore
-import type { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest, FastifySchema, FastifyTypeProvider, FastifyTypeProviderDefault, RouteGenericInterface, } from 'fastify'
-//prettier-ignore
-import type { ContextConfigDefault, RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerBase, RawServerDefault } from 'fastify/types/utils'
-import type { ResolveFastifyReplyReturnType } from 'fastify/types/type-provider'
-import type { RouteHandlerMethod } from 'fastify/types/route'
-
-/**
- * alias of {@link RouteHandlerMethod}
- * ### difference:
- *  1. reordered the Generic types
- *  2. add Tlocals.
- */
-//prettier-ignore
-interface OriginHandler<
-  RouteGeneric extends RouteGenericInterface = RouteGenericInterface,
-  Tlocals extends Record<string, any> = {},
-  RawServer extends RawServerBase = RawServerDefault,
-  RawRequest extends RawRequestDefaultExpression<RawServer> = RawRequestDefaultExpression<RawServer>,
-  RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
-  ContextConfig = ContextConfigDefault,
-  SchemaCompiler extends FastifySchema = FastifySchema,
-  TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
-  Logger extends FastifyBaseLogger = FastifyBaseLogger,
-> {
-  ( 
-    this: FastifyInstance<RawServer, RawRequest, RawReply, Logger, TypeProvider>,
-    request: FastifyRequest<RouteGeneric, RawServer, RawRequest, SchemaCompiler, TypeProvider, ContextConfig, Logger>,
-    reply: Tlocals & FastifyReply<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig, SchemaCompiler, TypeProvider>,
-    // This return type used to be a generic type argument. Due to TypeScript's inference of return types, this rendered returns unchecked.
-  ): ResolveFastifyReplyReturnType<TypeProvider, SchemaCompiler, RouteGeneric>
 }

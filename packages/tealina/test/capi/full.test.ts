@@ -158,7 +158,6 @@ describe('full test cai', () => {
       dirInfo,
     )
     const result = await cli.runMatchedCommand()
-    //prettier-ignore
     const seeds = [
       { method: 'post', name: '',  },
       { method: 'get', name: '',  },

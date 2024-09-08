@@ -1,6 +1,6 @@
-import { asyncPipe, map, waitAll } from 'fp-lite'
-import { CustomHandlerType } from '../../types/handler.js'
 import type { HTTPMethods } from 'fastify'
+import { asyncPipe, map, waitAll } from 'fp-lite'
+import type { CustomHandlerType } from '../convention.js'
 
 const toKeyValues = <T extends Record<string, any>>(obj: T) =>
   Object.entries<T>(obj)
@@ -26,8 +26,8 @@ type Obj2Map<T extends BatchExportApiType<any>> = {
   [K in keyof T]: Kind2Map<Awaited<Awaited<T[K]>['default']>>
 }
 
-// prettier-ignore
-const checkMethodType = <K extends AllowedHttpMethod>(obj: Record<K, any>) => obj
+const checkMethodType = <K extends AllowedHttpMethod>(obj: Record<K, any>) =>
+  obj
 
 const loadAPIs = async <T extends BatchExportApiType<any>>(
   obj: T,
