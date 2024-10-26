@@ -1,5 +1,5 @@
 import { asyncPipe, map, waitAll } from 'fp-lite'
-import { CustomHandlerType } from '../../types/handler.js'
+import type { CustomHandlerType } from '../../types/handler.js'
 import { toKeyValues } from './separateObject.js'
 
 interface KindImps {

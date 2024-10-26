@@ -1,4 +1,4 @@
-import { CtxForMakeCode, replyExpression } from './ctx'
+import { type CtxForMakeCode, replyExpression } from './ctx'
 
 export const makeBasicCode = (ctx: CtxForMakeCode) => {
   return [

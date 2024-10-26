@@ -5,7 +5,7 @@ export type ModelId = {
 export type FindManyArgs = {
   skip?: number
   take?: number
-  where?: Record<string, any>
+  where?: Record<string, unknown>
 }
 
 export interface PageResult<T> {

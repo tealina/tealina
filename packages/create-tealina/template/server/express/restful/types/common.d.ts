@@ -5,7 +5,7 @@ export type RawId = {
 export type RawFindManyArgs = {
   skip?: string
   take?: string
-  where?: Record<string, any>
+  where?: Record<string, unknown>
 }
 
 export interface PageResult<T> {

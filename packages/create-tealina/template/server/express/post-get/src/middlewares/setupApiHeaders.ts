@@ -1,4 +1,4 @@
-import { RequestHandler } from 'express'
+import type { RequestHandler } from 'express'
 
 const setupApiHeaders: RequestHandler = (_req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'POST,GET')

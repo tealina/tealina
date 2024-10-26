@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { MakeReqType, createReq } from './createReq'
-import { ApiTypesRecord } from 'server/api/v1'
+import { type MakeReqType, createReq } from './createReq'
+import type { ApiTypesRecord } from 'server/api/v1'
 
 const instance = axios.create({
   baseURL: '/api/v1/',

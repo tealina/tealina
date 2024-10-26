@@ -1,7 +1,7 @@
 import express, { Router } from 'express'
 import path from 'node:path'
 import {
-  TealinaVdocWebConfig,
+  type TealinaVdocWebConfig,
   getAssetsPath,
   assembleHTML,
   VDOC_BASENAME,

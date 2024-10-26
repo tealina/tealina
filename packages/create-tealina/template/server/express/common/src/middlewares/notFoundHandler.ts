@@ -1,4 +1,4 @@
-import { RequestHandler } from 'express'
+import type { RequestHandler } from 'express'
 import path from 'node:path'
 
 export const apiNotFoundHandler: RequestHandler = (req, res, next) => {

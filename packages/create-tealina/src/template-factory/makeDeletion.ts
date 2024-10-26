@@ -1,4 +1,4 @@
-import { CtxForMakeCode, replyExpression } from './ctx'
+import { type CtxForMakeCode, replyExpression } from './ctx'
 const restfulStyle = {
   imps: [
     "    `import type { RawId } from '${relative2api}/../types/common.js'`,",

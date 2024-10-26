@@ -1,6 +1,6 @@
 import chalk from 'chalk'
-import { spawn } from 'child_process'
-import fs, { existsSync, writeFileSync } from 'fs'
+import { spawn } from 'node:child_process'
+import fs, { existsSync, writeFileSync } from 'node:fs'
 import minimist from 'minimist'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,11 +19,12 @@ const copy = (src: string, dest: string) =>
 
 const copyDir = (srcDir: string, destDir: string) => {
   fs.mkdirSync(destDir, { recursive: true })
-  fs.readdirSync(srcDir).forEach(file => {
+  const filenames = fs.readdirSync(srcDir)
+  for (const file of filenames) {
     const srcFile = path.resolve(srcDir, file)
     const destFile = path.resolve(destDir, file)
     copy(srcFile, destFile)
-  })
+  }
 }
 
 const GIT_IGNORE_CONTNET = [
@@ -35,7 +36,7 @@ const GIT_IGNORE_CONTNET = [
 const createProject = (
   templateDir: string,
   dest: string,
-  beforeWritePkg?: (pkg: Record<string, any>) => Record<string, any>,
+  beforeWritePkg?: (pkg: Record<string, unknown>) => Record<string, unknown>,
 ) => {
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true })
@@ -74,7 +75,7 @@ const writeInitDevFile = (
     command(' v1 gtype'),
     command(' v1 get/status'),
     command(' v1 gdoc'),
-    pkgManager == 'bun' ? command(' link') : '',
+    pkgManager === 'bun' ? command(' link') : '',
   ]
   writeFileSync(join(destServerDir, 'init-dev.mjs'), initCommands.join('\n'))
 }
@@ -84,7 +85,10 @@ const injectExtraTemplates = (dest: string, webExtraTemplateDir: string) => {
     const targetPath = join(dest, file)
     copy(join(webExtraTemplateDir, file), targetPath)
   }
-  fs.readdirSync(webExtraTemplateDir).forEach(file => write(file))
+  const files = fs.readdirSync(webExtraTemplateDir)
+  for (const file of files) {
+    write(file)
+  }
 }
 
 const logGuids = (guids: { title?: string; items: string[] }[]) => {
@@ -92,8 +96,10 @@ const logGuids = (guids: { title?: string; items: string[] }[]) => {
     '',
     green('     Scafold project is ready'),
     guids
-      .map(v => [v.title, v.items.map((s, i) => `  ${i + 1}. ${s}`).join('\n')])
-      .flat()
+      .flatMap(v => [
+        v.title,
+        v.items.map((s, i) => `  ${i + 1}. ${s}`).join('\n'),
+      ])
       .filter(v => v != null)
       .join('\n'),
   ]
@@ -103,8 +109,8 @@ const logGuids = (guids: { title?: string; items: string[] }[]) => {
 const showGuide = ({ answer, pkgManager }: ContextType) => {
   const { projectName, web } = answer
   const leader = getRunLeader(pkgManager)
-  const runtime = leader == 'bun' ? 'bun' : 'node'
-  if (web == 'none') {
+  const runtime = leader === 'bun' ? 'bun' : 'node'
+  if (web === 'none') {
     return logGuids([
       {
         items: [
@@ -197,9 +203,9 @@ const collectUserAnswer = (argProjectName: string | undefined) =>
 type ContextType = Awaited<ReturnType<typeof createCtx>>
 
 const getRunLeader = (pkgManager: string) =>
-  pkgManager == 'npm' ? 'npm run' : pkgManager
+  pkgManager === 'npm' ? 'npm run' : pkgManager
 
-const pkgFromUserAgent = (userAgent: string = '') => {
+const pkgFromUserAgent = (userAgent = '') => {
   const pkgSpec = userAgent.split(' ')[0].split('/')[0]
   return pkgSpec.length < 1 ? 'npm' : pkgSpec
 }
@@ -207,14 +213,14 @@ const pkgFromUserAgent = (userAgent: string = '') => {
 const createServerProject = async (ctx: ContextType) => {
   const { projectRootDir, answer } = ctx
   const { server, apiStyle, web } = answer
-  const destServerDir = web == 'none' ? ctx.dest : join(ctx.dest, 'server')
+  const destServerDir = web === 'none' ? ctx.dest : join(ctx.dest, 'server')
   await mayOverwrite(destServerDir)
   const templateDir = join(projectRootDir, 'template')
   const templateServerDir = join(templateDir, 'server', server)
   mayCopyCommonDir(templateDir, destServerDir)
   mayCopyCommonDir(templateServerDir, destServerDir)
   const templateSnaps = createTemplates({
-    isRestful: answer.apiStyle == 'restful',
+    isRestful: answer.apiStyle === 'restful',
     framwork: answer.server,
   })
   writeTemplates(
@@ -225,7 +231,7 @@ const createServerProject = async (ctx: ContextType) => {
   const apiStyleDir = join(templateServerDir, apiStyle)
   copyDir(apiStyleDir, destServerDir)
   mayCopyCommonDir(apiStyleDir, destServerDir)
-  if (apiStyle == 'restful') {
+  if (apiStyle === 'restful') {
     copyDir(join(templateDir, 'restful-only'), destServerDir)
   }
   writeInitDevFile(ctx.pkgManager, destServerDir)
@@ -236,7 +242,7 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
     const { answer, pkgManager } = ctx
     const name = path.basename(webDest)
     const dir = path.dirname(webDest)
-    const leader = pkgManager == 'npm' ? 'npx' : pkgManager
+    const leader = pkgManager === 'npm' ? 'npx' : pkgManager
     const fullArgs = ['create', 'vite', name, '--template', answer.web]
     const spinner = ora({ spinner: 'dots' })
     spinner.start(['Running', leader, ...fullArgs].join(' '))
@@ -250,14 +256,14 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
     p.stderr.on('data', v => {
       errMessages.push(String(v))
     })
-    const skipCreateWeb = (err: any) => {
+    const skipCreateWeb = (err: unknown) => {
       spinner.fail('Run create vite failed, skip current step')
       console.error('Error detail: \n', err)
       spinner.stop()
       res()
     }
     p.on('exit', code => {
-      if (code == null || code == 0) return
+      if (code == null || code === 0) return
       skipCreateWeb(errMessages.join('\n'))
     })
     p.on('error', skipCreateWeb)
@@ -268,12 +274,12 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
   })
 
 const updatePackageJson = (webDestDir: string, pkgManager: string) => {
-  let pkg = JSON.parse(
+  const pkg = JSON.parse(
     fs.readFileSync(join(webDestDir, 'package.json'), 'utf-8'),
   )
   pkg.dependencies.axios = '^1.4.1'
-  pkg.devDependencies['server'] =
-    pkgManager == 'bun' ? 'link:server' : 'link:../server'
+  pkg.devDependencies.server =
+    pkgManager === 'bun' ? 'link:server' : 'link:../server'
   fs.writeFileSync(
     join(webDestDir, 'package.json'),
     JSON.stringify(pkg, null, 2),
@@ -294,9 +300,7 @@ const mayOverwrite = async (dest: string) => {
     {
       type: 'confirm',
       name: 'overwrite',
-      message:
-        `Target directory "${dest}"` +
-        ` is not empty. Remove existing files and continue?`,
+      message: `Target directory "${dest}" is not empty. Remove existing files and continue?`,
     },
   ])
   if (!confirm.overwrite) {
@@ -336,7 +340,7 @@ const createCtx = async () => {
 export const createScaffold = async () => {
   const ctx = await createCtx()
   await createServerProject(ctx)
-  if (ctx.answer.web != 'none') {
+  if (ctx.answer.web !== 'none') {
     await createWebProject(ctx)
   }
   showGuide(ctx)

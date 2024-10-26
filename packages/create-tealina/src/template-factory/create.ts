@@ -1,4 +1,4 @@
-import { CtxForMakeCode, TemplateSnap } from './ctx'
+import type { CtxForMakeCode, TemplateSnap } from './ctx'
 import { makeBasicCode } from './makeBasic'
 import { makeCreationCode } from './makeCreate'
 import { makeDeletetionCode } from './makeDeletion'

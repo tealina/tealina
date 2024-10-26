@@ -1,4 +1,4 @@
-import {
+import type {
   FastifyInstance,
   FastifyReply,
   FastifyRequest,

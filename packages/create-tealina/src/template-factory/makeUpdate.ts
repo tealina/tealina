@@ -1,4 +1,4 @@
-import { CtxForMakeCode } from './ctx'
+import type { CtxForMakeCode } from './ctx'
 
 const restfulStyle = {
   imps: [

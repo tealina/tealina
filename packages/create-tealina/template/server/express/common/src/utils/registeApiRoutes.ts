@@ -1,7 +1,7 @@
 import type { RequestHandler, Router } from 'express'
 import { flat, flow, groupBy } from 'fp-lite'
 import { catchErrorWrapper } from '../middlewares/catchErrorWrapper.js'
-import { ResolvedAPIs } from './resolveBatchExport.js'
+import type { ResolvedAPIs } from './resolveBatchExport.js'
 
 const orderBySlashCount = (xs: string[] = []) =>
   xs
@@ -38,11 +38,11 @@ type RegisteEachFn = (url: string, handlers: RequestHandler[]) => void
 
 const walk = (record: ResolvedAPIs[string], registeEach: RegisteEachFn) => {
   const urls = sortPath(Object.keys(record))
-  urls.forEach(url => {
+  for (const url of urls) {
     const h = record[url]
     const handlers = [h].flat(2).map(catchErrorWrapper)
     registeEach(`/${url}`, handlers)
-  })
+  }
 }
 
 type RegisterFn = (routeMather: Router[HttpMethod]) => RegisteEachFn

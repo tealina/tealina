@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync } from 'node:fs'
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { TemplateSnap } from './ctx'
+import type { TemplateSnap } from './ctx'
 
 const leader = [
   '//@ts-check',
@@ -18,7 +18,7 @@ export const writeTemplates = (dest: string, tempaltes: TemplateSnap[]) => {
     tempaltes.map(v =>
       writeFile(
         join(dest, v.filename),
-        v.filename == 'index.mjs' ? v.code : leader + v.code,
+        v.filename === 'index.mjs' ? v.code : leader + v.code,
       ),
     ),
   )
