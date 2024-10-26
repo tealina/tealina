@@ -35,6 +35,12 @@
       "recommended": true,
       "suspicious": {
         "noExplicitAny": "info"
+      },
+      "complexity": {
+        "noForEach": "info"
+      },
+      "style": {
+        "useShorthandFunctionType": "off"
       }
     }
   },
