@@ -1,9 +1,9 @@
 import plugin4static from '@fastify/static'
-import { FastifyPluginCallback } from 'fastify'
-import { readFile } from 'fs/promises'
+import type { FastifyPluginCallback } from 'fastify'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
-  TealinaVdocWebConfig,
+  type TealinaVdocWebConfig,
   VDOC_BASENAME,
   getAssetsPath,
   assembleHTML,
@@ -33,7 +33,7 @@ const vDocCofig: TealinaVdocWebConfig = {
   },
 }
 
-const docRouter: FastifyPluginCallback = function (fastify, _opts, done) {
+const docRouter: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.get('/v1.json', (_req, res) => {
     readFile(path.resolve('docs/api-v1.json')).then(buffer => res.send(buffer))
   })

@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify'
 import { map, omitFn, pipe } from 'fp-lite'
-import { Simplify } from '../../types/utility.js'
+import type { Simplify } from '../../types/utility.js'
 import { registeApiRoutes } from './registeApiRoutes.js'
-import { ResolvedAPIs } from './resolveBatchExport.js'
+import type { ResolvedAPIs } from './resolveBatchExport.js'
 import { separateObject, toKeyValues } from './separateObject.js'
 
 export type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{

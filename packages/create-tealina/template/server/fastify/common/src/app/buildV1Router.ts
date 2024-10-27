@@ -19,7 +19,7 @@ const OpenPathRecord: Partial<TakeMethodAndPathRecord<typeof apisV1>> = {
 export const buildV1Router: FastifyPluginAsync = async (fastify, _option) => {
   checkMethodType(apisV1)
   const apiRecord = await loadAPIs(apisV1)
-  fastify.register(function (restrictFastify, _opts, done) {
+  fastify.register((restrictFastify, _opts, done) => {
     restrictFastify.addHook('preValidation', verifyToken)
     registeSeparetely(apiRecord, OpenPathRecord, fastify, restrictFastify)
     done()

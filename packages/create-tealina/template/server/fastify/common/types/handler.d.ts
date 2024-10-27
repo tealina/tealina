@@ -43,7 +43,7 @@ interface ExtendedRouteHandler<
   ): RouteGeneric['Reply'] | void | Promise<RouteGeneric['Reply'] | void>
 }
 
-// Shorter definition information when hovering
+// Shorter definition displayed on hover.
 interface ShortName<
   T extends RawPayload = EmptyObj,
   Response = unknown,
@@ -83,3 +83,8 @@ export type ResolveApiType<
 > = {
   [K in keyof T]: ExtractApiType<Awaited<T[K]>['default']>
 }
+
+// Use `any` to maximize type matching
+export type CustomHandlerType =
+  | AuthedHandler<any, any, any>
+  | OpenHandler<any, any, any>
