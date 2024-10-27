@@ -1,7 +1,7 @@
-import { access } from 'fs/promises'
+import { access } from 'node:fs/promises'
 import path from 'node:path'
 import { genTypeCode } from './codeGen'
-import { Snapshot } from './effectFiles'
+import type { Snapshot } from './effectFiles'
 
 export interface TypeFileInfo {
   filePath: string
@@ -34,7 +34,7 @@ export interface DirInfo {
 }
 
 export const getApiTypeFilePath = (dirInfo: Omit<DirInfo, 'testDir'>) =>
-  path.join(dirInfo.typesDir, path.basename(dirInfo.apiDir) + '.d.ts')
+  path.join(dirInfo.typesDir, `${path.basename(dirInfo.apiDir)}.d.ts`)
 
 export const collectTypeFileInfo = async (
   dirInfo: Omit<DirInfo, 'testDir'>,

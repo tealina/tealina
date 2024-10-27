@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { map, pipe, separeBy, unique } from 'fp-lite'
-import { Snapshot } from './effectFiles'
+import type { Snapshot } from './effectFiles'
 import consola from 'consola'
 
 interface LogConfig {
@@ -42,7 +42,7 @@ const logByGroup = (effects: Snapshot[]): void => {
 }
 
 export const logResults = (results: Snapshot[]) => {
-  if (results.length == 0) {
+  if (results.length === 0) {
     consola.info(chalk.green('Nothing changed'))
     return results
   }

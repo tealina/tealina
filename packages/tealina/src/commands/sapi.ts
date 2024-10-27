@@ -13,22 +13,22 @@ import {
   pipe,
   waitAll,
 } from 'fp-lite'
-import { statSync } from 'fs'
+import { statSync } from 'node:fs'
 import { readFile, readdir } from 'node:fs/promises'
 import { basename, join } from 'pathe'
 import { filename } from 'pathe/utils'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
-import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
+import { type Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
 import { MinimalInput, withoutSuffix } from '../utils/tool'
 import { validateKind } from '../utils/validate'
 import {
-  DirInfo,
-  TypeFileInfo,
+  type DirInfo,
+  type TypeFileInfo,
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
-import { FullOptions } from './capi'
+import type { FullOptions } from './capi'
 import { TealinaConifg } from '..'
 
 interface GatherPhase {
@@ -61,7 +61,7 @@ const walkDeep = (
 
 const ignoredFilename = flow(
   filename,
-  name => name != 'index' && !name.startsWith('.'),
+  name => name !== 'index' && !name.startsWith('.'),
 )
 
 const walkDir = (dir: string): Promise<string[]> =>
@@ -137,7 +137,7 @@ const collectApiInfo = ({ apiDir }: Pick<DirInfo, 'apiDir'>) =>
 
 const toSnapshot = (genCodeFn: (x: string) => string) => (v: GatherPhase) =>
   pipe(v.files, map(genCodeFn), genWithWrapper, freshCode =>
-    v.content == freshCode ? null : makeIndexFileSnapshot(v.kind, freshCode),
+    v.content === freshCode ? null : makeIndexFileSnapshot(v.kind, freshCode),
   )
 
 const topIndexSnapshot = (info: FileTreeInfo) =>

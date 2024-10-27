@@ -11,9 +11,14 @@ import {
 } from 'fp-lite'
 import { basename, join } from 'pathe'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
-import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
+import { type Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import { FullContext, Seeds, collectContext, seeds2kindScope } from './capi'
+import {
+  type FullContext,
+  type Seeds,
+  collectContext,
+  seeds2kindScope,
+} from './capi'
 
 const toKeyMapTrue = flow(
   map((x: string) => [x, true] as const),
@@ -72,7 +77,7 @@ const calcByKinds =
       map(toIndexSnapshot(kindIndexContentMap, suffix)),
       filter(notNull),
     )
-    const deletedKinds = kindIndexSnapshots.filter(v => v.action == 'delete')
+    const deletedKinds = kindIndexSnapshots.filter(v => v.action === 'delete')
     if (deletedKinds.length < 1) return kindIndexSnapshots
     return [
       getTopIndexSnapshot(deletedKinds, topIndexContent, suffix),

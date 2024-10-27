@@ -15,10 +15,10 @@ import {
 } from 'fp-lite'
 import { pathExists } from 'fs-extra'
 import { basename, join, normalize } from 'pathe'
-import { RawOptions } from '.'
+import type { RawOptions } from '.'
 import type { ApiTemplateType, TealinaConifg } from '../index'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
-import { Snapshot, completePath, effectFiles } from '../utils/effectFiles'
+import { type Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
 import { extraModelNames } from '../utils/parsePrisma'
 import {
@@ -29,8 +29,8 @@ import {
 } from '../utils/tool'
 import { isValidHttpMethod } from '../utils/validate'
 import {
-  DirInfo,
-  TypeFileInfo,
+  type DirInfo,
+  type TypeFileInfo,
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
@@ -102,9 +102,9 @@ const makeStrategies = (
   method: string,
   name: string,
 ): ((template: ApiTemplateType) => boolean)[] => [
-  t => t.method == method && t.name == name,
-  t => t.method == method && t.alias == '*',
-  t => t.alias == '*',
+  t => t.method === method && t.name === name,
+  t => t.method === method && t.alias === '*',
+  t => t.alias === '*',
 ]
 
 const parseByRoute = (route: string, tempConfig: ApiTemplateType[]): Seeds => {
@@ -251,7 +251,7 @@ const toTestHelperSnapshot = ({
   group: 'test',
   action: 'create',
   filePath,
-  code: genHelper!({
+  code: genHelper?.({
     relative2ancestor: Array(namePaths.length).fill('..').join('/'),
     typesDirName: basename(typesDir),
     apiDirName: basename(apiDir),
@@ -369,8 +369,7 @@ const checkTestHelper = async (
 
 const toKeyValue =
   <K extends keyof FullContext>(k: K) =>
-  (v: FullContext[K]) =>
-    [k, v]
+  (v: FullContext[K]) => [k, v]
 
 const collectContext = asyncFlow(
   loadTemplateConfig,

@@ -1,5 +1,5 @@
 //@ts-check
-import { readFileSync } from 'fs'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { DocKind } from '@tealina/doc-types'
 import ts from 'typescript'
@@ -40,7 +40,7 @@ let checker
  * @param {number} a
  * @param {number} b
  */
-const isCompatible = (a, b) => (a | b) == Math.max(a, b)
+const isCompatible = (a, b) => (a | b) === Math.max(a, b)
 
 /**
  *  if false,return empty object
@@ -159,6 +159,7 @@ const makeEnumValueParser =
     const symbol = mt.symbol
     if ('value' in mt) {
       if (isCompatible(ts.TypeFlags.NumberLiteral, mt.flags)) {
+        // biome-ignore lint/style/noParameterAssign:
         pre = mt.value
         return { kind: DocKind.NumberLiteral, value: mt.value }
       }
@@ -168,6 +169,7 @@ const makeEnumValueParser =
       }
     }
     if (symbol.valueDeclaration.initializer == null) {
+      // biome-ignore lint/style/noParameterAssign:
       return { kind: DocKind.NumberLiteral, value: pre++ }
     }
     const computedType = checker.getTypeAtLocation(
@@ -225,7 +227,7 @@ const recordRefs = (t, outerName) => {
 const propsContainsMethod = t =>
   t
     .getApparentProperties()
-    .some(symbol => symbol.flags == ts.SymbolFlags.Method)
+    .some(symbol => symbol.flags === ts.SymbolFlags.Method)
 
 /**
  * @param {ts.ObjectType} t
@@ -235,7 +237,7 @@ const propsIsEmpty = t => {
     'declaration' in t &&
     // @ts-ignore
     ts.isMappedTypeNode(t.declaration) &&
-    t.aliasSymbol?.name == 'Record'
+    t.aliasSymbol?.name === 'Record'
   )
 }
 
@@ -333,7 +335,7 @@ const recordTuple = (t, elements) => {
  */
 const typeParseStrategies = [
   {
-    match: t => ts.TypeFlags.Never == t.flags,
+    match: t => ts.TypeFlags.Never === t.flags,
     // @ts-ignore
     handle: t => ({ kind: DocKind.Never }),
   },
@@ -355,12 +357,12 @@ const typeParseStrategies = [
     }),
   },
   {
-    match: t => ts.TypeFlags.StringLiteral == t.flags,
+    match: t => ts.TypeFlags.StringLiteral === t.flags,
     // @ts-ignore
     handle: t => ({ kind: DocKind.StringLiteral, value: t.value }),
   },
   {
-    match: t => ts.TypeFlags.NumberLiteral == t.flags,
+    match: t => ts.TypeFlags.NumberLiteral === t.flags,
     // @ts-ignore
     handle: t => ({ kind: DocKind.NumberLiteral, value: t.value }),
   },
@@ -378,9 +380,9 @@ const typeParseStrategies = [
       },
       {
         match: t =>
-          t.symbol.flags == ts.SymbolFlags.Enum ||
-          t.symbol.flags == ts.SymbolFlags.RegularEnum ||
-          t.symbol.flags == ts.SymbolFlags.ConstEnum,
+          t.symbol.flags === ts.SymbolFlags.Enum ||
+          t.symbol.flags === ts.SymbolFlags.RegularEnum ||
+          t.symbol.flags === ts.SymbolFlags.ConstEnum,
         // @ts-ignore
         handle: enumTypeStrategies,
       },
@@ -413,7 +415,7 @@ const typeParseStrategies = [
       const elements = types.map(v => {
         // @ts-ignore
         const id = v.id
-        if (id != null && id == tid) {
+        if (id != null && id === tid) {
           RecursiveTupleIds[tid] = (RecursiveTupleIds[tid] ?? 0) + 1
           return { kind: DocKind.RecursionTuple, id }
         }
@@ -433,7 +435,7 @@ const typeParseStrategies = [
     },
   },
   // @ts-ignore
-  { match: t => ts.TypeFlags.Object == t.flags, handle: objTypeStrategies },
+  { match: t => ts.TypeFlags.Object === t.flags, handle: objTypeStrategies },
   {
     match: t => 'checkType' in t,
     handle: t => {
@@ -444,7 +446,7 @@ const typeParseStrategies = [
     },
   },
   {
-    match: t => t.symbol.flags == ts.SymbolFlags.EnumMember,
+    match: t => t.symbol.flags === ts.SymbolFlags.EnumMember,
     handle: t => {
       const parentType = checker.getTypeAtLocation(
         // @ts-ignore
@@ -557,7 +559,7 @@ const getHandlerSymbol = exportAssignment => {
 const parseApiTypeInfo = sourceFile => {
   const exp = sourceFile.statements.find(
     // @ts-ignore
-    v => (v.modifiers ?? []).some(v => v.kind == ts.SyntaxKind.ExportKeyword),
+    v => (v.modifiers ?? []).some(v => v.kind === ts.SyntaxKind.ExportKeyword),
   )
   // @ts-ignore
   const type = checker.getTypeAtLocation(exp)
@@ -603,7 +605,7 @@ export const parseDeclarationFile = ({ entries, tsconfigPath }) => {
   const entryFileName = entries[0].split(path.sep).join('/')
   const entrySourceFile = findFormLast(
     sourceFiles,
-    v => v.fileName == entryFileName,
+    v => v.fileName === entryFileName,
   )
   // @ts-ignore
   const apis = parseApiTypeInfo(entrySourceFile)

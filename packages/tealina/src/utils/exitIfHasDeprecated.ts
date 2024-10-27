@@ -1,7 +1,7 @@
 import consola from 'consola'
 
 const isDeprecateUsage = (leader: string) => {
-  if (leader == 'capi') {
+  if (leader === 'capi') {
     consola.warn(
       [
         'capi is deprecated, without capi and try again,',
@@ -11,7 +11,7 @@ const isDeprecateUsage = (leader: string) => {
     )
     return true
   }
-  if (leader == 'sapi') {
+  if (leader === 'sapi') {
     consola.warn(
       [
         'sapi is deprecated, use -a or --align instead,', //
@@ -20,7 +20,7 @@ const isDeprecateUsage = (leader: string) => {
     )
     return true
   }
-  if (leader == 'dapi') {
+  if (leader === 'dapi') {
     consola.warn(
       [
         'dapi is deprecated, without dapi and use -d instead,',
@@ -29,7 +29,7 @@ const isDeprecateUsage = (leader: string) => {
     )
     return true
   }
-  if (leader == 'gpure') {
+  if (leader === 'gpure') {
     consola.warn(
       [
         'gpure is deprecated, use gtype instead,', //
@@ -43,7 +43,7 @@ const isDeprecateUsage = (leader: string) => {
 export const exitIfHasDeprecated = (
   apiDir: string,
   route: string,
-  options: Record<string, any>,
+  options: Record<string, unknown>,
 ) => {
   if ('apiDir' in options) {
     consola.warn(

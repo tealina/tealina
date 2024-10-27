@@ -22,7 +22,7 @@ export interface RawOptions {
   deleteApi: boolean
 }
 
-const distribuite = async (...rawArgs: any) => {
+const distribuite = async (...rawArgs: unknown[]) => {
   const options = rawArgs.pop() as Omit<RawOptions, 'apiDir' | 'route'>
   const args = rawArgs as ReadonlyArray<string>
   const [apiDir, route] = args
@@ -32,10 +32,10 @@ const distribuite = async (...rawArgs: any) => {
   if (options.align) {
     return syncApiByFile(pickOption4align(config))
   }
-  if (route == 'gdoc') {
+  if (route === 'gdoc') {
     return startGenerateDoc(pickOption4gdoc(config))
   }
-  if (route == 'gtype') {
+  if (route === 'gtype') {
     return generatePureTypes(pickOption4gtype(config))
   }
   if (options.deleteApi) {
@@ -60,7 +60,7 @@ cli
     'Align APIs, update all relative files according to files in --api-dir',
   )
   .option('-d,--delete-api', 'Delete APIs')
-  .option('-i,--input <path>', `Prisma schema path`, {
+  .option('-i,--input <path>', 'Prisma schema path', {
     default: './prisma/schema.prisma',
   })
   .option('-n,--namespace <name>', 'Namespace of purified types', {
@@ -70,7 +70,7 @@ cli
   .option('-o,--output <string>', 'Output dir (gdoc) or file path (gtype)')
   .option('-t,--template-alias <alias>', 'Template alias')
   .option('--with-test', 'Effect test file too when create or delete APIs')
-  .option('--tp,--tsconfig-path <path>', `Typescript config path`, {
+  .option('--tp,--tsconfig-path <path>', 'Typescript config path', {
     default: './tsconfig.json',
   })
   .option('--config-path <path>', 'Tealina config path', {

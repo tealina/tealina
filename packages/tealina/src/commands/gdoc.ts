@@ -5,7 +5,7 @@ import { basename, join, normalize } from 'pathe'
 import { parseDeclarationFile } from '../utils/parseDeclarationFile'
 import { ensureWrite } from '../utils/tool'
 import { getApiTypeFilePath } from '../utils/withTypeFile'
-import { FullOptions } from './capi'
+import type { FullOptions } from './capi'
 
 type GdocOptions = Required<
   Pick<FullOptions, 'apiDir' | 'output' | 'input' | 'tsconfigPath' | 'typesDir'>
@@ -37,9 +37,9 @@ export const startGenerateDoc = async (options: GdocOptions) => {
       'Generate document fail! Make sure you type file is correct',
     )
   }
-  const filename = join(outputDir, basename(options.apiDir)) + '.json'
+  const filename = `${join(outputDir, basename(options.apiDir))}.json`
   ensureWrite(filename, JSON.stringify(result, null, 2))
   consola.success(
-    chalk.green('Generate document success!, result save at ' + join(filename)),
+    chalk.green(`Generate document success!, result save at ${join(filename)}`),
   )
 }

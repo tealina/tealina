@@ -1,10 +1,10 @@
 import { relative } from 'pathe'
-import { DirInfo } from './withTypeFile'
+import type { DirInfo } from './withTypeFile'
 
 const toRoutePath = (xs: string[]) => {
   const route = xs.map(v => v.replace(/\[/, ':').replace(/\]/, '')).join('/')
   // endwith slash for better type check when route has params
-  return route.includes(':') ? route + '/' : route
+  return route.includes(':') ? `${route}/` : route
 }
 
 export const genTopIndexProp =
@@ -20,9 +20,7 @@ export const genIndexProp =
     )}${suffix}'),`
 
 export const genWithWrapper = (contens: string[]) =>
-  ['export default {', ...contens.sort(), '}', ''].join(
-    '\n',
-  )
+  ['export default {', ...contens.sort(), '}', ''].join('\n')
 
 export const genTypeCode = (
   { apiDir, typesDir }: Omit<DirInfo, 'testDir'>,

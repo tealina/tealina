@@ -13,7 +13,7 @@ import {
   pickFn,
   pipe,
 } from 'fp-lite'
-import { writeFile } from 'fs/promises'
+import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { GtypeConfig } from '..'
 import type {
@@ -26,7 +26,7 @@ import type {
   PropAST,
 } from '../index'
 import { parseSchame } from '../utils/parsePrisma'
-import { FullOptions } from './capi'
+import type { FullOptions } from './capi'
 
 const ENUMS_BEGIN = [
   '/**',
@@ -45,11 +45,11 @@ interface PurifyOption {
 const formatComment = (lines: string[]) =>
   isEmpty(lines)
     ? []
-    : lines.length == 1
-    ? [`/** ${lines[0]} */`]
-    : ['/**', ...lines.map(v => ` * ${v}`), ' */']
+    : lines.length === 1
+      ? [`/** ${lines[0]} */`]
+      : ['/**', ...lines.map(v => ` * ${v}`), ' */']
 
-const isMatch = (a: string, b: string) => a == '*' || a == b
+const isMatch = (a: string, b: string) => a === '*' || a === b
 
 const byMatch = (block: BlockAST, kind: MutationKind) => (v: MatheLocate) =>
   isMatch(v.blockName, block.name) &&
@@ -78,13 +78,13 @@ type GetTsType = (x: PropAST) => string | null | undefined
 const TypeTransformStrategies: GetTsType[] = [
   x => justMap.get(x.type),
   x => (x.type.startsWith('Unsupported') ? 'unknown' : null),
-  x => (x.kind != 'model' ? x.type : null),
+  x => (x.kind !== 'model' ? x.type : null),
 ]
 
 const PropsExcludeStategies: ((x: PropAST) => boolean)[] = [
   x => x.attribute.has('ignore'),
   x => x.attribute.has('relation'),
-  x => x.kind == 'model',
+  x => x.kind === 'model',
 ]
 
 const getFirstMatch = (strategies: GetTsType[]) => (x: PropAST) => {
@@ -105,7 +105,7 @@ const defaultConfig: Record<
 > = {
   CreateInput: {
     checkOptional: prop =>
-      prop.modifier == '?' ||
+      prop.modifier === '?' ||
       prop.attribute.has('updatedAt') ||
       prop.attribute.has('default'),
   },
@@ -125,20 +125,17 @@ const prop2ts =
     optinalChchek: (prop: PropAST) => boolean
     transformType: (prop: PropAST) => string
   }) =>
-  (prop: PropAST) =>
+  (prop: PropAST) => [
+    ...formatComment(prop.comment.public.concat(propDefaultAttr2comment(prop))),
     [
-      ...formatComment(
-        prop.comment.public.concat(propDefaultAttr2comment(prop)),
-      ),
-      [
-        prop.name,
-        useWhen('?', option.optinalChchek(prop)),
-        ':',
-        ' ',
-        option.transformType(prop),
-        useWhen('[]', prop.modifier == '[]'),
-      ].join(''),
-    ]
+      prop.name,
+      useWhen('?', option.optinalChchek(prop)),
+      ':',
+      ' ',
+      option.transformType(prop),
+      useWhen('[]', prop.modifier === '[]'),
+    ].join(''),
+  ]
 
 const block2ts =
   (option: {
@@ -202,7 +199,7 @@ const toDetermineFn =
     predicates.some(fn => fn(prop))
 
 const makeCompositeTypeBy = (kind: MutationKind) => (prop: PropAST) =>
-  prop.kind == 'compositeType' ? [prop.type, kind].join('') : null
+  prop.kind === 'compositeType' ? [prop.type, kind].join('') : null
 
 const makeTsInterface = ({ overwrite }: GtypeConfig) =>
   block2ts({
@@ -216,7 +213,7 @@ const makeTsInterface = ({ overwrite }: GtypeConfig) =>
         ].filter(notNull),
       )
       const type = fn(prop)
-      return prop.modifier == '?' ? [type, 'null'].join(' | ') : type
+      return prop.modifier === '?' ? [type, 'null'].join(' | ') : type
     },
     exclude: _block =>
       toFilterFn([
@@ -239,10 +236,10 @@ const getActualTransformer = (
       ...TypeTransformStrategies,
     ].filter(notNull),
   )
-  if (kind != 'UpdateInput') return fn
+  if (kind !== 'UpdateInput') return fn
   return (prop: PropAST) => {
     const type = fn(prop)
-    return prop.modifier == '?' ? [type, 'null'].join(' | ') : type
+    return prop.modifier === '?' ? [type, 'null'].join(' | ') : type
   }
 }
 
@@ -296,7 +293,7 @@ const calcRelativeInputPath = (input: string, output: string) => {
   const min = Math.min(outPathLen, inputPathLen)
   const sameParentIndex = Array(min)
     .fill(0)
-    .findIndex((_v, i) => fullInputPutPathArr[i] != fullOutPutPathArr[i])
+    .findIndex((_v, i) => fullInputPutPathArr[i] !== fullOutPutPathArr[i])
   const relativeInputPath = path.relative(
     fullOutPutPathArr.slice(sameParentIndex + 1).join('/'),
     fullInputPutPathArr.slice(sameParentIndex).join('/'),
@@ -345,7 +342,7 @@ const wrapperWith =
   }
 
 const isJsonValueIn = (blockList: BlockAST[]) =>
-  blockList.some(v => v.props.some(p => p.type == 'JsonValue'))
+  blockList.some(v => v.props.some(p => p.type === 'JsonValue'))
 
 type MainTranformType = (block: BlockAST) => string[]
 
@@ -375,7 +372,7 @@ const makeTypeCodes =
           concat(g.get('type') ?? []),
           map(toTsInterface),
           g.has('enum')
-            ? flow(concat([ENUMS_BEGIN]), concat(g.get('enum')!.map(enum2ts)))
+            ? flow(concat([ENUMS_BEGIN]), concat(g.get('enum')?.map(enum2ts)))
             : x => x,
         ),
       flat,
@@ -406,7 +403,7 @@ const generatePureTypes = async (option: GtypeOption) => {
     lines,
     wrapperWith(option),
     xs => writeFile(option.output, xs.join('\n')),
-    () => chalk.green('Types Generated, save at: ' + option.output),
+    () => chalk.green(`Types Generated, save at: ${option.output}`),
     consola.success,
   )
 }

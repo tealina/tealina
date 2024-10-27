@@ -1,13 +1,13 @@
-import fs, { readFileSync } from 'fs'
-import fsp from 'fs/promises'
+import fs, { readFileSync } from 'node:fs'
+import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { extname, normalize, resolve } from 'pathe'
 import ts from 'typescript'
-import { pathToFileURL } from 'url'
-import { RawOptions } from '../commands'
-import { FullOptions } from '../commands/capi'
-import { TealinaConifg, TemplateContext } from '../index'
-import { DirInfo } from './withTypeFile'
+import { pathToFileURL } from 'node:url'
+import type { RawOptions } from '../commands'
+import type { FullOptions } from '../commands/capi'
+import type { TealinaConifg, TemplateContext } from '../index'
+import type { DirInfo } from './withTypeFile'
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1)

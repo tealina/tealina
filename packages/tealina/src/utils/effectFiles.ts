@@ -8,10 +8,10 @@ import {
   omit,
   pipe,
 } from 'fp-lite'
-import { existsSync, readdirSync, rmdirSync, unlinkSync } from 'fs'
+import { existsSync, readdirSync, rmdirSync, unlinkSync } from 'node:fs'
 import { dirname, join } from 'pathe'
 import { ensureWrite } from './tool'
-import { DirInfo } from './withTypeFile'
+import type { DirInfo } from './withTypeFile'
 
 export const completePath =
   ({ apiDir }: Pick<DirInfo, 'apiDir'>) =>
@@ -21,7 +21,7 @@ export const completePath =
   })
 
 const changedOnly = (v: Snapshot): boolean =>
-  v.action == 'create' || v.action != 'update' || v.code != null
+  v.action === 'create' || v.action !== 'update' || v.code != null
 
 const deleteFile = (snapshot: Snapshot) => {
   if (existsSync(snapshot.filePath)) {
@@ -32,16 +32,20 @@ const deleteFile = (snapshot: Snapshot) => {
 
 const mutateFile = (snapshot: Snapshot) => {
   const { filePath } = snapshot
-  ensureWrite(filePath, snapshot.code!)
+  if (snapshot.code != null) {
+    ensureWrite(filePath, snapshot.code)
+  }
 }
 
 const cleanEmptyDirs = (dir: string): string[] =>
-  pipe(readdirSync(dir), names =>
-    isEmpty(names) ? (rmdirSync(dir), cleanEmptyDirs(dirname(dir))) : [],
-  )
+  pipe(readdirSync(dir), names => {
+    if (!isEmpty(names)) return []
+    rmdirSync(dir)
+    return cleanEmptyDirs(dirname(dir))
+  })
 
 const updateFiles = flow(
-  groupBy((v: Snapshot) => (v.action == 'delete' ? 'delete' : 'mutation')),
+  groupBy((v: Snapshot) => (v.action === 'delete' ? 'delete' : 'mutation')),
   g => {
     pipe(
       g.get('delete') ?? [],

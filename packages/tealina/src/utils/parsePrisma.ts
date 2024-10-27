@@ -1,23 +1,23 @@
 import { asyncFlow, filter, flow, map, pipe } from 'fp-lite'
-import { readFile } from 'fs/promises'
+import { readFile } from 'node:fs/promises'
 import type { BlockAST, CommentType, PropAST } from '../index'
 
 type KindFinderFn = (v: string) => PropAST['kind']
 
 const CommentPattern = /^[/]/
 const LeftBreackPattern = /{$/
-const PrivateCommentPattern = new RegExp('^//')
-const PublicCommentPattern = new RegExp('^///')
+const PrivateCommentPattern = /^\/\//
+const PublicCommentPattern = /^\/\/\//
 const InBreackPairsPattern = /\(.*\)/
 const MultipleAtSymbolPattern = /@+/
 const BlockLeadEndPattern = /{$/
-const RegionBegin = new RegExp('^#region')
-const RegionEnd = new RegExp('^#endregion')
+const RegionBegin = /^#region/
+const RegionEnd = /^#endregion/
 
 const isPrivateComment = (line: string) => PrivateCommentPattern.test(line)
 const isPublicComment = (line: string) => PublicCommentPattern.test(line)
 const isCommentLine = (line: string) => CommentPattern.test(line)
-const isEndOfBlock = (line: string) => line == '}'
+const isEndOfBlock = (line: string) => line === '}'
 const isBeginOfBlock = (line: string) => LeftBreackPattern.test(line)
 
 const each = <T>(xs: T[], fn: (x: T) => void) => {
@@ -61,6 +61,7 @@ const separeBlock = (lines: string[]) => {
   const blockList: string[][] = [[]]
   each(lines, line => {
     if (line.length === 0) return
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const block = blockList.at(-1)!
     if (isEndOfBlock(line)) {
       blockList.push([])

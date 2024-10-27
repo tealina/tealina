@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import consola from 'consola'
 
-type LoggerType = (...args: any[]) => void
+type LoggerType = (...args: unknown[]) => void
 
 const formatError = (logger: LoggerType) => (e: Error) => {
   // console.log(chalk.red(e.message))
@@ -12,7 +12,7 @@ const formatError = (logger: LoggerType) => (e: Error) => {
 }
 
 export const catchError = (
-  fn: (...args: any[]) => any,
+  fn: (...args: unknown[]) => unknown,
   logger: LoggerType = consola.error,
 ) => {
   try {
