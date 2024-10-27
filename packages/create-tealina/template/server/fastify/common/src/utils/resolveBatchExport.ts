@@ -1,6 +1,6 @@
 import type { HTTPMethods } from 'fastify'
 import { asyncPipe, map, waitAll } from 'fp-lite'
-import type { CustomHandlerType } from '../convention.js'
+import type { CustomHandlerType } from '../../types/handler.js'
 
 const toKeyValues = <T extends Record<string, any>>(obj: T) =>
   Object.entries<T>(obj)
