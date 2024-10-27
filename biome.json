@@ -34,7 +34,8 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "info"
+        "noExplicitAny": "info",
+        "noConfusingVoidType": "info"
       },
       "complexity": {
         "noForEach": "info"
