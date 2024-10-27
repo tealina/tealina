@@ -35,13 +35,20 @@
       "recommended": true,
       "suspicious": {
         "noExplicitAny": "info",
-        "noConfusingVoidType": "info"
+        "noConfusingVoidType": "info",
+        "noArrayIndexKey": "info"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "info"
       },
       "complexity": {
         "noForEach": "info"
       },
       "style": {
         "useShorthandFunctionType": "off"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "off"
       }
     }
   },
