@@ -26,7 +26,10 @@ export function HeaderAction() {
         defaultValue={jsonSources[0].jsonURL}
         options={options}
         onChange={value => {
-          setCurSource(jsonSources.find(v => v.jsonURL == value)!)
+          const target = jsonSources.find(v => v.jsonURL === value)
+          if (target != null) {
+            setCurSource(target)
+          }
         }}
       />
       {isPlaygroundEnable && <CommonFieldToggle />}
@@ -38,7 +41,15 @@ function CommonFieldToggle() {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button icon={<SettingOutlined />} onClick={() => setOpen(true)} />
+      <Button
+        icon={
+          <SettingOutlined
+            onPointerEnterCapture={undefined}
+            onPointerLeaveCapture={undefined}
+          />
+        }
+        onClick={() => setOpen(true)}
+      />
       <Modal
         open={open}
         onCancel={() => {
@@ -63,21 +74,21 @@ function ThemeToggle() {
     <div
       className="rounded-full border w-15 border-solid relative flex items-center h-7"
       style={{
-        borderColor: mode == 'dark' ? '#424242' : '#d9d9d9',
+        borderColor: mode === 'dark' ? '#424242' : '#d9d9d9',
       }}
       onClick={() => {
-        setThemeMode(mode == 'dark' ? 'light' : 'dark')
+        setThemeMode(mode === 'dark' ? 'light' : 'dark')
       }}
     >
       <div
         className="w-5 h-[22px] absolute left-2 animate-slide-to-right animate-fill-forwards animate-duration-200"
-        style={{ display: mode == 'dark' ? 'none' : 'initial' }}
+        style={{ display: mode === 'dark' ? 'none' : 'initial' }}
       >
         <SunIcon />
       </div>
       <div
         className="w-5 h-[22px] absolute right-2 animate-slide-to-left animate-fill-forwards animate-duration-200"
-        style={{ display: mode == 'light' ? 'none' : 'initial' }}
+        style={{ display: mode === 'light' ? 'none' : 'initial' }}
       >
         <MoonIcon />
       </div>

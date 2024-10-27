@@ -1,8 +1,8 @@
 import { useForm } from 'antd/es/form/Form'
-import { AxiosError, AxiosResponse } from 'axios'
+import type { AxiosError, AxiosResponse } from 'axios'
 import { pipe } from 'fp-lite'
 import { useAtomValue } from 'jotai/react'
-import { DocItem, DocKind, DocNode } from '@tealina/doc-types'
+import { type DocItem, DocKind, type DocNode } from '@tealina/doc-types'
 import { curJsonSourceAtom } from '../../../atoms/jsonSourceAtom'
 import { req } from '../../../utils/request'
 import { useCacheStates } from './useCache'
@@ -10,12 +10,12 @@ import { useCacheStates } from './useCache'
 const mayNotJSON = (responseType?: DocNode) => {
   if (responseType == null) return
   if (
-    responseType.kind == DocKind.NonLiteralObject &&
-    (responseType.type == 'Blob' || responseType.type == 'File')
+    responseType.kind === DocKind.NonLiteralObject &&
+    (responseType.type === 'Blob' || responseType.type === 'File')
   ) {
     return 'blob'
   }
-  if (responseType.jsDoc?.content_type == 'octet-steam') return 'blob'
+  if (responseType.jsDoc?.content_type === 'octet-steam') return 'blob'
 }
 
 /**
@@ -30,7 +30,7 @@ const descendByKeyLength = (kvs: [string, any][]): [string, any][] =>
 
 const replaceURL = (url: string) => (sortedKeyValues: [string, any][]) =>
   sortedKeyValues.reduce(
-    (acc, [k, v]) => acc.replace(':' + k, v as string),
+    (acc, [k, v]) => acc.replace(`:${k}`, v as string),
     url,
   )
 
@@ -66,7 +66,7 @@ const findReason = (err: AxiosError) => {
   const { response } = err
   if (response?.data == null) return err.toJSON()
   const { data } = response
-  if (typeof data != 'object') return data
+  if (typeof data !== 'object') return data
   const { errorMessageKey } = window.TEALINA_VDOC_CONFIG
   if (errorMessageKey == null) return data
   const record = data as Record<string, any>
@@ -106,7 +106,7 @@ export function useSumit({
     const data = findReason(err)
     setStates({
       statusCode,
-      code: typeof data == 'string' ? data : JSON.stringify(data, null, 2),
+      code: typeof data === 'string' ? data : JSON.stringify(data, null, 2),
       isError: true,
     })
   }

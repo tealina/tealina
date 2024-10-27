@@ -1,4 +1,4 @@
-import { Table, TableProps } from 'antd'
+import { Table, type TableProps } from 'antd'
 import { useAtomValue } from 'jotai'
 import type { EnumEntity, EnumMember } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'

@@ -1,10 +1,10 @@
-import { FormInstance } from 'antd'
+import type { FormInstance } from 'antd'
 import { atom, useAtom, useAtomValue } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
 import { commonInitialValueAtom } from '../../../atoms/jsonSourceAtom'
 
 export interface MemoState {
-  formValues: any
+  formValues: Record<string, unknown>
   states: {
     isError: boolean
     statusCode?: number
@@ -13,7 +13,7 @@ export interface MemoState {
 }
 
 const DefaultCache: MemoState = {
-  formValues: null,
+  formValues: {},
   states: { isError: false, code: '' },
 }
 
@@ -31,35 +31,38 @@ const memoMutateAtom = atom(
 )
 
 const initFormValue = (
-  commonInitialValue: Record<string, any>,
-  values: any,
-  form: FormInstance<any>,
-) =>
-  Object.entries(commonInitialValue).forEach(([parentKey, record]) => {
-    if (!(parentKey in values)) return
-    const nest = values[parentKey]
-    if (typeof nest != 'object') return
-    Object.entries(record).forEach(([key, value]) => {
-      if (!(key in nest)) return
+  commonInitialValue: Record<string, Record<string, unknown>>,
+  values: unknown,
+  form: FormInstance<unknown>,
+) => {
+  const kvs = Object.entries(commonInitialValue)
+  const typedValues = values as Record<string, Record<string, unknown>>
+  for (const [parentKey, record] of kvs) {
+    if (!(parentKey in typedValues)) continue
+    const nest = typedValues[parentKey]
+    if (typeof nest !== 'object') continue
+    for (const [key, value] of Object.entries(record)) {
+      if (!(key in nest)) continue
       form.setFieldValue([parentKey, key], value)
-    })
-  })
+    }
+  }
+}
 
 export function useCacheStates({
   cacheKey,
   form,
 }: {
   cacheKey: string
-  form: FormInstance<any>
+  form: FormInstance<unknown>
 }) {
   const [getCache, setCache] = useAtom(memoMutateAtom)
   const commonInitialValue = useAtomValue(commonInitialValueAtom)
   const statesRef = useRef<MemoState['states']>()
-  const formValueRef = useRef<any>()
+  const formValueRef = useRef<Record<string, unknown>>({})
   const cache = getCache(cacheKey)
   const [states, setStates] = useState(cache.states)
   statesRef.current = states
-  const cacheFormValue = (formValue: any) => {
+  const cacheFormValue = (formValue: Record<string, unknown>) => {
     formValueRef.current = formValue
   }
   useEffect(() => {

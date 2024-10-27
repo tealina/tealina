@@ -1,8 +1,8 @@
 import { atom } from 'jotai'
-import { ApiDoc } from '@tealina/doc-types'
-import { TealinaVdocWebConfig } from '@tealina/doc-ui'
+import type { ApiDoc } from '@tealina/doc-types'
+import type { TealinaVdocWebConfig } from '@tealina/doc-ui'
 
-if (import.meta.env.MODE == 'development') {
+if (import.meta.env.MODE === 'development') {
   window.TEALINA_VDOC_CONFIG = {
     sources: [
       {
@@ -34,7 +34,7 @@ const paramsFromURL = new window.URLSearchParams(window.location.search)
 
 const getInitialSource = (sources: TealinaVdocWebConfig['sources']) => {
   const jsonURL = paramsFromURL.get('source')
-  const target = sources.find(v => v.jsonURL == jsonURL)
+  const target = sources.find(v => v.jsonURL === jsonURL)
   return target ?? sources[0]
 }
 
@@ -57,7 +57,9 @@ export const commonFieldsAtom = atom(
   window?.TEALINA_VDOC_CONFIG?.features?.playground?.commonFields,
 )
 
-export const commonInitialValueAtom = atom<Record<string, any>>({})
+export const commonInitialValueAtom = atom<
+  Record<string, Record<string, unknown>>
+>({})
 
 export const jsonSourceAtom = atom(sources)
 

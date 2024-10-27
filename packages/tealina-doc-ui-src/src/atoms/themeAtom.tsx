@@ -2,7 +2,7 @@ import { atom } from 'jotai'
 type ThemeType = 'dark' | 'light'
 
 const syncBodyClassList = (update: ThemeType) => {
-  update == 'light'
+  update === 'light'
     ? window.document.body.classList.remove('dark')
     : window.document.body.classList.add('dark')
 }
@@ -42,5 +42,5 @@ export const LightColors = {
 } as const
 
 export const syntaxColorAtom = atom(get =>
-  get(themeAtom) == 'dark' ? DarkColors : LightColors,
+  get(themeAtom) === 'dark' ? DarkColors : LightColors,
 )

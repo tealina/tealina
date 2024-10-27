@@ -1,4 +1,4 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
+import type * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import { useEffect } from 'react'
 import { useMonaco } from './useMonaco'
 
@@ -18,5 +18,5 @@ export const Editor = ({
       onBlur(editor)
     })
   }, [editor])
-  return <div className={className} ref={monacoEl}></div>
+  return <div className={className} ref={monacoEl} />
 }

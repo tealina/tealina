@@ -1,4 +1,4 @@
-import {
+import type {
   ItemType,
   MenuItemType,
   SubMenuType,
@@ -6,8 +6,12 @@ import {
 import { flat, flow, map, pipe, separeBy } from 'fp-lite'
 import { useAtom } from 'jotai'
 import { useEffect, useState } from 'react'
-import { ApiDoc, DocItem } from '@tealina/doc-types'
-import { CurApi, apiDocAtom, curShowApiAtom } from '../../atoms/jsonSourceAtom'
+import type { ApiDoc, DocItem } from '@tealina/doc-types'
+import {
+  type CurApi,
+  apiDocAtom,
+  curShowApiAtom,
+} from '../../atoms/jsonSourceAtom'
 
 const toItemModel = ([method, docItem]: [
   string,
@@ -72,7 +76,10 @@ const gatherFirstElement = (x: ItemType, records: string[] = []): string[] => {
   if (x == null) return records
   records.push(x.key as string)
   if ('children' in x) {
-    return gatherFirstElement(x.children![0], records)
+    const { children } = x
+    if (children != null && children.length > 0) {
+      return gatherFirstElement(children[0], records)
+    }
   }
   return records
 }
@@ -86,7 +93,7 @@ const reversetInit = (
     route.includes('/') ? [method, path] : [path, method.toLowerCase()],
     xs => xs.join('/'),
   )
-  const target = items.find(v => v.children.some(v => v!.key === fullKey))
+  const target = items.find(v => v.children.some(v => v?.key === fullKey))
   if (target == null) return []
   return [target.key, fullKey]
 }
@@ -109,6 +116,7 @@ export const useMenus = () => {
   useEffect(() => {
     if (curShowApi == null) {
       const keys = gatherFirstElement(items[0])
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
       updateCurShowApi({ key: keys.at(-1)! })
     }
   }, [])

@@ -1,7 +1,7 @@
 import FormItem from 'antd/es/form/FormItem'
-import { InternalNamePath } from 'antd/es/form/interface'
+import type { InternalNamePath } from 'antd/es/form/interface'
 import { useState } from 'react'
-import { PropType } from '@tealina/doc-types'
+import type { PropType } from '@tealina/doc-types'
 import { Editor } from './monaco/JsonEditor'
 
 function JSON5Editor({
@@ -11,10 +11,10 @@ function JSON5Editor({
   hint,
   value,
 }: {
-  value?: any
-  onChange?: (x: any) => void
+  value?: unknown
+  onChange?: (x: unknown) => void
   hint: string
-  onError: (x: any) => void
+  onError: (x: string | null) => void
   onValid: () => void
 }) {
   const defaultValue = [hint, value ? JSON.stringify(value) : ''].join('\n')

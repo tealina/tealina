@@ -15,18 +15,21 @@ export function type2text(
     case DocKind.NonLiteralObject:
     case DocKind.Primitive:
       return d.type
-    case DocKind.EntityRef:
-      let refName = entityRefs[d.id].name
+    case DocKind.EntityRef: {
+      const refName = entityRefs[d.id].name
       const showName = refName.length > 0 ? refName : id2name(d.id)
       // const showName = refName.length > 0 ? refName : d.name
       return showName
+    }
     case DocKind.EnumRef:
       return enumRefs[d.id].name
-    case DocKind.EnumMemberRef:
+    case DocKind.EnumMemberRef: {
       const member = enumRefs[d.enumId].members.find(
-        v => v.memberId == d.memberId,
+        v => v.memberId === d.memberId,
       )
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
       return member!.key
+    }
     case DocKind.Record:
       return `Record<${type2text(d.key, doc)}, ${type2text(d.value, doc)}>`
     case DocKind.Union:
@@ -39,12 +42,14 @@ export function type2text(
     case DocKind.StringLiteral:
     case DocKind.NumberLiteral:
       return String(d.value)
-    case DocKind.RecursionTuple:
+    case DocKind.RecursionTuple: {
       const target = doc.tupleRefs[d.id]
       return target.name
-    case DocKind.RecursionEntity:
+    }
+    case DocKind.RecursionEntity: {
       const obj = entityRefs[d.id]
       return obj.name
+    }
     default:
       return ''
   }

@@ -16,12 +16,17 @@ import {
   Select,
   Switch,
 } from 'antd'
-import FormItem, { FormItemProps } from 'antd/es/form/FormItem'
-import FormList, { FormListFieldData } from 'antd/es/form/FormList'
+import FormItem, { type FormItemProps } from 'antd/es/form/FormItem'
+import FormList, { type FormListFieldData } from 'antd/es/form/FormList'
 import useFormInstance from 'antd/es/form/hooks/useFormInstance'
-import { InternalNamePath, NamePath } from 'antd/es/form/interface'
+import type { InternalNamePath, NamePath } from 'antd/es/form/interface'
 import { isEmpty, pickFn } from 'fp-lite'
-import { InputHTMLAttributes, ReactNode, useRef, useState } from 'react'
+import {
+  type InputHTMLAttributes,
+  type ReactNode,
+  useRef,
+  useState,
+} from 'react'
 import type {
   ApiDoc,
   DocNode,
@@ -48,7 +53,7 @@ const toBigInt = (v: null | undefined | string) => {
   if (v == null) return
   try {
     return BigInt(v.trim())
-  } catch (error) {}
+  } catch (error) { }
 }
 
 export const prop2item = (
@@ -56,7 +61,7 @@ export const prop2item = (
   prop: PropType,
   preNamepath: InternalNamePath = [],
 ): any => {
-  let wrapperInItem = makeFormItem(prop, preNamepath)
+  const wrapperInItem = makeFormItem(prop, preNamepath)
   switch (prop.kind) {
     case DocKind.Array:
       return wrapperInDeepList(
@@ -65,9 +70,9 @@ export const prop2item = (
           prop2item(doc, { ...prop.element, name: field.name as any }, []),
         preNamepath,
       )
-    case DocKind.EnumMemberRef:
+    case DocKind.EnumMemberRef: {
       const member = doc.enumRefs[prop.enumId].members.find(
-        v => v.memberId == prop.memberId,
+        v => v.memberId === prop.memberId,
       )
       return wrapperInItem(
         <Select
@@ -76,12 +81,13 @@ export const prop2item = (
         />,
         { initialValue: member?.value },
       )
-    case DocKind.EnumRef:
+    }
+    case DocKind.EnumRef: {
       const members = doc.enumRefs[prop.id].members
       const isAllLiteral = members.filter(
         m =>
-          m.value.kind == DocKind.NumberLiteral ||
-          m.value.kind == DocKind.StringLiteral,
+          m.value.kind === DocKind.NumberLiteral ||
+          m.value.kind === DocKind.StringLiteral,
       )
       const options = members.map(m => ({
         label: m.key,
@@ -90,15 +96,16 @@ export const prop2item = (
       return wrapperInItem(
         <Select options={options} mode={isAllLiteral ? void 0 : 'tags'} />,
       )
+    }
     case DocKind.Never:
       return wrapperInItem(<Input placeholder="Never" disabled />)
     case DocKind.NonLiteralObject:
       //may be upload
       //or return a user determate select
-      if (prop.type == 'Date') {
+      if (prop.type === 'Date') {
         return wrapperInItem(<DatePicker />)
       }
-      if (prop.type == 'File') {
+      if (prop.type === 'File') {
         return wrapperInItem(<SimpleUpload accept={prop.jsDoc?.accept} />)
       }
       break
@@ -127,7 +134,7 @@ export const prop2item = (
               valuePropName: 'checked',
               initialValue:
                 prop.jsDoc?.default != null
-                  ? Boolean(prop.jsDoc!.default)
+                  ? Boolean(prop.jsDoc?.default)
                   : false,
             },
           )
@@ -172,7 +179,7 @@ export const prop2item = (
           key={[...preNamepath, prop.name].join('.')}
         />
       )
-    case DocKind.EntityRef:
+    case DocKind.EntityRef: {
       const nest = doc.entityRefs[prop.id]
       return (
         <FormItem key={[...preNamepath, prop.name].join('.')} noStyle>
@@ -188,6 +195,7 @@ export const prop2item = (
           </Col>
         </FormItem>
       )
+    }
     case DocKind.Union:
       return (
         <UnionFormItemsWrapper
@@ -203,14 +211,14 @@ export const prop2item = (
       return wrapperInItem(<Input value={prop.value} disabled />, {
         initialValue: prop.value,
       })
-    case DocKind.Tuple:
+    case DocKind.Tuple: {
       if (isEmpty(prop.elements)) {
         return (
           <FormItem
             label={String(prop.name)}
             required={!prop.isOptional}
             key={[...preNamepath, prop.name].join('.')}
-            normalize={v => (v != 0 ? [] : void 0)}
+            normalize={v => (v !== 0 ? [] : void 0)}
           >
             {prop.isOptional ? (
               <Segmented
@@ -237,6 +245,7 @@ export const prop2item = (
           )}
         </FormList>
       )
+    }
     case DocKind.RecursionTuple:
     case DocKind.RecursionEntity:
       return (
@@ -261,7 +270,7 @@ function wrapperInDeepList(
       {(fields, { add, remove }) => (
         <FormItem label={String(prop.name)} required={!prop.isOptional}>
           {fields.map(field => (
-            <div className="flex">
+            <div className="flex" key={field.key}>
               <div className="flex-grow">{buildItems(field)}</div>
               <div>
                 <Button
@@ -282,29 +291,29 @@ function wrapperInDeepList(
 
 const makeFormItem =
   (prop: PropType, preNamePath: InternalNamePath = []) =>
-  (child: ReactNode, itemProp?: FormItemProps) => {
-    const namePath = [...preNamePath, prop.name]
-    return (
-      <FormItem
-        key={namePath.join('.')}
-        label={String(prop.name)}
-        name={namePath}
-        normalize={v => (v == null ? void 0 : v)}
-        rules={
-          prop.isOptional
-            ? void 0
-            : [
+    (child: ReactNode, itemProp?: FormItemProps) => {
+      const namePath = [...preNamePath, prop.name]
+      return (
+        <FormItem
+          key={namePath.join('.')}
+          label={String(prop.name)}
+          name={namePath}
+          normalize={v => (v == null ? void 0 : v)}
+          rules={
+            prop.isOptional
+              ? void 0
+              : [
                 {
                   required: true,
                 },
               ]
-        }
-        {...itemProp}
-      >
-        {child}
-      </FormItem>
-    )
-  }
+          }
+          {...itemProp}
+        >
+          {child}
+        </FormItem>
+      )
+    }
 
 function SimpleUpload({
   onChange,
@@ -403,18 +412,20 @@ const collectInitialValue = (prop: DocNode, doc: ScopedDoc): any => {
     case DocKind.StringLiteral:
       return prop.value
     case DocKind.Primitive:
-      if (prop.type == 'true') return true
-      if (prop.type == 'false') return false
+      if (prop.type === 'true') return true
+      if (prop.type === 'false') return false
       return
-    case DocKind.EnumMemberRef:
+    case DocKind.EnumMemberRef: {
       const member = doc.enumRefs[prop.enumId].members.find(
-        v => v.memberId == prop.memberId,
+        v => v.memberId === prop.memberId,
       )
       return member?.value ?? void 0
-    case DocKind.EntityRef:
+    }
+    case DocKind.EntityRef: {
       const shape = doc.entityRefs[prop.id]
       return Object.fromEntries(
         shape.props.map(p => [p.name, collectInitialValue(p, doc)] as const),
       )
+    }
   }
 }

@@ -6,7 +6,7 @@ import type {
   PropType,
 } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
-import { SegmentedValue } from 'antd/es/segmented'
+import type { SegmentedValue } from 'antd/es/segmented'
 import { useEffect, useMemo, useRef, useState } from 'react'
 export type PayloadKeys = keyof Pick<
   DocItem,
@@ -31,7 +31,7 @@ export function getNestEntity(
 ) {
   switch (d.kind) {
     case DocKind.NonLiteralObject:
-      if (inScope.nonLiterals.find(v => v.type == d.type)) {
+      if (inScope.nonLiterals.find(v => v.type === d.type)) {
         break
       }
       inScope.nonLiterals.push(d)
@@ -39,12 +39,13 @@ export function getNestEntity(
     case DocKind.Array:
       getNestEntity(d.element, doc, inScope)
       break
-    case DocKind.EntityRef:
+    case DocKind.EntityRef: {
       if (inScope.entityRefs[d.id]) return
       const { entityRefs } = doc
       inScope.entityRefs[d.id] = entityRefs[d.id]
       entityRefs[d.id].props.forEach(v => getNestEntity(v, doc, inScope))
       break
+    }
     case DocKind.Union:
       d.types.forEach(v => getNestEntity(v, doc, inScope))
       break
@@ -96,6 +97,7 @@ export function toPropType(
 ): (value: SegmentTabKeys) => PropType {
   return k => {
     const key = (k as string).toLowerCase() as PayloadKeys
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const node = docItem[key]!
     if (memoMap.has(key)) return { name: key, ...node }
     const next = genEmptyApiDoc()

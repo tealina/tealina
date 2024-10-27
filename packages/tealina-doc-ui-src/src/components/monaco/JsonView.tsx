@@ -18,5 +18,5 @@ export const JsonView = ({
   useEffect(() => {
     editor?.setValue(value)
   }, [value])
-  return <div className={className} ref={monacoEl}></div>
+  return <div className={className} ref={monacoEl} />
 }

@@ -17,11 +17,11 @@ import { Anchor } from '../Anchor'
 import { ColorText } from '../ColorText'
 import { EntityTable } from '../EntityTable'
 import { EnumTable } from '../EnumTable'
-import { OneApiDoc as OneApiSummary } from './ApiDetail'
+import type { OneApiDoc as OneApiSummary } from './ApiDetail'
 import {
-  OneApiScopeEntitie,
-  PayloadKeys,
-  SegmentTabKeys,
+  type OneApiScopeEntitie,
+  type PayloadKeys,
+  type SegmentTabKeys,
   genEmptyApiDoc,
   getNestEntity,
   nodeNull,
@@ -80,16 +80,16 @@ export function DetailContent(summary: OneApiSummary) {
         </p>
       </div>
       <div className="flex-shrink-0">
-        <div className="h-8"></div>
+        <div className="h-8" />
         <Segmented
           options={tabOptions}
           value={curTab}
           onChange={handleTabChange}
         />
-        <div className="h-8"></div>
+        <div className="h-8" />
       </div>
       <div className="flex-grow">
-        {curTab == 'play' ? (
+        {curTab === 'play' ? (
           <PlaygroundPanel
             oneApiSummary={summary}
             apperanceKeys={appearedKeys}
@@ -126,6 +126,7 @@ function PlayloadPanel({
     firstOneNotMatch = getNestEntity(docItem[key] ?? nodeNull, doc, next)
     memoMap.set(key, next)
   }
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const appearedEntities = memoMap.get(key)!
   return (
     <div className="flex flex-col gap-3 pb-10">
@@ -141,6 +142,7 @@ function PlayloadPanel({
       {Object.entries(appearedEntities.tupleRefs).map(([id, v]) => (
         <TupleContent obj={v} id={id} key={id} doc={appearedEntities} />
       ))}
+      {/* biome-ignore lint/style/noNonNullAssertion: <explanation> */}
       {firstOneNotMatch && type2cell(docItem[key]!, doc)}
     </div>
   )
@@ -182,9 +184,9 @@ function CommentText({ obj }: { obj: ObjectType }) {
   const TypeColors = useAtomValue(syntaxColorAtom)
   const kvs = Object.entries(obj.jsDoc ?? {}).map(([k, v]) => (
     <>
-      <span> * </span>
-      <ColorText type="const">{`@${k}`}</ColorText>
-      <ColorText type="comment">{`  { ${v} }`}</ColorText>
+      <span key="head"> * </span>
+      <ColorText type="const" key="const">{`@${k}`}</ColorText>
+      <ColorText type="comment" key="comment">{`  { ${v} }`}</ColorText>
     </>
   ))
   if (kvs.length < 1 && obj.comment == null) return null
@@ -209,7 +211,7 @@ function PlaygroundPanel({
 }) {
   const { doc, docItem, identity } = oneApiSummary
   const payloadProps = apperanceKeys
-    .filter(v => v != 'play' && v != 'response')
+    .filter(v => v !== 'play' && v !== 'response')
     .map(toPropType(docItem, memoMap, doc))
   const formEntity: Entity = { name: 'payload', props: payloadProps }
   const oneApiDoc = [...memoMap.values()].reduce((acc, cur) => {

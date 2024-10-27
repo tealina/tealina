@@ -1,14 +1,14 @@
-import { ReactElement, ReactNode, cloneElement } from 'react'
+import { type ReactElement, type ReactNode, cloneElement } from 'react'
 import type { DocNode } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 import { ColorText } from '../components/ColorText'
-import { OneApiScopeEntitie } from '../components/api_detail/useDetailState'
+import type { OneApiScopeEntitie } from '../components/api_detail/useDetailState'
 
 const id2name = (id: number) => ['{', id, '}'].join(' ')
 
-function injectDivider([first, ...rest]: any[], divider = ' | ') {
+function injectDivider([first, ...rest]: ReactElement[], divider = ' | ') {
   return [first]
-    .concat(rest.map(v => [<span>{divider}</span>, v]).flat())
+    .concat(rest.flatMap((v, i) => [<span key={i}>{divider}</span>, v]))
     .map((e: ReactElement, i: number) => cloneElement(e, { key: i }))
 }
 
@@ -28,8 +28,8 @@ export function type2cell(
     // case local
     case DocKind.Primitive:
       return <ColorText type={d.type}>{d.type}</ColorText>
-    case DocKind.EntityRef:
-      let refName = entityRefs[d.id].name
+    case DocKind.EntityRef: {
+      const refName = entityRefs[d.id].name
       const showName = refName.length > 0 ? refName : id2name(d.id)
       // const showName = refName.length > 0 ? refName : d.name
       return (
@@ -39,7 +39,8 @@ export function type2cell(
           </a>
         </ColorText>
       )
-    case DocKind.EnumRef:
+    }
+    case DocKind.EnumRef: {
       const eShowName = enumRefs[d.id].name
       return (
         <ColorText type="object">
@@ -48,11 +49,13 @@ export function type2cell(
           </a>
         </ColorText>
       )
-    case DocKind.EnumMemberRef:
+    }
+    case DocKind.EnumMemberRef: {
       const member = enumRefs[d.enumId].members.find(
-        v => v.memberId == d.memberId,
+        v => v.memberId === d.memberId,
       )
       return <ColorText type="enum">{member?.key}</ColorText>
+    }
     case DocKind.NonLiteralObject:
       return (
         <ColorText type="object">
@@ -108,7 +111,7 @@ export function type2cell(
         </ColorText>
       )
     default:
-      return <span></span>
+      return <span />
   }
 }
 

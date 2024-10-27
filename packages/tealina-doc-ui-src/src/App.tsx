@@ -21,7 +21,7 @@ function MyApp() {
       <ConfigProvider
         theme={{
           algorithm:
-            themeMode == 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+            themeMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
         }}
       >
         <App>

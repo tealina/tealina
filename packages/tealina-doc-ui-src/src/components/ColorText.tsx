@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai'
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { syntaxColorAtom } from '../atoms/themeAtom'
 
 export function ColorText({

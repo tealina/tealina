@@ -12,7 +12,7 @@ export function ComonFields({ onSaved }: { onSaved: () => void }) {
   const fields = useAtomValue(commonFieldsAtom)
   const setCommonInitialValue = useSetAtom(commonInitialValueAtom)
   const [form] = Form.useForm()
-  const entries = Object.entries(fields!)
+  const entries = Object.entries(fields ?? {})
   useEffect(() => {
     const storage = window.sessionStorage.getItem(kConfigKey.FILEDS_VALUES)
     if (storage == null) return
@@ -38,7 +38,7 @@ export function ComonFields({ onSaved }: { onSaved: () => void }) {
             <div className="capitalize">{name}</div>
             {Object.entries(record).map(([field, config]) => {
               const actual =
-                typeof config == 'object'
+                typeof config === 'object'
                   ? config
                   : { type: config, default: void 0 }
               return (
@@ -48,7 +48,7 @@ export function ComonFields({ onSaved }: { onSaved: () => void }) {
                   key={field}
                   initialValue={actual.default}
                 >
-                  {actual.type == 'string' ? <Input /> : <InputNumber />}
+                  {actual.type === 'string' ? <Input /> : <InputNumber />}
                 </FormItem>
               )
             })}

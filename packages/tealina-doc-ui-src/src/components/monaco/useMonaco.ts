@@ -32,7 +32,7 @@ export const useMonaco = ({
   const monacoEl = useRef(null)
   useEffect(() => {
     if (editorIns == null) return
-    monaco.editor.setTheme(themeMode == 'dark' ? 'vs-dark' : 'vs')
+    monaco.editor.setTheme(themeMode === 'dark' ? 'vs-dark' : 'vs')
   }, [themeMode])
   useEffect(() => {
     const loadP = loader.init()
@@ -41,10 +41,11 @@ export const useMonaco = ({
         allowComments: true,
       })
       if (editorIns) return
-      const editor = m.editor.create(monacoEl.current!, {
+      if (monacoEl.current == null) return
+      const editor = m.editor.create(monacoEl.current, {
         value: defaultValue,
         language,
-        theme: themeMode == 'dark' ? 'vs-dark' : 'vs',
+        theme: themeMode === 'dark' ? 'vs-dark' : 'vs',
         readOnly,
         tabSize: 2,
       })
