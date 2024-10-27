@@ -1,6 +1,6 @@
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
 import fg from 'fast-glob'
-import { rmSync } from 'fs'
+import { rmSync } from 'node:fs'
 import path from 'node:path'
 
 const unique = xs => new Set(xs)
@@ -24,8 +24,8 @@ const tempList = await Promise.all(
   ].map(collectNodeModules),
 ).then(v => v.flat())
 
-tempList.forEach(dest => {
+for (const dest of tempList) {
   rmSync(dest, { recursive: true })
-})
+}
 
 execSync('pnpm install', { stdio: 'inherit' })

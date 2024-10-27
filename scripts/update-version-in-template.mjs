@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs'
+import { writeFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 
 const TEMP_LIST = [
@@ -12,7 +12,7 @@ const updateTeamplateDependance = updates =>
 const readJsonFile = dest =>
   readFile(dest, { encoding: 'utf-8' }).then(v => JSON.parse(v.toString()))
 
-const deepValueEqual = (a, b) => Object.entries(b).every(([k, v]) => a[k] == v)
+const deepValueEqual = (a, b) => Object.entries(b).every(([k, v]) => a[k] === v)
 
 const formatLog = (dest, result) => {
   console.log('  -', dest)
