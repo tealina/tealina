@@ -30,16 +30,13 @@
     "@testing-library/react": "^14.0.0",
     "@types/react": "^18.0.29",
     "@types/react-dom": "^18.0.11",
-    "@vitejs/plugin-react": "^4.0.3",
+    "@vitejs/plugin-react": "^4.3.3",
     "@vitest/web-worker": "^0.34.6",
-    "eslint": "^8.45.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
     "jsdom": "^22.1.0",
-    "msw": "^1.2.4",
-    "typescript": "^5.0.2",
-    "unocss": "^0.55.7",
-    "vite": "^4.2.1",
+    "msw": "^2.5.1",
+    "typescript": "~5.6.2",
+    "unocss": "^0.63.6",
+    "vite": "^5.4.10",
     "vitest-canvas-mock": "^0.3.3"
   }
 }

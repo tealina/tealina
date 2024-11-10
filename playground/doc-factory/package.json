@@ -23,7 +23,7 @@
     "@types/node": "^18.11.18",
     "tealina": "workspace:*",
     "tsx": "^3.12.7",
-    "typescript": "~5.2.2"
+    "typescript": "~5.6.2"
   },
   "license": "ISC"
 }
