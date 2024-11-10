@@ -7,7 +7,7 @@ const fv = invoke<string>(console.log)
 // https://vitejs.dev/config/
 export default defineConfig(env => ({
   plugins: [react(), UnoCSS()],
-  base: fv(env.command == 'build' ? VDOC_BASENAME : '/doc'),
+  base: fv(env.command === 'build' ? VDOC_BASENAME : '/doc'),
   test: {
     environment: 'jsdom',
     setupFiles: ['./test/setup.ts'],
@@ -23,8 +23,7 @@ export default defineConfig(env => ({
       {
         //https://github.com/vitest-dev/vitest/discussions/1806
         find: /^monaco-editor$/,
-        replacement:
-          __dirname + '/node_modules/monaco-editor/esm/vs/editor/editor.api',
+        replacement: `${__dirname}/node_modules/monaco-editor/esm/vs/editor/editor.api`,
       },
     ],
   },

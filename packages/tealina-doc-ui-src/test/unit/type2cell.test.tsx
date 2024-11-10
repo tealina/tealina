@@ -1,7 +1,6 @@
 import { render } from '@testing-library/react'
-import {
+import type {
   ArrayType,
-  DocKind,
   Entity,
   EnumEntity,
   EnumMemberRefType,
@@ -14,6 +13,8 @@ import {
   TupleType,
   UnionType,
 } from '@tealina/doc-types'
+import { DocKind } from '@tealina/doc-types'
+
 import { describe, expect, test } from 'vitest'
 import { LightColors } from '../../src/atoms/themeAtom'
 import { type2cell } from '../../src/transformer/type2cell'
@@ -100,7 +101,7 @@ describe('test render fn type2cell', () => {
     const layout = render(CellText)
     //<span><span>"Male"</span><span> | </span><span>1</span></span>
     const firstEl = layout.getByText(`"Male"`)
-    expect(firstEl.nextElementSibling?.textContent).eq(` | `)
+    expect(firstEl.nextElementSibling?.textContent).eq(' | ')
     expect(firstEl).toHaveStyle({ color: TypeColors.string })
     expect(layout.getByText('1')).toHaveStyle({ color: TypeColors.number })
   })

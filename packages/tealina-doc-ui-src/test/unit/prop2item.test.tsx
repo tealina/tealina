@@ -60,11 +60,12 @@ describe('test prop to form item', () => {
             onClick={() => {
               handleSubmit(form.getFieldsValue())
             }}
-          ></Button>
+          />
         </Form>
       )
     }
     const ui = render(<App />)
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const btn = Array.from(ui.container.querySelectorAll('button')).at(-1)!
     fireEvent.click(btn)
     console.log(values)
@@ -97,11 +98,12 @@ describe('test prop to form item', () => {
             onClick={() => {
               handleSubmit(form.getFieldsValue())
             }}
-          ></Button>
+          />
         </Form>
       )
     }
     const ui = render(<App />)
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const btn = Array.from(ui.container.querySelectorAll('button')).at(-1)!
     fireEvent.click(btn)
     expect(values).toMatchObject({ isOk: false, isFine: true })

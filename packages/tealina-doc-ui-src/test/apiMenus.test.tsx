@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react'
 import { useAtomValue } from 'jotai'
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { DocKind } from '@tealina/doc-types'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -29,8 +29,8 @@ const defaultApiDoc = {
 }
 
 const server = setupServer(
-  rest.get(JSON_URL, (req, res, ctx) => {
-    return res(ctx.json(defaultApiDoc))
+  http.get(JSON_URL, (_ctx) => {
+    return HttpResponse.json(defaultApiDoc)
   }),
 )
 
@@ -46,7 +46,7 @@ describe('test use menus hook', () => {
     const ContentSection = () => {
       const cur = useAtomValue(curShowApiAtom)
       curApi = cur
-      return <div>{(cur?.method, cur?.path)}</div>
+      return <div>{cur?.method}, {cur?.path}</div>
     }
     const result = render(
       <div>
@@ -59,6 +59,7 @@ describe('test use menus hook', () => {
     const list = await result.findAllByText('health')
     const el = list.find(v => v.classList.contains('ant-menu-title-content'))
     expect(el != null).true
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     fireEvent.click(el!)
     fireEvent.click(result.getByText('GET'))
     expect(curApi).toMatchObject({ method: 'get', path: 'health' })

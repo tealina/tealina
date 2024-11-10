@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { type2text } from '../../src/transformer/type2text'
-import {
+import type {
   ArrayType,
-  DocKind,
   Entity,
   EnumEntity,
   EnumMemberRefType,
@@ -16,6 +15,7 @@ import {
   UnionType,
 } from '@tealina/doc-types'
 
+import { DocKind } from '@tealina/doc-types'
 const emptyContext = { enumRefs: {}, entityRefs: {}, tupleRefs: {} }
 
 describe('test render fn type2text', () => {

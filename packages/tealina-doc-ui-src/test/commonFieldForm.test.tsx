@@ -17,7 +17,7 @@ describe('test common field setting', () => {
         take: { type: 'number', default: 6 },
       },
     }
-    const handleSave = () => {}
+    const handleSave = () => { }
     const screen = render(
       <TestProvider initialValues={[[commonFieldsAtom, mockCommonField]]}>
         <ComonFields onSaved={handleSave} />
@@ -38,6 +38,7 @@ describe('test common field setting', () => {
     })
     const result = window.sessionStorage.getItem(kConfigKey.FILEDS_VALUES)
     expect(result).not.null
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     expect(JSON.parse(result!)).toMatchObject({
       headers: {
         Authorization: 'mock token',
