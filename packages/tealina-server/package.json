@@ -1,0 +1,12 @@
+{
+  "name": "@tealina/server",
+  "version": "1.0.0",
+  "description": "Includes core runtime utility functions for API files to routes.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
