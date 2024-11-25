@@ -21,7 +21,7 @@
     "@fastify/static": "^6.10.2",
     "@prisma/client": "^5.3.1",
     "@tealina/doc-ui": "^1.0.2",
-    "axios": "^1.4.0",
+    "axios": "^1.7.7",
     "dotenv-cli": "^7.2.1",
     "fastify": "^4.17.0",
     "fp-lite": "^2.0.0",

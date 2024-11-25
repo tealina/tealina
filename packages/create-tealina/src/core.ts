@@ -277,7 +277,7 @@ const updatePackageJson = (webDestDir: string, pkgManager: string) => {
   const pkg = JSON.parse(
     fs.readFileSync(join(webDestDir, 'package.json'), 'utf-8'),
   )
-  pkg.dependencies.axios = '^1.4.1'
+  pkg.dependencies['@tealina-client'] = '^1.0.0'
   pkg.devDependencies.server =
     pkgManager === 'bun' ? 'link:server' : 'link:../server'
   fs.writeFileSync(
