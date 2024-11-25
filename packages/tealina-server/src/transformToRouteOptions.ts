@@ -32,20 +32,20 @@ const sortPath = (xs: string[]) => {
 interface BasiRouteOption<T> {
   method: string
   url: string
-  handlers: T
+  handler: T
 }
 
 /**
- * Sort and transform API records for routing options.
+ * Sort and transform API records into routing options.
  */
-const registeApiRoutes = <T>(
+const transformToRouteOptions = <T>(
   apiRecords: ResolvedAPIs<T>,
 ): BasiRouteOption<T>[] =>
   Object.entries(apiRecords).flatMap(([method, sameMethodApis]) =>
     sortPath(Object.keys(sameMethodApis)).map(url => {
-      const handlers = apiRecords[url] as T
-      return { method, url, handlers }
+      const handler = sameMethodApis[url] as T
+      return { method, url, handler }
     }),
   )
 
-export { registeApiRoutes }
+export { transformToRouteOptions }

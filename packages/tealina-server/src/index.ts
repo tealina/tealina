@@ -1,2 +1,2 @@
-export { loadAPIs } from "./resolveBatchExport.js";
-export  { registeApiRoutes } from "./registeApiRoutes.js";
+export { loadAPIs } from './resolveBatchExport.js'
+export { transformToRouteOptions } from './transformToRouteOptions.js'

@@ -11,9 +11,6 @@
     "outDir": "dist",
   },
   "exclude": [
-    "template",
-    "temp",
     "test",
-    "vitest.config.ts"
   ]
 }
