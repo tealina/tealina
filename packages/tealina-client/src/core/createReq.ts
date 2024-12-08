@@ -1,10 +1,10 @@
-import {
-  type ApiRecordShape,
-  type GeneralRequestOption,
-  type DynamicParmasType,
-  transformPayload,
-  type PayloadType,
-} from './core'
+import { makeContext } from './makeContext'
+import type {
+  ApiClientShape,
+  ClientRequestContext,
+  DynamicParameters,
+  PayloadType,
+} from './types'
 
 /**
  * **Return a proxied object,
@@ -19,17 +19,18 @@ import {
  * const req = createReq<ApiV1Shape,AxiosRequestConfig>((payload,config)=>axios.request(...))
  * ```
  */
-const createReq = <T extends ApiRecordShape, RequestConfig>(
-  requester: (x: GeneralRequestOption, config?: RequestConfig) => unknown,
+
+export const createReq = <T extends ApiClientShape, RequestConfig>(
+  requester: (x: ClientRequestContext, config?: RequestConfig) => unknown,
 ) =>
   new Proxy({} as T, {
     get:
       (_target, method: string) =>
-      (url: string, ...rest: DynamicParmasType<RequestConfig>) => {
+      (url: string, ...rest: DynamicParameters<RequestConfig>) => {
         if (rest.length < 1) return requester({ method, url })
         const [payload, config] = rest
-        const actualPayload = transformPayload(url, payload as PayloadType)
-        return requester({ method, ...actualPayload }, config)
+        const context = makeContext(url, method, payload as PayloadType)
+        return requester(context, config)
       },
     ownKeys() {
       return [] //for disable iterate
@@ -41,5 +42,3 @@ const createReq = <T extends ApiRecordShape, RequestConfig>(
       }
     },
   })
-
-export { createReq }

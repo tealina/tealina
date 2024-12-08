@@ -1,22 +1,13 @@
-import {
-  type EmptyObject,
-  type GeneralRequestOption,
-  type PayloadType,
-  type Simplify,
-  transformPayload,
-} from './core'
-
-type FullPayload = {
-  body?: unknown
-  query?: unknown
-  params?: unknown
-  headers?: any
-  response?: unknown
-}
-
-type MakeParams<Payload, Config> = Payload extends EmptyObject
-  ? [config?: Config]
-  : [payload: Simplify<Payload>, config?: Config]
+import { makeContext } from './makeContext'
+import type {
+  ApiClientShape,
+  ApiRecordShape,
+  ClientRequestContext,
+  FullPayload,
+  MakeParameters,
+  PayloadType,
+  UnionToIntersection,
+} from './types'
 
 type PathToObject<
   RoutePath extends string,
@@ -32,7 +23,7 @@ type PathToObject<
     }
   : {
       [K in RoutePath as K extends '' ? never : K]: (
-        ...args: MakeParams<Omit<Payload, 'response' | 'headers'>, Config>
+        ...args: MakeParameters<Payload, Config>
       ) => Promise<Payload['response']>
     }
 
@@ -42,10 +33,7 @@ type ToNest<
   K extends keyof OneMethodRecord = keyof OneMethodRecord,
 > = K extends K ? PathToObject<K & string, OneMethodRecord[K], Config> : never
 
-export type ToRPC<
-  ApiShape extends Record<string, Record<string, FullPayload>>,
-  Config,
-> = {
+export type ToRPC<ApiShape extends ApiRecordShape, Config> = {
   [Method in keyof ApiShape]: UnionToIntersection<
     ToNest<ApiShape[Method], Config>
   >
@@ -56,20 +44,13 @@ export type ToRPC<
  * the type needs to be predefined and passed to the first generic type.**
  *
  * @param requester callback to handle request
- * @template ApiRecordShape the API record type from backend
  * @template  RequestConfig extra optional request config, eg: in Axios, it's AxiosRequestConfig
- * @example
- * ```ts
- * type ApiV1Shape=MakeReqType<...>
- * const client = createRRC<ApiV1Shape,AxiosRequestConfig>((payload,config)=>axios.request(...))
- *
- * ```
  */
-export const createRPC = <T extends Record<string, any>, RequestConfig>(
-  requester: (x: GeneralRequestOption, config?: RequestConfig) => unknown,
+export const createRPC = <T extends ApiClientShape, RequestConfig>(
+  requester: (x: ClientRequestContext, config?: RequestConfig) => unknown,
 ) => {
   const createProxy = (path: string[] = []) =>
-    new Proxy<Record<string, any>>(() => {}, {
+    new Proxy<ApiClientShape>(() => {}, {
       get(_target, prop) {
         return createProxy([...path, prop as string])
       },
@@ -78,8 +59,8 @@ export const createRPC = <T extends Record<string, any>, RequestConfig>(
         const url = endpoints.join('/')
         if (args.length < 1) return requester({ method, url })
         const [payload, config] = args
-        const actualPayload = transformPayload(url, payload as PayloadType)
-        return requester({ method, ...actualPayload }, config)
+        const context = makeContext(url, method, payload as PayloadType)
+        return requester(context, config)
       },
       ownKeys() {
         return [] //for disable iterate
@@ -91,14 +72,5 @@ export const createRPC = <T extends Record<string, any>, RequestConfig>(
         }
       },
     })
-  return createProxy() as ToRPC<T, RequestConfig>
+  return createProxy() as T
 }
-
-/**
- * @ref {@link https://github.com/type-challenges/type-challenges/issues/9770}
- */
-type UnionToIntersection<U> = (U extends U ? (arg: U) => void : never) extends (
-  arg: infer T,
-) => void
-  ? T
-  : never

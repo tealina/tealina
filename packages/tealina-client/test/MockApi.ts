@@ -33,6 +33,13 @@ export type MockApi = {
       }
       headers: EmptyObj
     }
+    user: {
+      query: {
+        name: string
+      }
+      response: User
+      headers: EmptyObj
+    }
   }
   post: {
     'user/create': {

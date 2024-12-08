@@ -3,14 +3,34 @@
   "version": "1.0.0",
   "description": "Parse tealina-server type for client.",
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./axios": {
+      "import": "./dist/axios.js",
+      "types": "./dist/axios.d.ts"
+    },
+    "./fetch": {
+      "import": "./dist/fetch.js",
+      "types": "./dist/fetch.d.ts"
+    },
+    "./core": {
+      "import": "./dist/core.js",
+      "types": "./dist/core.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsup src/index.ts --dts"
+    "build": "rm -rf dist && tsup"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tealina/client": "link:",
+    "@tealina/client": "link:"
+  },
+  "devDependencies": {
     "axios": "^1.7.7"
   }
 }
