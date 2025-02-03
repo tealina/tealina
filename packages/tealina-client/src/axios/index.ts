@@ -41,10 +41,10 @@ const makeHandler =
  * ```ts
  * import { createRawAxiosRPC } from '@tealina/client
  * import { axios } from 'axios'
- * import type { AxiosClientuestConfig } from 'axios'
+ * import type { AxiosRequestConfig } from 'axios'
  * import type { ApiTypesRecord } from 'server/api/v1'
  *
- * const client = createAxiosClient<ApiTypesRecord, AxiosClientuestConfig>(c =>
+ * const client = createAxiosClient<ApiTypesRecord, AxiosRequestConfig>(c =>
  *  axios.request(c).then(v => v.data),
  * )
  * ```
@@ -63,10 +63,10 @@ export const createAxiosClient = <
  * ```ts
  * import { createRawAxiosRPC } from '@tealina/client'
  * import { axios } from 'axios'
- * import type { AxiosClientuestConfig, AxiosResponse } from 'axios'
+ * import type { AxiosRequestConfig, AxiosResponse } from 'axios'
  * import type { ApiTypesRecord } from 'server/api/v1'
  *
- * const client = createRawAxiosClient<ApiTypesRecord, AxiosClientuestConfig,AxiosResponse>(axios.request)
+ * const client = createRawAxiosClient<ApiTypesRecord, AxiosRequestConfig,AxiosResponse>(axios.request)
  * ```
  */
 export const createRawAxiosClient = <
@@ -82,13 +82,13 @@ export const createRawAxiosClient = <
  * @param requester the acutal handler for send request and extra data from response
  * @example
  * ```ts
- * import { createRawAxiosRPC } from '@tealina/client'
+ * import { createAxiosRPC } from '@tealina/client'
  * import { axios } from 'axios'
- * import type { AxiosClientuestConfig } from 'axios'
+ * import type { AxiosRequestConfig } from 'axios'
  * import type { ApiTypesRecord } from 'server/api/v1'
  *
- * const client = createAxiosRPC<ApiTypesRecord, AxiosClientuestConfig>(
- *   axios.request(c).then(v => v.data)
+ * const client = createAxiosRPC<ApiTypesRecord, AxiosRequestConfig>(
+ *  c => axios.request(c).then(v => v.data)
  * )
  * ```
  */
@@ -106,10 +106,10 @@ export function createAxiosRPC<
  * ```ts
  * import { createRawAxiosRPC } from '@tealina/client'
  * import { axios } from 'axios'
- * import type { AxiosClientuestConfig, AxiosResponse } from 'axios'
+ * import type { AxiosRequestConfig, AxiosResponse } from 'axios'
  * import type { ApiTypesRecord } from 'server/api/v1'
  *
- * const client = createRawAxiosRPC<ApiTypesRecord, AxiosClientuestConfig, AxiosResponse>(axios.request)
+ * const client = createRawAxiosRPC<ApiTypesRecord, AxiosRequestConfig, AxiosResponse>(axios.request)
  * ```
  */
 export function createRawAxiosRPC<
