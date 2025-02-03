@@ -102,7 +102,8 @@ const toApiFileSnapshot = (update: Seeds, apiDir: string): Snapshot => ({
 
 const toTestApiSnapshot = (
   update: Seeds,
-  { options: { apiDir, testDir } }: FullContext,
+  apiDir: string,
+  testDir: string,
 ): Snapshot => ({
   group: 'test',
   action: 'delete',
@@ -114,13 +115,15 @@ const toTestApiSnapshot = (
   )}.test.ts`,
 })
 
-const mayWithTestFile = (ctx: FullContext) =>
-  ctx.options.withTest
+const mayWithTestFile = ({
+  options: { withTest, testDir, apiDir },
+}: FullContext) =>
+  withTest && testDir != null
     ? (s: Seeds) => [
-        toApiFileSnapshot(s, ctx.options.apiDir),
-        toTestApiSnapshot(s, ctx),
+        toApiFileSnapshot(s, apiDir),
+        toTestApiSnapshot(s, apiDir, testDir),
       ]
-    : (s: Seeds) => [toApiFileSnapshot(s, ctx.options.apiDir)]
+    : (s: Seeds) => [toApiFileSnapshot(s, apiDir)]
 
 const calcSnapshots = (ctx: FullContext): Snapshot[] =>
   pipe(

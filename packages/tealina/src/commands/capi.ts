@@ -14,15 +14,18 @@ import {
   waitAll,
 } from 'fp-lite'
 import { pathExists } from 'fs-extra'
-import { basename, join, normalize } from 'pathe'
+import { basename, join } from 'pathe'
 import type { RawOptions } from '.'
-import type { ApiTemplateType, TealinaConifg } from '../index'
+import type {
+  ApiTemplateType,
+  GenTestSuiteFnType,
+  TealinaConifg,
+} from '../index'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { type Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
 import { extraModelNames } from '../utils/parsePrisma'
 import {
-  loadConfig,
   parseCreateInfo as parseCreationInfo,
   readIndexFile,
   unCapitalize,
@@ -230,7 +233,7 @@ const toApiFileSnapshot = ({
 })
 
 const toApiTestSnapshot =
-  ({ testTemplate: { genSuite } }: FullContext) =>
+  (genSuite: GenTestSuiteFnType) =>
   ({ kind, namePaths, testFileSummary }: FullSeeds): Snapshot => ({
     group: 'test',
     action: 'create',
@@ -244,29 +247,31 @@ const toApiTestSnapshot =
 
 const toTestHelperSnapshot = ({
   testHelperInfo: { filePath },
-  testTemplate: { genHelper },
+  testTemplate,
   options: { apiDir, typesDir },
   seeds: [{ namePaths }],
 }: FullContext): Snapshot => ({
   group: 'test',
   action: 'create',
   filePath,
-  code: genHelper?.({
+  code: testTemplate?.genHelper?.({
     relative2ancestor: Array(namePaths.length).fill('..').join('/'),
     typesDirName: basename(typesDir),
     apiDirName: basename(apiDir),
   }),
 })
 
-const calcTestSnapshots = (ctx: FullContext) =>
-  pipe(
+const calcTestSnapshots = (ctx: FullContext) => {
+  if (ctx.testTemplate == null) return []
+  return pipe(
     ctx.seeds,
     filter(v => !v.testFileSummary.isExists),
-    map(toApiTestSnapshot(ctx)),
+    map(toApiTestSnapshot(ctx.testTemplate.genSuite)),
     ctx.testTemplate.genHelper == null || ctx.testHelperInfo.isExists
       ? x => x
       : concat(toTestHelperSnapshot(ctx)),
   )
+}
 
 const calcApiSnpashots = (ctx: FullContext) =>
   pipe(
@@ -315,8 +320,10 @@ const getTestFilePath = (
   { kind, namePaths }: Seeds,
 ) => `${join(testDir, basename(apiDir), kind, ...namePaths)}.test.ts`
 
-const getApiFilePath = ({ apiDir }: DirInfo, { kind, namePaths }: Seeds) =>
-  `${join(apiDir, kind, ...namePaths)}.ts`
+const getApiFilePath = (
+  { apiDir }: Pick<DirInfo, 'apiDir'>,
+  { kind, namePaths }: Seeds,
+) => `${join(apiDir, kind, ...namePaths)}.ts`
 
 const getFileSummary = (filePath: string): Promise<FileSummary> =>
   pathExists(filePath).then(isExists => ({ filePath, isExists }))
@@ -324,13 +331,12 @@ const getFileSummary = (filePath: string): Promise<FileSummary> =>
 const getTestFileSummary = async (
   opt: FullOptions,
   seeds: Seeds,
-): Promise<FileSummary> =>
-  opt.withTest
-    ? await getFileSummary(getTestFilePath(opt, seeds))
-    : {
-        filePath: getTestFilePath(opt, seeds),
-        isExists: true,
-      }
+): Promise<FileSummary> => {
+  if (opt.withTest && opt.testDir != null) {
+    return getFileSummary(getTestFilePath(opt as DirInfo, seeds))
+  }
+  return { filePath: '', isExists: true }
+}
 
 const withFileState =
   (opt: FullOptions) =>
@@ -362,7 +368,8 @@ const getSeeds = (
 const checkTestHelper = async (
   opt: FullOptions,
 ): Promise<FullContext['testHelperInfo']> => {
-  const filePath = getTestHeplerPath(opt)
+  if (opt.testDir == null) return { isExists: true, filePath: '' }
+  const filePath = getTestHeplerPath(opt as DirInfo)
   const isExists = opt.withTest ? await pathExists(filePath) : false
   return { isExists, filePath }
 }
