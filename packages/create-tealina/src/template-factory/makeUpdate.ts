@@ -1,15 +1,13 @@
+import { kStatement, kLines, kRestfulImps } from './common'
 import type { CtxForMakeCode } from './ctx'
 
 const restfulStyle = {
-  imps: [
-    "    `import type { RawId } from '${relative2api}/../types/common.js'`,",
-    "    `import { modelIdZ } from '${relative2api}/validate/modelId.js'`,",
-  ],
+  imps: kRestfulImps,
   apiType: [
-    '    `type ApiType = AuthedHandler<`,',
+    "    'type ApiType = AuthedHandler<',",
     '    `  { params: RawId; body: Pure.${Model}UpdateInput },`,',
     '    `  Pure.${Model}`,',
-    '    `>`,',
+    "    '>',",
   ],
   body: [
     "    '  const { id } = modelIdZ.parse(req.params)',",
@@ -17,14 +15,12 @@ const restfulStyle = {
   ],
 }
 const postGetStyle = {
-  imps: [
-    "    `import type { ModelId } from '${relative2api}/../types/common.js'`,",
-  ],
+  imps: kStatement.impModelId,
   apiType: [
-    '    `type ApiType = AuthedHandler<`,',
+    "    'type ApiType = AuthedHandler<',",
     '    `  { body: ModelId & Pure.${Model}UpdateInput },`,',
     '    `  Pure.${Model}`,',
-    '    `>`,',
+    "    '>',",
   ],
   body: "    '  const { id, ...data } = req.body',",
 }
@@ -34,30 +30,24 @@ export const makeUpdateCode = (ctx: CtxForMakeCode) => {
   return [
     'export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {',
     '  const imps = [',
-    "    `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,",
-    "    `import type { Pure } from '${relative2api}/../types/pure.js'`,",
-    "    `import { convention } from '${relative2api}/convention.js'`,",
-    "    `import { db } from '${relative2api}/db/prisma.js'`,",
+    `    ${kStatement.authHandler},`,
+    `    "${kStatement.pure}",`,
+    `    ${kStatement.convention},`,
+    `    ${kStatement.db},`,
     actual.imps,
     '  ]',
     '  const codes = [',
     actual.apiType,
     "    '',",
     '    `/** Update ${Model} by id */`,',
-    '    `const handler: ApiType = async (req, res) => {`,',
+    `    '${kStatement.handler}',`,
     actual.body,
     '    `  const result = await db.${model}.update({`,',
     "    '    where: { id },',",
     "    '    data,',",
     "    '  })',",
     "    '  res.send(result)',",
-    "    '}',",
-    "    '',",
-    '    `export default convention(handler)`,',
-    "    '',",
-    '  ]',
-    "  return [...imps, '', ...codes].join('\\n')",
-    '})',
+    kLines.tail,
   ]
     .flat()
     .join('\n')
