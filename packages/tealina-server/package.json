@@ -2,10 +2,10 @@
   "name": "@tealina/server",
   "version": "1.0.0",
   "description": "Includes core runtime utility functions for API files to routes.",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "test": "vitest --run",
-    "build": "tsup src/index.ts --dts"
+    "build": "rm -rf dist && tsup src/index.ts --dts"
   },
   "keywords": [],
   "author": "",
