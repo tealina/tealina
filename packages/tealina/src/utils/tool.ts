@@ -1,13 +1,12 @@
 import fs, { readFileSync } from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { extname, normalize, resolve } from 'pathe'
 import ts from 'typescript'
-import { pathToFileURL } from 'node:url'
 import type { RawOptions } from '../commands'
 import type { FullOptions } from '../commands/capi'
 import type { TealinaConifg, TemplateContext } from '../index'
-import type { DirInfo } from './withTypeFile'
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1)
@@ -63,10 +62,6 @@ export const readIndexFile = (indexFilePath: string): Promise<string[]> =>
     () => [],
   )
 
-export type MinimalInput = Required<Omit<TealinaConifg, 'gpure'>> &
-  Pick<TealinaConifg, 'gpure'> &
-  DirInfo
-
 export const loadConfig = async (
   opt: RawOptions & { apiDir: string; route?: string },
 ): Promise<FullOptions> =>
@@ -75,7 +70,7 @@ export const loadConfig = async (
     .then(v => ({
       ...v,
       typesDir: normalize(v.typesDir),
-      testDir: normalize(v.testDir),
+      testDir: v.testDir ? normalize(v.testDir) : void 0,
       suffix: v.suffix ?? '.js',
       ...opt,
       apiDir: normalize(opt.apiDir),

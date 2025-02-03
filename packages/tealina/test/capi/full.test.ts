@@ -1,9 +1,9 @@
 import { map, pipe, unique } from 'fp-lite'
-import { writeFileSync } from 'fs'
 import fs from 'fs-extra'
+import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { Snapshot } from '../../src/utils/effectFiles.js'
+import type { Snapshot } from '../../src/utils/effectFiles.js'
 import { ensureWrite } from '../../src/utils/tool.js'
 import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
 import { cleanDir, parseCommandArgs, tempDirFactory } from './helper.js'
@@ -12,6 +12,15 @@ const TEMP_ROOT = 'temp/capi'
 const prepareTempDir = tempDirFactory('temp/capi')
 describe('full test cai', () => {
   cleanDir(TEMP_ROOT)
+
+  test('create by route without gen test', async () => {
+    const dirInfo = prepareTempDir('by-route')
+    const route = 'get/health'
+    ensureWrite(path.join(dirInfo.apiDir, route), 'mock content')
+    const { cli } = parseCommandArgs('get/health --no-with-test', dirInfo)
+    await cli.runMatchedCommand()
+  })
+
   test('create by route', async () => {
     const dirInfo = prepareTempDir('by-route')
     const route = 'get/health'
@@ -23,7 +32,7 @@ describe('full test cai', () => {
   test('create with alias', async () => {
     const name = 'user'
     const dirInfo = prepareTempDir('byalias')
-    const alias = `cr`
+    const alias = 'cr'
     const seeds = [
       { name: '', method: 'post' },
       { name: '', method: 'get' },
@@ -149,8 +158,7 @@ describe('full test cai', () => {
     writeFileSync(
       schema,
       mockModelNames
-        .map(name => [`model ${name} {`, '   prop Type', '}'])
-        .flat()
+        .flatMap(name => [`model ${name} {`, '   prop Type', '}'])
         .join('\n'),
     )
     const { cli } = parseCommandArgs(
@@ -159,10 +167,10 @@ describe('full test cai', () => {
     )
     const result = await cli.runMatchedCommand()
     const seeds = [
-      { method: 'post', name: '',  },
-      { method: 'get', name: '',  },
-      { method: 'put', name: '[id]', },
-      { method: 'delete', name: '[id]', },
+      { method: 'post', name: '' },
+      { method: 'get', name: '' },
+      { method: 'put', name: '[id]' },
+      { method: 'delete', name: '[id]' },
     ]
     const fullResult = makeFullResult(
       mockModelNames.map(v => v.toLowerCase()),
@@ -187,7 +195,7 @@ describe('full test cai', () => {
     expect(actual).eq(mockContent)
     const fullResult = makeFullResult(route, [{ method, name: '' }], dirInfo)
     const actualResult = fullResult.filter(
-      v => !(v.group == 'api' && v.filePath == target),
+      v => !(v.group === 'api' && v.filePath === target),
     )
     expect(result).deep.eq(actualResult)
     fs.rmSync(dirInfo.apiDir, { recursive: true })
@@ -198,12 +206,13 @@ function makeFullResult(
   route: string | string[],
   seeds: { method: string; name: string }[],
   dirInfo: ReturnType<typeof prepareTempDir>,
+  withTest = true,
 ) {
   const { apiDir, typesDir, testDir } = dirInfo
   const topIndex: Snapshot = {
     group: 'api',
     action: 'create',
-    filePath: path.join(apiDir, `index.ts`),
+    filePath: path.join(apiDir, 'index.ts'),
   }
   const indexList = pipe(
     seeds,
@@ -213,7 +222,7 @@ function makeFullResult(
       (method): Snapshot => ({
         group: 'api',
         action: 'create',
-        filePath: path.join(apiDir, method, `index.ts`),
+        filePath: path.join(apiDir, method, 'index.ts'),
       }),
     ),
   )
@@ -231,20 +240,24 @@ function makeFullResult(
       }),
     ),
   )
-  const testList = preNames.map(preName =>
-    seeds.map(
-      (v): Snapshot => ({
-        group: 'test',
-        action: 'create',
-        filePath: path.join(
-          testDir,
-          path.basename(apiDir),
-          v.method,
-          v.name.length ? `${preName}/${v.name}.test.ts` : `${preName}.test.ts`,
+  const testList = withTest
+    ? preNames.map(preName =>
+        seeds.map(
+          (v): Snapshot => ({
+            group: 'test',
+            action: 'create',
+            filePath: path.join(
+              testDir,
+              path.basename(apiDir),
+              v.method,
+              v.name.length
+                ? `${preName}/${v.name}.test.ts`
+                : `${preName}.test.ts`,
+            ),
+          }),
         ),
-      }),
-    ),
-  )
+      )
+    : []
   const typeFile: Snapshot = {
     group: 'types',
     action: 'create',
