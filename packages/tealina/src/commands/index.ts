@@ -50,14 +50,15 @@ cli.command('<api-dir> gdoc [options]', 'Generate API document (json format)')
 
 cli.command(
   '<api-dir> gtype [options]',
-  'Generate purifed types from schema.prisma',
+  'Generate purified types based on schema.prisma',
 )
+cli.command('gtype [options]', 'Generate purified types based on schema.prisma')
 
 cli
   .command('<api-dir> [route] [options]', 'Create APIs')
   .option(
     '-a,--align',
-    'Align APIs, update all relative files according to files in --api-dir',
+    'Align APIs, update all related files according to files in --api-dir',
   )
   .option('-d,--delete-api', 'Delete APIs')
   .option('-i,--input <path>', 'Prisma schema path', {
@@ -66,20 +67,22 @@ cli
   .option('-n,--namespace <name>', 'Namespace of purified types', {
     default: 'Pure',
   })
-  .option('-m,--model', 'Batch create APIs by model name in .prisma file')
-  .option('-o,--output <string>', 'Output dir (gdoc) or file path (gtype)')
+  .option('-m,--model', 'Batch create APIs by model name in the .prisma file.')
+  .option(
+    '-o,--output <string>',
+    'Output directory (gdoc) or file path (gtype)',
+  )
   .option('-t,--template-alias <alias>', 'Template alias')
-  .option('--with-test', 'Effect test file too when create or delete APIs')
-  .option('--tp,--tsconfig-path <path>', 'Typescript config path', {
+  .option('--with-test', 'Affects test file too when create or delete APIs')
+  .option('--tp,--tsconfig-path <path>', 'TypeScript config path', {
     default: './tsconfig.json',
   })
   .option('--config-path <path>', 'Tealina config path', {
     default: './tealina.config.mjs',
   })
-  .option('--verbose', 'Show excution stack when error')
-  .option('--api-dir <path>', 'The API directory (Deprecated)')
+  .option('--verbose', 'Show execution stack when error')
   .action(distribuite)
 
 cli.help()
-cli.version('1.0.0')
+cli.version('2.0.0')
 export { cli }
