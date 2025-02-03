@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "dev": "concurrently \"pnpm -F server dev\" \"bun -F web dev\""
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

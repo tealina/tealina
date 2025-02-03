@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { spawn } from 'node:child_process'
-import fs, { existsSync, writeFileSync } from 'node:fs'
+import fs from 'node:fs'
 import minimist from 'minimist'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -11,6 +11,7 @@ import { writeTemplates } from './template-factory/write'
 
 const { blue, green, reset } = chalk
 const { join } = path
+const kInitDemo = 'init-demo.mjs'
 
 const copy = (src: string, dest: string) =>
   fs.statSync(src).isDirectory()
@@ -53,11 +54,15 @@ const createProject = (
 }
 
 const setupLines = [
-  'import { execSync } from "child_process"',
+  'import { execSync } from "node:child_process"',
+  "import { fileURLToPath } from 'node:url'",
+  "import { dirname } from 'node:path'",
+  'const __filename = fileURLToPath(import.meta.url)',
+  'const __dirname = dirname(__filename)',
   '',
   'const $ = (strs) => {',
   "  const command = strs.join(' ')",
-  "  execSync(command,{ stdio: 'inherit', encoding:'utf-8' })",
+  "  execSync(command,{ stdio: 'inherit', encoding: 'utf-8', cwd: __dirname })",
   '}',
   '',
 ]
@@ -75,12 +80,11 @@ const writeInitDevFile = (
     command(' v1 gtype'),
     command(' v1 get/status'),
     command(' v1 gdoc'),
-    pkgManager === 'bun' ? command(' link') : '',
   ]
-  writeFileSync(join(destServerDir, 'init-dev.mjs'), initCommands.join('\n'))
+  fs.writeFileSync(join(destServerDir, kInitDemo), initCommands.join('\n'))
 }
 
-const injectExtraTemplates = (dest: string, webExtraTemplateDir: string) => {
+const copyTemplates = (dest: string, webExtraTemplateDir: string) => {
   const write = (file: string) => {
     const targetPath = join(dest, file)
     copy(join(webExtraTemplateDir, file), targetPath)
@@ -91,14 +95,16 @@ const injectExtraTemplates = (dest: string, webExtraTemplateDir: string) => {
   }
 }
 
-const logGuids = (guids: { title?: string; items: string[] }[]) => {
+const logGuids = (
+  guids: { title?: string; items: string[]; offset: number }[],
+) => {
   const all = [
     '',
     green('     Scafold project is ready'),
     guids
       .flatMap(v => [
         v.title,
-        v.items.map((s, i) => `  ${i + 1}. ${s}`).join('\n'),
+        v.items.map((s, i) => `  ${v.offset + i + 1}. ${s}`).join('\n'),
       ])
       .filter(v => v != null)
       .join('\n'),
@@ -109,37 +115,25 @@ const logGuids = (guids: { title?: string; items: string[] }[]) => {
 const showGuide = ({ answer, pkgManager }: ContextType) => {
   const { projectName, web } = answer
   const leader = getRunLeader(pkgManager)
-  const runtime = leader === 'bun' ? 'bun' : 'node'
-  if (web === 'none') {
-    return logGuids([
-      {
-        items: [
-          `cd ${projectName}`,
-          `${runtime} init-dev.mjs`,
-          `${leader} dev`,
-        ],
-      },
-    ])
+  const runtime = leader === 'pnpm' ? 'node' : leader
+  const installationStep = {
+    offset: 0,
+    title: blue('Install Dependencies:'),
+    items: [`cd ${projectName}`, `${leader} install`],
   }
-  logGuids([
+  const offset = installationStep.items.length
+  return logGuids([
+    installationStep,
     {
-      title: blue('Server:'),
-      items: [
-        `cd ${projectName}/server`,
-        `${runtime} init-dev.mjs`,
-        `${leader} dev`,
-      ],
-    },
-    {
-      title: blue('Web:'),
-      items: [`cd ${projectName}/web`, `${leader} install`, `${leader} dev`],
+      offset,
+      items: [`${runtime} ./packages/server/${kInitDemo}`, `${leader} dev`],
     },
   ])
 }
 
 const mayCopyCommonDir = (templateDir: string, destDir: string) => {
   const commonDir = join(templateDir, 'common')
-  if (existsSync(commonDir)) {
+  if (fs.existsSync(commonDir)) {
     copyDir(commonDir, destDir)
   }
 }
@@ -202,8 +196,16 @@ const collectUserAnswer = (argProjectName: string | undefined) =>
 
 type ContextType = Awaited<ReturnType<typeof createCtx>>
 
-const getRunLeader = (pkgManager: string) =>
-  pkgManager === 'npm' ? 'npm run' : pkgManager
+const getRunLeader = (pkgManager: string) => {
+  switch (pkgManager) {
+    case 'bun':
+      return 'bun run'
+    case 'deno':
+      return 'deno task'
+    default:
+      return 'pnpm'
+  }
+}
 
 const pkgFromUserAgent = (userAgent = '') => {
   const pkgSpec = userAgent.split(' ')[0].split('/')[0]
@@ -212,27 +214,27 @@ const pkgFromUserAgent = (userAgent = '') => {
 
 const createServerProject = async (ctx: ContextType) => {
   const { projectRootDir, answer } = ctx
-  const { server, apiStyle, web } = answer
-  const destServerDir = web === 'none' ? ctx.dest : join(ctx.dest, 'server')
+  const { server } = answer
+  const destServerDir = join(ctx.dest, 'server')
   await mayOverwrite(destServerDir)
   const templateDir = join(projectRootDir, 'template')
   const templateServerDir = join(templateDir, 'server', server)
   mayCopyCommonDir(templateDir, destServerDir)
-  mayCopyCommonDir(templateServerDir, destServerDir)
+  // copyDir(templateServerDir, destServerDir)
+  const isRestful = answer.apiStyle === 'restful'
   const templateSnaps = createTemplates({
-    isRestful: answer.apiStyle === 'restful',
+    isRestful,
     framwork: answer.server,
   })
   writeTemplates(
     path.join(destServerDir, 'dev-templates/handlers'),
     templateSnaps,
   )
-  createProject(join(templateServerDir, 'common'), destServerDir)
-  const apiStyleDir = join(templateServerDir, apiStyle)
-  copyDir(apiStyleDir, destServerDir)
-  mayCopyCommonDir(apiStyleDir, destServerDir)
-  if (apiStyle === 'restful') {
+  createProject(templateServerDir, destServerDir)
+  if (isRestful) {
     copyDir(join(templateDir, 'restful-only'), destServerDir)
+  } else {
+    copyDir(join(templateDir, 'post-get'), destServerDir)
   }
   writeInitDevFile(ctx.pkgManager, destServerDir)
 }
@@ -241,12 +243,11 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
   new Promise<void>(res => {
     const { answer, pkgManager } = ctx
     const name = path.basename(webDest)
-    const dir = path.dirname(webDest)
     const leader = pkgManager === 'npm' ? 'npx' : pkgManager
     const fullArgs = ['create', 'vite', name, '--template', answer.web]
     const spinner = ora({ spinner: 'dots' })
     spinner.start(['Running', leader, ...fullArgs].join(' '))
-    const p = spawn(leader, fullArgs, { cwd: dir })
+    const p = spawn(leader, fullArgs, { cwd: path.dirname(webDest) })
     // p.stdout.setEncoding('utf-8')
     // p.stdout.on('data', v => {
     //   console.log('--->', String(v))
@@ -273,13 +274,14 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
     })
   })
 
-const updatePackageJson = (webDestDir: string, pkgManager: string) => {
+const updatePackageJson = (webDestDir: string) => {
   const pkg = JSON.parse(
     fs.readFileSync(join(webDestDir, 'package.json'), 'utf-8'),
   )
   pkg.dependencies['@tealina-client'] = '^1.0.0'
-  pkg.devDependencies.server =
-    pkgManager === 'bun' ? 'link:server' : 'link:../server'
+  pkg.dependencies.axios = '^1.7.7'
+  pkg.devDependencies.server = 'workspace:*'
+  pkg.devDependencies['@shared/type'] = 'workspace:*'
   fs.writeFileSync(
     join(webDestDir, 'package.json'),
     JSON.stringify(pkg, null, 2),
@@ -295,7 +297,7 @@ const emptyDir = (dir: string) => {
 }
 
 const mayOverwrite = async (dest: string) => {
-  if (!existsSync(dest)) return
+  if (!fs.existsSync(dest)) return
   const confirm = await prompts([
     {
       type: 'confirm',
@@ -309,15 +311,34 @@ const mayOverwrite = async (dest: string) => {
   emptyDir(dest)
 }
 
+const updateViteConfig = (webDest: string) => {
+  const proxyConfig = [
+    'server: {',
+    '  proxy: {',
+    "    '/api': 'http://localhost:5000'",
+    '  }',
+    '},',
+  ].map(v => `  ${v}`)
+  const viteConfigPath = path.join(webDest, 'vite.config.ts')
+  const content = fs.readFileSync(viteConfigPath).toString().trimEnd()
+  const newContent = content
+    .split('\n')
+    .slice(0, -1)
+    .concat(proxyConfig)
+    .concat(['})', ''])
+    .join('\n')
+  fs.writeFileSync(viteConfigPath, newContent)
+}
+
 const createWebProject = async (ctx: ContextType) => {
-  const { projectRootDir, answer, dest } = ctx
-  const webDestDir = join(dest, 'web')
-  const webDest = path.join(answer.projectName, 'web').split(path.sep).join('/')
+  const { projectRootDir, dest } = ctx
+  const webDest = join(dest, 'web')
   await mayOverwrite(webDest)
   await runCreateVite(ctx, webDest)
-  updatePackageJson(webDestDir, ctx.pkgManager)
+  updatePackageJson(webDest)
+  updateViteConfig(webDest)
   const webExtraTemplateDir = join(projectRootDir, 'template', 'web')
-  injectExtraTemplates(webDestDir, webExtraTemplateDir)
+  copyTemplates(webDest, webExtraTemplateDir)
 }
 
 const createCtx = async () => {
@@ -326,19 +347,43 @@ const createCtx = async () => {
   }>(process.argv.slice(2), { string: ['_'], boolean: ['d'] })
   const answer = await collectUserAnswer(argv._[0])
   const cwd = process.cwd()
-  const dest = path.resolve(cwd, answer.projectName)
+  const root = path.resolve(cwd, answer.projectName)
   const projectRootDir = path.resolve(fileURLToPath(import.meta.url), '../../')
   const pkgManager = pkgFromUserAgent(process.env.npm_config_user_agent)
   return {
     answer,
-    dest,
+    root,
+    dest: path.join(root, 'packages'),
     projectRootDir,
     pkgManager,
   }
 }
 
+const createRoot = (ctx: ContextType) => {
+  const getRuntime = () => {
+    switch (ctx.pkgManager) {
+      case 'bun':
+      case 'deno':
+        return ctx.pkgManager
+      default:
+        return 'node'
+    }
+  }
+  const pkgDest = path.join(ctx.root, 'packages')
+  fs.mkdirSync(pkgDest, { recursive: true })
+  const webExtraTemplateDir = join(
+    ctx.projectRootDir,
+    'template',
+    'root',
+    getRuntime(),
+  )
+  copyTemplates(ctx.root, webExtraTemplateDir)
+  copyDir(join(ctx.projectRootDir, 'template', 'pkg'), pkgDest)
+}
+
 export const createScaffold = async () => {
   const ctx = await createCtx()
+  createRoot(ctx)
   await createServerProject(ctx)
   if (ctx.answer.web !== 'none') {
     await createWebProject(ctx)

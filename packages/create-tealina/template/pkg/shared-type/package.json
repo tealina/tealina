@@ -1,0 +1,19 @@
+{
+  "name": "@shared/type",
+  "version": "1.0.0",
+  "description": "Shareable types for other packages",
+  "main": "",
+  "types": "pure.d.ts",
+  "exports": {
+    ".": {
+      "types": "./pure.d.ts"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"skip build\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

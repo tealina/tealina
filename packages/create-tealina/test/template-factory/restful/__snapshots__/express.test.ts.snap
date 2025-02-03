@@ -24,7 +24,7 @@ exports[`make express restful templates 1`] = `
   ({ Filename: Model, relative2api, filename: model }) => {
   const imps = [
     \`import type { AuthedHandler } from '\${relative2api}/../types/handler.js'\`,
-    \`import type { Pure } from '\${relative2api}/../types/pure.js'\`,
+    \`import type { Pure } from '\@shared/type\`,
     \`import { convention } from '\${relative2api}/convention.js'\`,
     \`import { db } from '\${relative2api}/db/prisma.js'\`,
   ]
@@ -51,7 +51,7 @@ exports[`make express restful templates 1`] = `
   ({ Filename: Model, relative2api, filename: model }) => {
   const imps = [
     \`import type { AuthedHandler } from '\${relative2api}/../types/handler.js'\`,
-    \`import type { Pure } from '\${relative2api}/../types/pure.js'\`,
+    \`import type { Pure } from '\@shared/type\`,
     \`import { findManyArgsZ } from '\${relative2api}/validate/findManyArgs.js'\`,
     \`import type { PageResult, RawFindManyArgs } from '\${relative2api}/../types/common.js'\`,
     \`import { convention } from '\${relative2api}/convention.js'\`,
@@ -81,7 +81,7 @@ exports[`make express restful templates 1`] = `
     "code": "export default makeTemplate(({ Dir: Model, relative2api, dir: model }) => {
   const imps = [
     \`import type { AuthedHandler } from '\${relative2api}/../types/handler.js'\`,
-    \`import type { Pure } from '\${relative2api}/../types/pure.js'\`,
+    \`import type { Pure } from '\@shared/type\`,
     \`import { convention } from '\${relative2api}/convention.js'\`,
     \`import { db } from '\${relative2api}/db/prisma.js'\`,
     \`import type { RawId } from '\${relative2api}/../types/common.js'\`,

@@ -1,0 +1,3 @@
+[packages]
+server = { path = "./packages/server" }
+web = { path = "./packages/web" }
