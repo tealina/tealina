@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest'
 import type { MockApi } from '../../MockApi'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
-import { createRawAxiosRPC } from '../../../src'
+import { createRawAxiosRPC } from '../../../src/axios/index'
 
 test('get request', async () => {
   const mockResponse = { status: 'fine' }

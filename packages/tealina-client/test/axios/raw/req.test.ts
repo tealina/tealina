@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest'
-import { createRawAxiosClient } from '../../../src/index'
+import { createRawAxiosClient } from '../../../src/axios/index'
 import type { MockApi } from '../../MockApi'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
