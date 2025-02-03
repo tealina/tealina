@@ -39,9 +39,9 @@ interface BasiRouteOption<T> {
  * Sort and transform API records into routing options.
  */
 const transformToRouteOptions = <T>(
-  apiRecords: ResolvedAPIs<T>,
+  oneMethodRecords: ResolvedAPIs<T>,
 ): BasiRouteOption<T>[] =>
-  Object.entries(apiRecords).flatMap(([method, sameMethodApis]) =>
+  Object.entries(oneMethodRecords).flatMap(([method, sameMethodApis]) =>
     sortPath(Object.keys(sameMethodApis)).map(url => {
       const handler = sameMethodApis[url] as T
       return { method, url, handler }
