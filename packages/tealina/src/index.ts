@@ -51,6 +51,15 @@ export interface Overwrite {
 
 export interface GtypeConfig {
   /**
+   * @default "./types/pure.d.ts"
+   */
+  output?: string
+  /**
+   * @default "Pure"
+   * If no namespace is needed, assign an empty string.
+   */
+  namesapce?: string
+  /**
    *  Overwrite specific prop.type\
    *  eg: OrderNo should be optional or exclude in OrderUpdateInput\
    *  **Attention**: Optional field will always append `| null`
@@ -117,7 +126,7 @@ export interface TealinaConifg {
   template: {
     handlers: ApiTemplateType[]
     /**  Generate integration test file */
-    test: {
+    test?: {
       genSuite: GenTestSuiteFnType
       genHelper?: GenTestHelperFnType
     }
@@ -129,14 +138,9 @@ export interface TealinaConifg {
   /**
    * Where generated integration test file store
    */
-  testDir: string
-  /**
-   * @deprecated
-   * use gtype property
-   */
-  gpure?: GtypeConfig
+  testDir?: string
   gtype?: GtypeConfig
-  /** the import statement suffix @default {".js"} */
+  /** The import statement suffix @default {".js"} */
   suffix?: string
 }
 
