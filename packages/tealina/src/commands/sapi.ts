@@ -20,7 +20,7 @@ import { filename } from 'pathe/utils'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { type Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
-import { MinimalInput, withoutSuffix } from '../utils/tool'
+import { withoutSuffix } from '../utils/tool'
 import { validateKind } from '../utils/validate'
 import {
   type DirInfo,
@@ -29,7 +29,6 @@ import {
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
 import type { FullOptions } from './capi'
-import { TealinaConifg } from '..'
 
 interface GatherPhase {
   kind: string
@@ -184,4 +183,4 @@ const syncApiByFile = asyncFlow(
   logResults,
 )
 
-export { calcSnapshots, syncApiByFile, pickOption4align }
+export { calcSnapshots, pickOption4align, syncApiByFile }
