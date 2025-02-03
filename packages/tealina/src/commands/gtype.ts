@@ -330,10 +330,15 @@ const wrapperWith =
   ({ input, output, namespace }: PurifyOption) =>
   (lines: string[]) => {
     const relativeInputPath = calcRelativeInputPath(input, output)
+    if (namespace.trim().length <= 0) {
+      return [
+        `// Purified types from [schema](${relativeInputPath})`,
+        '',
+        ...lines.map(v => `export ${v}`),
+      ]
+    }
     return [
-      ...formatComment([
-        `Purified mutation types from [schema](${relativeInputPath})`,
-      ]),
+      ...formatComment([`Purified types from [schema](${relativeInputPath})`]),
       `export namespace ${namespace} {`,
       ...lines.map(v => `${TabSpace}${v}`),
       '}',
@@ -372,7 +377,10 @@ const makeTypeCodes =
           concat(g.get('type') ?? []),
           map(toTsInterface),
           g.has('enum')
-            ? flow(concat([ENUMS_BEGIN]), concat(g.get('enum')?.map(enum2ts)))
+            ? flow(
+                concat([ENUMS_BEGIN]),
+                concat(g.get('enum')?.map(enum2ts) ?? []),
+              )
             : x => x,
         ),
       flat,
@@ -392,9 +400,9 @@ type GtypeOption = Required<
   Pick<FullOptions, 'gtype' | 'output' | 'input' | 'namespace'>
 >
 const pickOption4gtype = (full: FullOptions): GtypeOption => {
-  const x = pickFn(full, 'gtype', 'gpure', 'output', 'input', 'namespace')
+  const x = pickFn(full, 'gtype', 'output', 'input', 'namespace')
   const output = x.output ?? 'types/pure.d.ts'
-  const gtype = x.gtype ?? x.gpure ?? {}
+  const gtype = x.gtype ?? {}
   return { ...x, output, gtype }
 }
 const generatePureTypes = async (option: GtypeOption) => {
