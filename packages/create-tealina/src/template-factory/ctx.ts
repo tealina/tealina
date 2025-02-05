@@ -13,3 +13,11 @@ export const replyExpression: Record<SupportFramworks, string> = {
   express: "'  res.sendStatus(200)',",
   fastify: "'  res.send()',",
 }
+
+export const kReplyFactory: Record<
+  SupportFramworks,
+  (result: string) => string
+> = {
+  express: result => `res.send(${result})`,
+  fastify: result => `res.send(${result})`,
+}

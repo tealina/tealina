@@ -1,5 +1,5 @@
 import { kStatement, kLines, kLeadFn } from './common'
-import type { CtxForMakeCode } from './ctx'
+import { kReplyFactory, type CtxForMakeCode } from './ctx'
 
 export const makeCreationCode = (ctx: CtxForMakeCode) => {
   const lead = ctx.isRestful ? kLeadFn.restFul : kLeadFn.postGet
@@ -19,7 +19,7 @@ export const makeCreationCode = (ctx: CtxForMakeCode) => {
     '    `  const result = await db.${model}.create({`,',
     "    '    data: req.body,',",
     "    '  })',",
-    "    '  res.send(result)',",
+    `    '  ${kReplyFactory[ctx.framwork]('result')}',`,
     kLines.tail,
   ]
     .flat()

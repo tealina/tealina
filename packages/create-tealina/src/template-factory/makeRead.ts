@@ -1,5 +1,5 @@
 import { kStatement, kLines, kLeadFn } from './common'
-import type { CtxForMakeCode } from './ctx'
+import { kReplyFactory, type CtxForMakeCode } from './ctx'
 
 const restfulStyle = {
   fn: kLeadFn.restFul,
@@ -8,7 +8,7 @@ const restfulStyle = {
     "    `import type { PageResult, RawFindManyArgs } from '${relative2api}/../types/common.js'`,",
   ],
   apiType:
-    "'type ApiType = AuthedHandler<{ query: RawFindManyArgs }, PageResult<Pure.${Model}>>',",
+    '`type ApiType = AuthedHandler<{ query: RawFindManyArgs }, PageResult<Pure.${Model}>>`,',
   query: "'  const findManyArgs = findManyArgsZ.parse(req.query)',",
 }
 const postGetStyle = {
@@ -42,7 +42,7 @@ export const makeReadCode = (ctx: CtxForMakeCode) => {
     '    `    db.${model}.count({ where: findManyArgs.where }),`,',
     '    `    db.${model}.findMany(findManyArgs),`,',
     "    '  ])',",
-    "    '  res.send({ total, datas })',",
+    `    '  ${kReplyFactory[ctx.framwork]('{ total, datas }')}',`,
     kLines.tail,
   ]
     .flat()

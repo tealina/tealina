@@ -1,5 +1,5 @@
 import { kStatement, kLines, kRestfulImps } from './common'
-import type { CtxForMakeCode } from './ctx'
+import { kReplyFactory, type CtxForMakeCode } from './ctx'
 
 const restfulStyle = {
   imps: kRestfulImps,
@@ -46,7 +46,7 @@ export const makeUpdateCode = (ctx: CtxForMakeCode) => {
     "    '    where: { id },',",
     "    '    data,',",
     "    '  })',",
-    "    '  res.send(result)',",
+    `    '  ${kReplyFactory[ctx.framwork]('result')}',`,
     kLines.tail,
   ]
     .flat()
