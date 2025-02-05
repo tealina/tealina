@@ -59,4 +59,21 @@ export type MockApi = {
       headers: AuthHeaders
     }
   }
+  delete: {
+    'user/:id': {
+      params: { id: string }
+      response: User
+      headers: AuthHeaders
+    }
+    'user/:id/:addressId': {
+      params: { id: string; addressId: string }
+      response: User
+      headers: AuthHeaders
+    }
+    'post/:id': {
+      params: { id: string }
+      response: { title: string }
+      headers: AuthHeaders
+    }
+  }
 }
