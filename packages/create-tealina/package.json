@@ -16,7 +16,13 @@
     "template",
     "dist"
   ],
-  "keywords": [],
+  "keywords": [
+    "scaffold",
+    "full-stask",
+    "end-to-end types",
+    "self-documented",
+    "documentation generation"
+  ],
   "author": "Neo Yeo",
   "license": "MIT",
   "devDependencies": {
