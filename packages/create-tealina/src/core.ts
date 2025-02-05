@@ -12,6 +12,7 @@ import { writeTemplates } from './template-factory/write'
 const { blue, green, reset } = chalk
 const { join } = path
 const kInitDemo = 'init-demo.mjs'
+const kInitCommand = 'init-demo'
 
 const copy = (src: string, dest: string) =>
   fs.statSync(src).isDirectory()
@@ -37,7 +38,7 @@ const GIT_IGNORE_CONTNET = [
 const createProject = (
   templateDir: string,
   dest: string,
-  beforeWritePkg?: (pkg: Record<string, unknown>) => Record<string, unknown>,
+  beforeWritePkg?: (pkg: Record<string, any>) => Record<string, any>,
 ) => {
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true })
@@ -95,16 +96,14 @@ const copyTemplates = (dest: string, webExtraTemplateDir: string) => {
   }
 }
 
-const logGuids = (
-  guids: { title?: string; items: string[]; offset: number }[],
-) => {
+const logGuids = (guids: { title?: string; items: string[] }[]) => {
   const all = [
     '',
-    green('     Scafold project is ready'),
+    green('     Scaffold project is ready.'),
     guids
       .flatMap(v => [
         v.title,
-        v.items.map((s, i) => `  ${v.offset + i + 1}. ${s}`).join('\n'),
+        v.items.map((s, i) => `  ${i + 1}. ${s}`).join('\n'),
       ])
       .filter(v => v != null)
       .join('\n'),
@@ -113,20 +112,17 @@ const logGuids = (
 }
 
 const showGuide = ({ answer, pkgManager }: ContextType) => {
-  const { projectName, web } = answer
+  const { projectName } = answer
   const leader = getRunLeader(pkgManager)
   const runtime = leader === 'pnpm' ? 'node' : leader
-  const installationStep = {
-    offset: 0,
-    title: blue('Install Dependencies:'),
-    items: [`cd ${projectName}`, `${leader} install`],
-  }
-  const offset = installationStep.items.length
   return logGuids([
-    installationStep,
     {
-      offset,
-      items: [`${runtime} ./packages/server/${kInitDemo}`, `${leader} dev`],
+      title: blue('Done. Now run:'),
+      items: [
+        `cd ${projectName}`,
+        `${runtime} ${kInitCommand}`,
+        `${leader} dev`,
+      ],
     },
   ])
 }
@@ -220,7 +216,7 @@ const createServerProject = async (ctx: ContextType) => {
   const templateDir = join(projectRootDir, 'template')
   const templateServerDir = join(templateDir, 'server', server)
   mayCopyCommonDir(templateDir, destServerDir)
-  // copyDir(templateServerDir, destServerDir)
+  copyDir(templateServerDir, destServerDir)
   const isRestful = answer.apiStyle === 'restful'
   const templateSnaps = createTemplates({
     isRestful,
@@ -230,7 +226,12 @@ const createServerProject = async (ctx: ContextType) => {
     path.join(destServerDir, 'dev-templates/handlers'),
     templateSnaps,
   )
-  createProject(templateServerDir, destServerDir)
+  createProject(templateServerDir, destServerDir, pkg => {
+    const leader = getRunLeader(ctx.pkgManager)
+    const runtime = leader === 'pnpm' ? 'node' : leader
+    pkg.scripts['init-demo'] = `${runtime} ./packages/server/${kInitDemo}`
+    return pkg
+  })
   if (isRestful) {
     copyDir(join(templateDir, 'restful-only'), destServerDir)
   } else {
