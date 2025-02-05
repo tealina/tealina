@@ -29,7 +29,7 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@shared/type": "workspase:*",
+    "@shared/type": "workspace:*",
     "@types/node": "^18.11.18",
     "@types/qs": "^6.9.7",
     "prisma": "^5.3.1",
