@@ -3,8 +3,7 @@ import type { DirInfo } from './withTypeFile'
 
 const toRoutePath = (xs: string[]) => {
   const route = xs.map(v => v.replace(/\[/, ':').replace(/\]/, '')).join('/')
-  // endwith slash for better type check when route has params
-  return route.includes(':') ? `${route}/` : route
+  return route
 }
 
 export const genTopIndexProp =
