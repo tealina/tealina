@@ -1,5 +1,5 @@
 import { kStatement, kLines } from './common'
-import { type CtxForMakeCode, replyExpression } from './ctx'
+import { type CtxForMakeCode, makeHandlerExp, replyExpression } from './ctx'
 
 export const makeBasicCode = (ctx: CtxForMakeCode) => {
   return [
@@ -9,7 +9,7 @@ export const makeBasicCode = (ctx: CtxForMakeCode) => {
     `    ${kStatement.convention},`,
     "    '',",
     "    '/** TODO: describe what it does */',",
-    `'    ${kStatement.handler}',`,
+    `'    ${makeHandlerExp(ctx.framwork)}',`,
     `     ${replyExpression[ctx.framwork]}`,
     "    '}',",
     "    '',",

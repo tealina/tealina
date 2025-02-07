@@ -1,15 +1,24 @@
 import { kStatement, kLines, kLeadFn, kRestfulImps } from './common'
-import { type CtxForMakeCode, replyExpression } from './ctx'
+import {
+  type CtxForMakeCode,
+  kPayloadLeader,
+  makeHandlerExp,
+  replyExpression,
+  type SupportFramworks,
+} from './ctx'
 const restfulStyle = {
   imps: kRestfulImps,
   apiType: ["  'type ApiType = AuthedHandler<{ params: RawId }>',"],
 
-  body: ["    '  const { id } = modelIdZ.parse(req.params)',"],
+  body: (f: SupportFramworks) => [
+    `    '  const { id } = modelIdZ.parse(${kPayloadLeader[f]}.params)',`,
+  ],
 }
 const postGetStyle = {
   imps: kStatement.impModelId,
   apiType: ["    'type ApiType = AuthedHandler<{ body: ModelId }>',"],
-  body: "    '  const { id } = req.body',",
+  body: (f: SupportFramworks) =>
+    `    '  const { id } = ${kPayloadLeader[f]}.body',`,
 }
 export const makeDeletetionCode = (ctx: CtxForMakeCode) => {
   const actual = ctx.isRestful ? restfulStyle : postGetStyle
@@ -25,8 +34,8 @@ export const makeDeletetionCode = (ctx: CtxForMakeCode) => {
     actual.apiType,
     "    '',",
     '    `/** Delete ${Model} by id */`,',
-    `    '${kStatement.handler}',`,
-    actual.body,
+    `    '${makeHandlerExp(ctx.framwork)}',`,
+    actual.body(ctx.framwork),
     '    `  await db.${model}.delete({ where: { id } })`,',
     `    ${replyExpression[ctx.framwork]}`,
     kLines.tail,

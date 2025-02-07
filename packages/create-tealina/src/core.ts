@@ -114,13 +114,12 @@ const logGuids = (guids: { title?: string; items: string[] }[]) => {
 const showGuide = ({ answer, pkgManager }: ContextType) => {
   const { projectName } = answer
   const leader = getRunLeader(pkgManager)
-  const runtime = leader === 'pnpm' ? 'node' : leader
   return logGuids([
     {
       title: blue('Done. Now run:'),
       items: [
         `cd ${projectName}`,
-        `${runtime} ${kInitCommand}`,
+        `${leader} ${kInitCommand}`,
         `${leader} dev`,
       ],
     },
@@ -152,6 +151,7 @@ const collectUserAnswer = (argProjectName: string | undefined) =>
         choices: [
           { title: 'Express', value: 'express' },
           { title: 'Fastify', value: 'fastify' },
+          { title: 'Koa', value: 'koa' },
         ],
       },
       {
@@ -227,9 +227,8 @@ const createServerProject = async (ctx: ContextType) => {
     templateSnaps,
   )
   createProject(templateServerDir, destServerDir, pkg => {
-    const leader = getRunLeader(ctx.pkgManager)
-    const runtime = leader === 'pnpm' ? 'node' : leader
-    pkg.scripts['init-demo'] = `${runtime} ./packages/server/${kInitDemo}`
+    const runtime = getRuntime(ctx)
+    pkg.scripts['init-demo'] = `${runtime} ${kInitDemo}`
     return pkg
   })
   if (isRestful) {
@@ -359,24 +358,23 @@ const createCtx = async () => {
     pkgManager,
   }
 }
-
-const createRoot = (ctx: ContextType) => {
-  const getRuntime = () => {
-    switch (ctx.pkgManager) {
-      case 'bun':
-      case 'deno':
-        return ctx.pkgManager
-      default:
-        return 'node'
-    }
+const getRuntime = (ctx: ContextType) => {
+  switch (ctx.pkgManager) {
+    case 'bun':
+    case 'deno':
+      return ctx.pkgManager
+    default:
+      return 'node'
   }
+}
+const createRoot = (ctx: ContextType) => {
   const pkgDest = path.join(ctx.root, 'packages')
   fs.mkdirSync(pkgDest, { recursive: true })
   const webExtraTemplateDir = join(
     ctx.projectRootDir,
     'template',
     'root',
-    getRuntime(),
+    getRuntime(ctx),
   )
   copyTemplates(ctx.root, webExtraTemplateDir)
   copyDir(join(ctx.projectRootDir, 'template', 'pkg'), pkgDest)

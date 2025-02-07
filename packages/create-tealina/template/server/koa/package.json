@@ -1,0 +1,52 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./api/v1": {
+      "types": "./types/api-v1.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "dotenv -c -- tsx watch src",
+    "preview": "dotenv -c -- node dist/index.js",
+    "build": "tsc --project tsconfig.build.json",
+    "v1": "tealina src/api-v1",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@prisma/client": "^5.3.1",
+    "@tealina/doc-ui": "^1.0.2",
+    "@tealina/server": "workspace:*",
+    "axios": "^1.7.7",
+    "dotenv-cli": "^7.2.1",
+    "koa": "^2.15.3",
+    "koa-bodyparser": "^4.4.1",
+    "koa-mount": "^4.0.0",
+    "koa-router": "^13.0.1",
+    "koa-send": "^5.0.1",
+    "koa-static": "^5.0.0",
+    "qs": "^6.11.2",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "@shared/type": "workspace:*",
+    "@types/koa": "^2.15.0",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa-mount": "^4.0.5",
+    "@types/koa-router": "^7.4.8",
+    "@types/koa-send": "^4.1.6",
+    "@types/koa-static": "^4.0.4",
+    "@types/node": "^18.11.18",
+    "@types/qs": "^6.9.7",
+    "prisma": "^5.3.1",
+    "tealina": "^1.1.1",
+    "tsx": "^3.12.7",
+    "typescript": "~5.6.2"
+  },
+  "license": "ISC"
+}

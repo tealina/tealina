@@ -1,5 +1,11 @@
 import { kStatement, kLines, kLeadFn } from './common'
-import { kReplyFactory, type CtxForMakeCode } from './ctx'
+import {
+  kPayloadLeader,
+  kReplyFactory,
+  makeHandlerExp,
+  type SupportFramworks,
+  type CtxForMakeCode,
+} from './ctx'
 
 const restfulStyle = {
   fn: kLeadFn.restFul,
@@ -9,7 +15,8 @@ const restfulStyle = {
   ],
   apiType:
     '`type ApiType = AuthedHandler<{ query: RawFindManyArgs }, PageResult<Pure.${Model}>>`,',
-  query: "'  const findManyArgs = findManyArgsZ.parse(req.query)',",
+  query: (f: SupportFramworks) =>
+    `'  const findManyArgs = findManyArgsZ.parse(${kPayloadLeader[f]}.query)',`,
 }
 const postGetStyle = {
   fn: kLeadFn.postGet,
@@ -18,7 +25,8 @@ const postGetStyle = {
   ],
   apiType:
     '`type ApiType = AuthedHandler<{ body: FindManyArgs }, PageResult<Pure.${Model}>>`,',
-  query: "    'const findManyArgs = req.body',",
+  query: (f: SupportFramworks) =>
+    `    'const findManyArgs = ${kPayloadLeader[f]}.body',`,
 }
 
 export const makeReadCode = (ctx: CtxForMakeCode) => {
@@ -36,8 +44,8 @@ export const makeReadCode = (ctx: CtxForMakeCode) => {
     `    ${actual.apiType}`,
     "    '',",
     '    `/** Get page datas from ${Model} */`,',
-    `    '${kStatement.handler}',`,
-    `    ${actual.query}`,
+    `    '${makeHandlerExp(ctx.framwork)}',`,
+    `    ${actual.query(ctx.framwork)}`,
     "    '  const [total, datas] = await db.$transaction([',",
     '    `    db.${model}.count({ where: findManyArgs.where }),`,',
     '    `    db.${model}.findMany(findManyArgs),`,',

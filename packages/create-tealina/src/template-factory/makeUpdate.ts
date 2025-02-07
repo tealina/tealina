@@ -1,5 +1,11 @@
 import { kStatement, kLines, kRestfulImps } from './common'
-import { kReplyFactory, type CtxForMakeCode } from './ctx'
+import {
+  kPayloadLeader,
+  kReplyFactory,
+  makeHandlerExp,
+  type SupportFramworks,
+  type CtxForMakeCode,
+} from './ctx'
 
 const restfulStyle = {
   imps: kRestfulImps,
@@ -9,9 +15,9 @@ const restfulStyle = {
     '    `  Pure.${Model}`,',
     "    '>',",
   ],
-  body: [
-    "    '  const { id } = modelIdZ.parse(req.params)',",
-    "    '  const data = req.body',",
+  body: (framwork: SupportFramworks) => [
+    `    '  const { id } = modelIdZ.parse(${kPayloadLeader[framwork]}.params)',`,
+    `    '  const data = ${kPayloadLeader[framwork]}.body',`,
   ],
 }
 const postGetStyle = {
@@ -22,7 +28,8 @@ const postGetStyle = {
     '    `  Pure.${Model}`,',
     "    '>',",
   ],
-  body: "    '  const { id, ...data } = req.body',",
+  body: (framwork: SupportFramworks) =>
+    `    '  const { id, ...data } = ${kPayloadLeader[framwork]}.body',`,
 }
 
 export const makeUpdateCode = (ctx: CtxForMakeCode) => {
@@ -40,8 +47,8 @@ export const makeUpdateCode = (ctx: CtxForMakeCode) => {
     actual.apiType,
     "    '',",
     '    `/** Update ${Model} by id */`,',
-    `    '${kStatement.handler}',`,
-    actual.body,
+    `    '${makeHandlerExp(ctx.framwork)}',`,
+    actual.body(ctx.framwork),
     '    `  const result = await db.${model}.update({`,',
     "    '    where: { id },',",
     "    '    data,',",

@@ -1,5 +1,10 @@
 import { kStatement, kLines, kLeadFn } from './common'
-import { kReplyFactory, type CtxForMakeCode } from './ctx'
+import {
+  kPayloadLeader,
+  kReplyFactory,
+  makeHandlerExp,
+  type CtxForMakeCode,
+} from './ctx'
 
 export const makeCreationCode = (ctx: CtxForMakeCode) => {
   const lead = ctx.isRestful ? kLeadFn.restFul : kLeadFn.postGet
@@ -15,9 +20,9 @@ export const makeCreationCode = (ctx: CtxForMakeCode) => {
     '    `type ApiType = AuthedHandler<{ body: Pure.${Model}CreateInput }, Pure.${Model}>`,',
     "    '',",
     '    `/** Create ${Model} */`,',
-    `    '${kStatement.handler}',`,
+    `    '${makeHandlerExp(ctx.framwork)}',`,
     '    `  const result = await db.${model}.create({`,',
-    "    '    data: req.body,',",
+    `    '    data: ${kPayloadLeader[ctx.framwork]}.body,',`,
     "    '  })',",
     `    '  ${kReplyFactory[ctx.framwork]('result')}',`,
     kLines.tail,

@@ -4,7 +4,6 @@ export const kStatement = {
   pure: "import type { Pure } from '@shared/type'",
   convention: "`import { convention } from '${relative2api}/convention.js'`",
   db: "`import { db } from '${relative2api}/db/prisma.js'`",
-  handler: 'const handler: ApiType = async (req, res) => {',
   impModelId: [
     "    `import type { ModelId } from '${relative2api}/../types/common.js'`,",
   ],
