@@ -15,7 +15,7 @@ type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
  */
 const OpenPathRecord: Partial<TakeMethodAndPathRecord<typeof apisV1>> = {
   get: { status: true },
-  // post: ['user/login'],
+  // post: { 'user/login': true },
 }
 
 type HttpMethod = keyof Pick<
