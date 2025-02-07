@@ -12,7 +12,7 @@ import type { AuthHeaders, AuthedLocals } from './common.js'
 export type EmptyObj = Record<string, unknown>
 
 /** [doc](https://github.com/sindresorhus/type-fest/blob/main/source/simplify.d.ts) */
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
+export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 interface RawPayload {
   body?: unknown
