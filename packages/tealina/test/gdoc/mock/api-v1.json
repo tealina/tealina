@@ -1,0 +1,320 @@
+{
+  "apis": {
+    "delete": {
+      "user/:id/": {
+        "params": {
+          "kind": 4,
+          "id": 592
+        },
+        "response": {
+          "kind": 0,
+          "type": "unknown"
+        },
+        "headers": {
+          "kind": 4,
+          "id": 282
+        },
+        "comment": "Delete User by id"
+      }
+    },
+    "get": {
+      "status": {
+        "response": {
+          "kind": 4,
+          "id": 676
+        },
+        "headers": {
+          "kind": 4,
+          "id": 236
+        }
+      },
+      "user": {
+        "query": {
+          "kind": 4,
+          "id": 764
+        },
+        "response": {
+          "kind": 4,
+          "id": 738
+        },
+        "headers": {
+          "kind": 4,
+          "id": 282
+        },
+        "comment": "Get page datas from User"
+      }
+    },
+    "post": {
+      "address": {
+        "body": {
+          "kind": 4,
+          "id": 888
+        },
+        "response": {
+          "kind": 4,
+          "id": 859
+        },
+        "headers": {
+          "kind": 4,
+          "id": 861
+        },
+        "comment": "Create User"
+      },
+      "user": {
+        "body": {
+          "kind": 4,
+          "id": 956
+        },
+        "response": {
+          "kind": 4,
+          "id": 737
+        },
+        "headers": {
+          "kind": 4,
+          "id": 282
+        },
+        "comment": "Create User"
+      }
+    },
+    "put": {
+      "user/:id/": {
+        "params": {
+          "kind": 4,
+          "id": 592
+        },
+        "body": {
+          "kind": 4,
+          "id": 1040
+        },
+        "response": {
+          "kind": 4,
+          "id": 737
+        },
+        "headers": {
+          "kind": 4,
+          "id": 282
+        },
+        "comment": "Update User by id"
+      }
+    }
+  },
+  "entityRefs": {
+    "236": {
+      "name": "EmptyObj",
+      "props": []
+    },
+    "282": {
+      "name": "AuthHeaders",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "Authorization"
+        }
+      ]
+    },
+    "592": {
+      "name": "RawId",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    "676": {
+      "name": "{ status: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "status"
+        }
+      ]
+    },
+    "737": {
+      "name": "User",
+      "props": [
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "id",
+          "jsDoc": {
+            "default": "autoincrement()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "name"
+        }
+      ]
+    },
+    "738": {
+      "name": "PageResult<User>",
+      "props": [
+        {
+          "kind": 11,
+          "element": {
+            "kind": 4,
+            "id": 737
+          },
+          "name": "datas"
+        },
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "total"
+        }
+      ]
+    },
+    "764": {
+      "name": "RawFindManyArgs",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "skip"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "take"
+        },
+        {
+          "kind": 6,
+          "key": {
+            "kind": 0,
+            "type": "string"
+          },
+          "value": {
+            "kind": 0,
+            "type": "unknown"
+          },
+          "isOptional": true,
+          "name": "where"
+        }
+      ]
+    },
+    "859": {
+      "name": "{ id: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    "861": {
+      "name": "{ 'Content-Type': \"multipart/form-data\"; } & AuthHeaders",
+      "props": [
+        {
+          "kind": 7,
+          "value": "multipart/form-data",
+          "name": "Content-Type"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "Authorization"
+        }
+      ]
+    },
+    "888": {
+      "name": "Profile",
+      "props": [
+        {
+          "kind": 1,
+          "type": "File",
+          "name": "avatar"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "nickName"
+        }
+      ]
+    },
+    "956": {
+      "name": "UserCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "number",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "autoincrement()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "name"
+        }
+      ]
+    },
+    "1040": {
+      "name": "UserUpdateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "number",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "autoincrement()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "email"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "isOptional": true,
+          "name": "name"
+        }
+      ]
+    }
+  },
+  "enumRefs": {},
+  "tupleRefs": {},
+  "docTypeVersion": 1
+}

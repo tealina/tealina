@@ -1,7 +1,9 @@
 // Type definition here can avoid all `.ts` files generate a `.d.ts`
 
-export * from '@tealina/doc-types'
+import type { GdocConfig } from './commands/gdoc'
 
+export type { OpenAPIV3_1, OpenAPIV3 } from 'openapi-types'
+export type { CustomOutputFn } from './commands/gdoc'
 // gpure tyes ---- begin
 
 export type MutationKind = 'CreateInput' | 'UpdateInput' | ''
@@ -140,6 +142,7 @@ export interface TealinaConifg {
    */
   testDir?: string
   gtype?: GtypeConfig
+  gdoc?: GdocConfig
   /** The import statement suffix @default {".js"} */
   suffix?: string
 }
@@ -152,3 +155,5 @@ export const makeTemplate = (fn: CodeGenerateFnType) => fn
 
 export const makeTestSuiteTemplate = (fn: GenTestSuiteFnType) => fn
 export const makeTestHelperTemplate = (fn: GenTestHelperFnType) => fn
+
+export { convertToOpenApiJson } from './utils/genOpenApi'
