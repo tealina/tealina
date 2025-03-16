@@ -1,3 +1,4 @@
+import type { ApiDoc, DocItem } from '@tealina/doc-types'
 import type {
   ItemType,
   MenuItemType,
@@ -6,23 +7,24 @@ import type {
 import { flat, flow, map, pipe, separeBy } from 'fp-lite'
 import { useAtom } from 'jotai'
 import { useEffect, useState } from 'react'
-import type { ApiDoc, DocItem } from '@tealina/doc-types'
 import {
   type CurApi,
   apiDocAtom,
   curShowApiAtom,
 } from '../../atoms/jsonSourceAtom'
+import { Tag } from 'antd'
 
 const toItemModel = ([method, docItem]: [
   string,
   Record<string, DocItem>,
 ]): MenuTreeModel[] =>
   Object.keys(docItem).map(endpoint => {
-    const [module, ...rest] = endpoint.split('/')
+    const parts = endpoint.split('/')
+
     return {
-      endpoint: rest.join('/'),
+      endpoint: endpoint,
       method,
-      module,
+      module: parts.length <= 2 ? 'root' : parts[0] === '' ? parts[1] : parts[0],
     }
   })
 
@@ -50,15 +52,17 @@ const toMenuItem = (vmList: MenuTreeModel[]): SubMenuType => {
   const [first] = vmList
   const children = vmList.map(vm => {
     const hasEndponit = vm.endpoint.length
+    const url = hasEndponit ? vm.endpoint : vm.method.toUpperCase()
     return {
-      key: [vm.method, vm.module, ...(hasEndponit ? [vm.endpoint] : [])].join(
-        '/',
-      ),
-      label: hasEndponit ? vm.endpoint : vm.method.toUpperCase(),
+      key: [vm.method, ...(hasEndponit ? [vm.endpoint] : [])].join('/'),
+      label: <span>
+        <Tag>{vm.method}</Tag>
+        {url}
+      </span>,
     }
   })
   return {
-    key: [first.method, first.module, ''].join('/'),
+    key: first.module,
     label: first.module,
     children,
   }
@@ -116,7 +120,6 @@ export const useMenus = () => {
   useEffect(() => {
     if (curShowApi == null) {
       const keys = gatherFirstElement(items[0])
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
       updateCurShowApi({ key: keys.at(-1)! })
     }
   }, [])

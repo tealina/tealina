@@ -110,6 +110,10 @@ export function type2cell(
           </a>
         </ColorText>
       )
+    case DocKind.LiteralObject: {
+      const nest = d.props.map(n => <div key={n.name} className='indent-md'><ColorText type="prop">{n.name}</ColorText>: {type2cell(n, doc)}{','} </div>)
+      return <span>{'{ '}{nest}{' }'}</span>
+    }
     default:
       return <span />
   }

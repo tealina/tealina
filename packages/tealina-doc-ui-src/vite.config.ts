@@ -39,12 +39,12 @@ export default defineConfig(env => ({
   },
   server: {
     proxy: {
-      '/api-doc/v1.json': {
-        target: 'http://localhost:5000',
+      '/api-doc': {
+        target: 'http://localhost:6000',
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:6000',
         changeOrigin: true,
       },
     },

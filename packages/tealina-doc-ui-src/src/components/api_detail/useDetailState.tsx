@@ -28,6 +28,7 @@ export function getNestEntity(
   d: DocNode,
   doc: ApiDoc,
   inScope: OneApiScopeEntitie,
+  sortRecord: (keyof OneApiScopeEntitie)[]
 ) {
   switch (d.kind) {
     case DocKind.NonLiteralObject:
@@ -35,38 +36,49 @@ export function getNestEntity(
         break
       }
       inScope.nonLiterals.push(d)
+      sortRecord.push('nonLiterals')
       break
     case DocKind.Array:
-      getNestEntity(d.element, doc, inScope)
+      getNestEntity(d.element, doc, inScope, sortRecord)
       break
     case DocKind.EntityRef: {
       if (inScope.entityRefs[d.id]) return
       const { entityRefs } = doc
       inScope.entityRefs[d.id] = entityRefs[d.id]
-      entityRefs[d.id].props.forEach(v => getNestEntity(v, doc, inScope))
+      entityRefs[d.id].props.forEach(v => getNestEntity(v, doc, inScope, sortRecord))
+      sortRecord.push('entityRefs')
       break
     }
     case DocKind.Union:
-      d.types.forEach(v => getNestEntity(v, doc, inScope))
+      d.types.forEach(v => getNestEntity(v, doc, inScope, sortRecord))
       break
     case DocKind.EnumRef:
       if (inScope.enumRefs[d.id]) return
       inScope.enumRefs[d.id] = doc.enumRefs[d.id]
+      sortRecord.push('enumRefs')
       break
     case DocKind.Tuple:
-      d.elements.forEach(e => getNestEntity(e, doc, inScope))
+      d.elements.forEach(e => getNestEntity(e, doc, inScope, sortRecord))
       break
     case DocKind.RecursionTuple:
       inScope.tupleRefs[d.id] = doc.tupleRefs[d.id]
+      sortRecord.push('tupleRefs')
+      break
+
+    case DocKind.LiteralObject:
+      d.props.forEach(e => getNestEntity(e, doc, inScope, sortRecord))
       break
     default:
       if (d.kind === DocKind.Record) {
-        getNestEntity(d.value, doc, inScope)
+        getNestEntity(d.value, doc, inScope, sortRecord)
       }
       return true
   }
 }
-
+export type ApperanceEntiryRecord = {
+  sorts: (keyof OneApiScopeEntitie)[]
+  entities: OneApiScopeEntitie
+}
 export const nodeNull: DocNode = { kind: DocKind.Primitive, type: 'null' }
 
 export type SegmentTabKeys = PayloadKeys | 'play'
@@ -97,11 +109,11 @@ export function toPropType(
 ): (value: SegmentTabKeys) => PropType {
   return k => {
     const key = (k as string).toLowerCase() as PayloadKeys
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const node = docItem[key]!
     if (memoMap.has(key)) return { name: key, ...node }
     const next = genEmptyApiDoc()
-    getNestEntity(node, doc, next)
+    const sortRercord: (keyof OneApiScopeEntitie)[] = []
+    getNestEntity(node, doc, next, sortRercord)
     memoMap.set(key, next)
     return { name: key, ...node }
   }
@@ -126,7 +138,9 @@ export function useDetailState(_doc: ApiDoc, docItem: DocItem) {
   const appearedKeys = useMemo<PayloadKeys[]>(extraNotNull(docItem), [docItem])
   const tabOptions = useMemo(() => keys2tabOptions(appearedKeys), [docItem])
   const [curTab, setCurTab] = useState<SegmentTabKeys>(appearedKeys[0])
-  const memoMap = useRef(new Map<PayloadKeys, OneApiScopeEntitie>())
+
+
+  const memoMap = useRef(new Map<PayloadKeys, ApperanceEntiryRecord>())
   const handleTabChange = (v: SegmentedValue) => {
     setCurTab(v as SegmentTabKeys)
   }

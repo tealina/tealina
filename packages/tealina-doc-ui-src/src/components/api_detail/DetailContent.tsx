@@ -19,14 +19,15 @@ import { EntityTable } from '../EntityTable'
 import { EnumTable } from '../EnumTable'
 import type { OneApiDoc as OneApiSummary } from './ApiDetail'
 import {
-  type OneApiScopeEntitie,
-  type PayloadKeys,
-  type SegmentTabKeys,
+  type ApperanceEntiryRecord,
   genEmptyApiDoc,
   getNestEntity,
   nodeNull,
   toPropType,
   useDetailState,
+  type OneApiScopeEntitie,
+  type PayloadKeys,
+  type SegmentTabKeys,
 } from './useDetailState'
 const Playground = lazy(() => import('../features/playground/Playground'))
 
@@ -68,7 +69,7 @@ export function DetailContent(summary: OneApiSummary) {
         <div className="group">
           <Tag className="uppercase text-16px px-3 py-1">{identity.method}</Tag>
           <ColorText type="string" className="tracking-wider">
-            {[source.baseURL, identity.path].join('/')}
+            {[source.baseURL, identity.path].join('')}
           </ColorText>
           <CopyButton
             identity={identity}
@@ -93,7 +94,7 @@ export function DetailContent(summary: OneApiSummary) {
           <PlaygroundPanel
             oneApiSummary={summary}
             apperanceKeys={appearedKeys}
-            memoMap={memoMap}
+            memoMap={new Map([...memoMap.entries()].map(([k, v]) => [k, v.entities]))}
           />
         ) : (
           <PlayloadPanel
@@ -114,36 +115,60 @@ function PlayloadPanel({
   doc,
   docItem,
 }: {
-  memoMap: Map<SegmentTabKeys, OneApiScopeEntitie>
+  memoMap: Map<SegmentTabKeys, ApperanceEntiryRecord>
   docItem: DocItem
   doc: ApiDoc
   curTab: SegmentTabKeys
 }) {
   const key = curTab as PayloadKeys
-  let firstOneNotMatch: undefined | true
   if (!memoMap.has(key)) {
     const next = genEmptyApiDoc()
-    firstOneNotMatch = getNestEntity(docItem[key] ?? nodeNull, doc, next)
-    memoMap.set(key, next)
+    const sortRercord: (keyof OneApiScopeEntitie)[] = []
+    const isNonNest = getNestEntity(docItem[key] ?? nodeNull, doc, next, sortRercord)
+    if (!isNonNest) {
+      memoMap.set(key, { sorts: sortRercord, entities: next })
+    }
   }
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
-  const appearedEntities = memoMap.get(key)!
+  const record = memoMap.get(key)
+  if (record == null) {
+    return type2cell(docItem[key]!, doc)
+  }
+  const renderEntities = () => {
+    const { sorts, entities } = record
+    const walkedMap = new Map<string, number>()
+    const entityRefs = Object.entries(entities.entityRefs).reverse()
+    const enumRefs = Object.entries(entities.enumRefs).reverse()
+    const tupleRefs = Object.entries(entities.tupleRefs).reverse()
+    const nonLiterals = [...entities.nonLiterals].reverse()
+    return sorts.map(k => {
+      const i = (walkedMap.get(k) ?? 0)
+      walkedMap.set(k, i + 1)
+      switch (k) {
+        case 'entityRefs': {
+          const [id, v] = entityRefs[i]
+          return <EntityTable entity={v} key={id} id={id} doc={entities} />
+        }
+        case 'enumRefs': {
+          const [id, v] = enumRefs[i]
+          return <EnumTable enumEntity={v} key={id} id={id} />
+        }
+        case 'nonLiterals': {
+          const obj = nonLiterals[i]
+          return <NonLiteralEntity key={obj.type} obj={obj} />
+        }
+        case 'tupleRefs': {
+          const [id, v] = tupleRefs[i]
+          return <TupleContent obj={v} id={id} key={id} doc={entities} />
+
+        }
+      }
+    }
+    )
+  }
   return (
     <div className="flex flex-col gap-3 pb-10">
-      {appearedEntities.nonLiterals.map(obj => (
-        <NonLiteralEntity key={obj.type} obj={obj} />
-      ))}
-      {Object.entries(appearedEntities.entityRefs).map(([id, v]) => (
-        <EntityTable entity={v} key={id} id={id} doc={appearedEntities} />
-      ))}
-      {Object.entries(appearedEntities.enumRefs).map(([id, v]) => (
-        <EnumTable enumEntity={v} key={id} id={id} />
-      ))}
-      {Object.entries(appearedEntities.tupleRefs).map(([id, v]) => (
-        <TupleContent obj={v} id={id} key={id} doc={appearedEntities} />
-      ))}
-      {/* biome-ignore lint/style/noNonNullAssertion: <explanation> */}
-      {firstOneNotMatch && type2cell(docItem[key]!, doc)}
+
+      {renderEntities()}
     </div>
   )
 }
@@ -214,17 +239,10 @@ function PlaygroundPanel({
     .filter(v => v !== 'play' && v !== 'response')
     .map(toPropType(docItem, memoMap, doc))
   const formEntity: Entity = { name: 'payload', props: payloadProps }
-  const oneApiDoc = [...memoMap.values()].reduce((acc, cur) => {
-    acc.entityRefs = { ...acc.entityRefs, ...cur.entityRefs }
-    acc.tupleRefs = { ...acc.tupleRefs, ...cur.tupleRefs }
-    acc.enumRefs = { ...acc.enumRefs, ...cur.enumRefs }
-    acc.nonLiterals = { ...acc.nonLiterals, ...cur.nonLiterals }
-    return acc
-  }, genEmptyApiDoc())
   return (
     <Suspense fallback={<Spin />}>
       <Playground
-        doc={oneApiDoc}
+        doc={doc}
         entity={formEntity}
         method={identity.method}
         path={identity.path}

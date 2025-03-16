@@ -1,12 +1,14 @@
-import { atom } from 'jotai'
 import type { ApiDoc } from '@tealina/doc-types'
 import type { TealinaVdocWebConfig } from '@tealina/doc-ui'
+import { atom } from 'jotai'
+import type { OpenAPIV3_1 } from 'openapi-types'
+import { openApi2apiDoc } from '../transformer/openapi2apiDoc'
 
 if (import.meta.env.MODE === 'development') {
   window.TEALINA_VDOC_CONFIG = {
     sources: [
       {
-        baseURL: '/api/v1',
+        baseURL: '',
         jsonURL: '/api-doc/v1.json',
         name: '/api/v1',
       },
@@ -74,7 +76,10 @@ export const apiDocAtom = atom<Promise<ApiDoc>>(async get => {
     return { apis: {}, enumRefs: {}, entityRefs: {}, tupleRefs: {} } as ApiDoc
   }
   const doc = await fetch(curSource.jsonURL).then(
-    r => r.json() as Promise<ApiDoc>,
+    r => r.json() as Promise<ApiDoc | OpenAPIV3_1.Document>,
   )
+  if ('openapi' in doc) {
+    return openApi2apiDoc(doc, curSource.baseURL)
+  }
   return doc
 })
