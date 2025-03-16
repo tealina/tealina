@@ -46,7 +46,7 @@
     "prisma": "^5.3.1",
     "tealina": "^1.1.1",
     "tsx": "^3.12.7",
-    "typescript": "~5.6.2"
+    "typescript": "^5.7.3"
   },
   "license": "ISC"
 }
