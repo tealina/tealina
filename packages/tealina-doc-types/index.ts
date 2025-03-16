@@ -15,6 +15,7 @@ export const DocKind = {
   Array: 11,
   RecursionTuple: 12,
   RecursionEntity: 13,
+  LiteralObject: 14,
 } as const
 
 export type DocKind = typeof DocKind
@@ -48,7 +49,6 @@ export interface ArrayType extends Kind {
 export interface UnionType extends Kind {
   kind: DocKind['Union']
   types: DocNode[]
-  id: number
 }
 
 export interface RecordType extends Kind {
@@ -99,6 +99,12 @@ export interface RecursionEntity extends Kind {
   id: number
 }
 
+export interface LiteralEntity extends Kind {
+  kind: DocKind['LiteralObject']
+  props: PropType[]
+  comment?: string
+}
+
 export type DocNode =
   | PrimitiveType
   | ObjectType
@@ -114,6 +120,7 @@ export type DocNode =
   | ArrayType
   | RecursionTuple
   | RecursionEntity
+  | LiteralEntity
 
 export type PropType = { name: string } & DocNode
 
@@ -123,6 +130,12 @@ export interface DocItem {
   query?: DocNode
   params?: DocNode
   headers?: DocNode
+  comment?: string
+}
+
+export interface Entity {
+  name: string
+  props: PropType[]
   comment?: string
 }
 
