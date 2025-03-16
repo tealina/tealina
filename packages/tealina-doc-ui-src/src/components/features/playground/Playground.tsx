@@ -1,16 +1,15 @@
 import { PlayCircleFilled } from '@ant-design/icons'
+import type { ApiDoc, DocItem, Entity } from '@tealina/doc-types'
 import { Form } from 'antd'
 import { useMemo } from 'react'
-import type { DocItem, Entity } from '@tealina/doc-types'
 import { prop2item } from '../../../transformer/prop2item'
-import type { OneApiScopeEntitie } from '../../api_detail/useDetailState'
 import { JsonView } from '../../monaco/JsonView'
-import { useSumit } from './useSubmit'
 import { SubmitBtn } from '../../SubmitBtn'
+import { useSumit } from './useSubmit'
 
 const Playground = (props: {
   entity: Entity
-  doc: OneApiScopeEntitie
+  doc: ApiDoc
   method: string
   path: string
   docItem: DocItem
