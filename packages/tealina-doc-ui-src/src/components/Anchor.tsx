@@ -6,6 +6,6 @@ export function Anchor(props: {
   id: string
 }) {
   return (
-    <h3 className="text-lg font-bold target:animate-swing w-max" {...props} />
+    <div className="text-lg font-bold target:animate-swing w-max" {...props} />
   )
 }

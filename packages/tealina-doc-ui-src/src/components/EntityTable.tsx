@@ -54,11 +54,11 @@ export function EntityTable({
   ]
   return (
     <div>
-      <div className="flex gap-3 items-end">
+      <div>
+        {entity.comment && <CommentSummary comment={entity.comment} />}
         <Anchor id={id} style={{ color: TypeColors.any }}>
           {entity.name}
         </Anchor>
-        {entity.comment && <CommentSummary comment={entity.comment} />}
       </div>
       <Table
         rowKey="name"
