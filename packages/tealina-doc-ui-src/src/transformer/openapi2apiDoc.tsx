@@ -9,10 +9,13 @@ const kTextPlain = 'text/plain'
 const kMultipartForm = 'multipart/form-data'
 export function openApi2apiDoc(doc: OpenAPIV3_1.Document, baseURL: string): ApiDoc {
   const { schemas = {}, responses = {} } = doc.components ?? {}
-
-  const allSchemas = [...new Set([schemas, responses].flatMap(v => Object.keys(v)))]
+  const allSchemas = [
+    ...Object.keys(schemas).map(k => `#/components/schemas/${k}`),
+    ...Object.keys(responses).map(k => `#/components/responses/${k}`),
+  ]
   const entityRefs: ApiDoc['entityRefs'] = {}
-  Object.values(schemas).map((schema, i) => {
+  let i = 0
+  const collectEntity = (schema: OpenAPIV3_1.SchemaObject): void => {
     const name = allSchemas[i].split('/').pop() ?? '{ }'
     const properties = (schema.properties ?? {})
     entityRefs[i] = {
@@ -25,7 +28,10 @@ export function openApi2apiDoc(doc: OpenAPIV3_1.Document, baseURL: string): ApiD
       }),
       comment: schema.description
     }
-  })
+    i++
+  }
+  Object.values(schemas).map(collectEntity)
+  Object.values(responses).map(collectEntity)
   const reqbody2bodynode = (requestBody: OpenAPIV3_1.OperationObject['requestBody']): Pick<DocItem, 'body'> => {
     if (requestBody == null) return {}
     if ('content' in requestBody) {
@@ -39,7 +45,13 @@ export function openApi2apiDoc(doc: OpenAPIV3_1.Document, baseURL: string): ApiD
     }
     return { body: schema2docNode(requestBody as unknown as OpenAPIV3_1.ReferenceObject, allSchemas) }
   }
-
+  const injectStatus = (status: string, node: DocNode) => {
+    node.jsDoc = {
+      httpStatusCode: status,
+      ...(node.jsDoc ?? {})
+    }
+    return node
+  }
   const res2responseNode = (response: OpenAPIV3_1.OperationObject['responses']): Pick<DocItem, 'response'> => {
     if (response == null) return {}
     const statusList = Object.keys(response)
@@ -47,22 +59,23 @@ export function openApi2apiDoc(doc: OpenAPIV3_1.Document, baseURL: string): ApiD
     for (const status of statusList) {
       const res = response[status]
       if ('$ref' in res) {
-        nodes.push(schema2docNode(res, allSchemas))
+        const node = schema2docNode(res, allSchemas)
+        nodes.push(injectStatus(status, node))
         continue
       }
       if (res.content != null) {
         if (res.content[kApplicationJson]) {
-          nodes.push(schema2docNode(res.content[kApplicationJson].schema!, allSchemas))
+          nodes.push(injectStatus(status, schema2docNode(res.content[kApplicationJson].schema!, allSchemas)))
         }
         if (res.content[kTextPlain]) {
-          nodes.push({ kind: DocKind.Primitive, type: 'string', comment: 'text/plain' })
+          nodes.push(injectStatus(status, { kind: DocKind.Primitive, type: 'string', comment: 'text/plain' }))
         }
       }
     }
     if (nodes.length === 1) {
       return { response: nodes[0] }
     }
-    return { response: { kind: DocKind.Union, types: nodes, comment: statusList.join(', ') } }
+    return { response: { kind: DocKind.Union, types: nodes, } }
   }
 
   const parmasObj2PorpNode = (param: OpenAPIV3_1.ParameterObject, entiry: Entity) => {
@@ -80,10 +93,7 @@ export function openApi2apiDoc(doc: OpenAPIV3_1.Document, baseURL: string): ApiD
     const query: Entity = { name: 'Query', props: [], }
     const headers: Entity = { name: 'Headers', props: [] }
     const params: Entity = { name: 'Parmas', props: [] }
-    for (const element of parameters) {
-      if ('$ref' in element) {
-        continue
-      }
+    const deepParse = (element: OpenAPIV3_1.ParameterObject) => {
       switch (element.in) {
         case 'query': {
           parmasObj2PorpNode(element, query)
@@ -97,7 +107,16 @@ export function openApi2apiDoc(doc: OpenAPIV3_1.Document, baseURL: string): ApiD
           break;
       }
     }
-    let tailId = Object.values(entityRefs).length
+    for (const element of parameters) {
+      if ('$ref' in element) {
+        const key = element.$ref.split('/').pop()!
+        const entity = doc.components!.parameters![key]
+        deepParse(entity as OpenAPIV3_1.ParameterObject)
+        continue
+      }
+      deepParse(element)
+    }
+    let tailId = Object.values(entityRefs).length - 1
     const result: Pick<DocItem, 'headers' | 'params' | 'query'> = {}
     if (headers.props.length > 0) {
       const existsingHeaders = [...kHeaders.values()]
@@ -160,9 +179,7 @@ export function schema2docNode(
   parsingList: OpenAPIV3_1.SchemaObject[] = []
 ): DocNode {
   if ('$ref' in schema) {
-    const namePath = schema.$ref as string
-    const actialName = namePath.split('/').pop()!
-    const id = allSchems.indexOf(actialName)
+    const id = allSchems.indexOf(schema.$ref)
     if (id === -1) {
       return { kind: DocKind.Never }
     }

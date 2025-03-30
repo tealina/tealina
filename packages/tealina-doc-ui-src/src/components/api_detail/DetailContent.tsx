@@ -102,6 +102,7 @@ export function DetailContent(summary: OneApiSummary) {
             memoMap={memoMap}
             doc={doc}
             docItem={docItem}
+            keyPrefix={[identity.method, identity.path].join('/')}
           />
         )}
       </div>
@@ -114,14 +115,16 @@ function PlayloadPanel({
   memoMap,
   doc,
   docItem,
+  keyPrefix
 }: {
-  memoMap: Map<SegmentTabKeys, ApperanceEntiryRecord>
+  memoMap: Map<string, ApperanceEntiryRecord>
   docItem: DocItem
   doc: ApiDoc
   curTab: SegmentTabKeys
+  keyPrefix: string
 }) {
   const key = curTab as PayloadKeys
-  if (!memoMap.has(key)) {
+  if (!memoMap.has(`${keyPrefix}/${key}`)) {
     const next = genEmptyApiDoc()
     const sortRercord: (keyof OneApiScopeEntitie)[] = []
     const isNonNest = getNestEntity(docItem[key] ?? nodeNull, doc, next, sortRercord)
@@ -141,8 +144,8 @@ function PlayloadPanel({
     const tupleRefs = Object.entries(entities.tupleRefs).reverse()
     const nonLiterals = [...entities.nonLiterals].reverse()
     return sorts.map(k => {
-      const i = (walkedMap.get(k) ?? 0)
-      walkedMap.set(k, i + 1)
+      const i = (walkedMap.get(k) ?? -1) + 1
+      walkedMap.set(k, i)
       switch (k) {
         case 'entityRefs': {
           const [id, v] = entityRefs[i]
