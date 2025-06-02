@@ -1,13 +1,19 @@
 import { CopyOutlined } from '@ant-design/icons'
 import {
   DocKind,
+  kStatusCodeKey,
+  kStatusDescKey,
   type ApiDoc,
   type DocItem,
+  type DocNode,
   type Entity,
+  type NumberLiteral,
   type ObjectType,
-  type TupleEntity,
+  type StringLiteral,
+  type TupleEntity
 } from '@tealina/doc-types'
-import { Button, Segmented, Spin, Tag } from 'antd'
+import { Button, Segmented, Spin, Tabs, Tag, type TabsProps } from 'antd'
+import { isEmpty } from 'fp-lite'
 import { useAtomValue } from 'jotai'
 import { Suspense, lazy } from 'react'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
@@ -19,15 +25,15 @@ import { EntityTable } from '../EntityTable'
 import { EnumTable } from '../EnumTable'
 import type { OneApiDoc as OneApiSummary } from './ApiDetail'
 import {
-  type ApperanceEntiryRecord,
-  genEmptyApiDoc,
+  appearedEntity2doc,
   getNestEntity,
-  nodeNull,
   toPropType,
   useDetailState,
-  type OneApiScopeEntitie,
+  type AppearedEntity,
+  type EntityOnlyDoc,
+  type MemoedAppearedEntity,
   type PayloadKeys,
-  type SegmentTabKeys,
+  type SegmentTabKeys
 } from './useDetailState'
 const Playground = lazy(() => import('../features/playground/Playground'))
 
@@ -94,7 +100,7 @@ export function DetailContent(summary: OneApiSummary) {
           <PlaygroundPanel
             oneApiSummary={summary}
             apperanceKeys={appearedKeys}
-            memoMap={new Map([...memoMap.entries()].map(([k, v]) => [k, v.entities]))}
+            memoMap={new Map([...memoMap.entries()].map(([k, v]) => [k, v]))}
           />
         ) : (
           <PlayloadPanel
@@ -117,64 +123,112 @@ function PlayloadPanel({
   docItem,
   keyPrefix
 }: {
-  memoMap: Map<string, ApperanceEntiryRecord>
+  memoMap: MemoedAppearedEntity
   docItem: DocItem
   doc: ApiDoc
   curTab: SegmentTabKeys
   keyPrefix: string
 }) {
   const key = curTab as PayloadKeys
-  if (!memoMap.has(`${keyPrefix}/${key}`)) {
-    const next = genEmptyApiDoc()
-    const sortRercord: (keyof OneApiScopeEntitie)[] = []
-    const isNonNest = getNestEntity(docItem[key] ?? nodeNull, doc, next, sortRercord)
-    if (!isNonNest) {
-      memoMap.set(key, { sorts: sortRercord, entities: next })
+  const targetNode = docItem[key]
+  if (targetNode == null) {
+    return null
+  }
+  function renderContent(beginDoc: DocNode, id: string) {
+    if (!memoMap.has(`${keyPrefix}/${key}`)) {
+      const container: AppearedEntity[] = []
+      getNestEntity(beginDoc, doc, container)
+      memoMap.set(key, container)
     }
-  }
-  const record = memoMap.get(key)
-  if (record == null) {
-    return type2cell(docItem[key]!, doc)
-  }
-  const renderEntities = () => {
-    const { sorts, entities } = record
-    const walkedMap = new Map<string, number>()
-    const entityRefs = Object.entries(entities.entityRefs).reverse()
-    const enumRefs = Object.entries(entities.enumRefs).reverse()
-    const tupleRefs = Object.entries(entities.tupleRefs).reverse()
-    const nonLiterals = [...entities.nonLiterals].reverse()
-    return sorts.map(k => {
-      const i = (walkedMap.get(k) ?? -1) + 1
-      walkedMap.set(k, i)
-      switch (k) {
-        case 'entityRefs': {
-          const [id, v] = entityRefs[i]
-          return <EntityTable entity={v} key={id} id={id} doc={entities} />
+    const record = memoMap.get(key) ?? []
+    if (isEmpty(record)) {
+      // const tabItem = docItem[key]
+      // if (tabItem == null) {
+      //   return null
+      // }
+      if (beginDoc.kind === DocKind.LiteralObject) {
+        return <EntityTable entity={{ ...beginDoc, name: '{...}' }} key={id} id={id} doc={doc} />
+      }
+      return type2cell(beginDoc, doc)
+    }
+    const parsedDoc = appearedEntity2doc(record)
+    return record.map(k => {
+      switch (k.belong) {
+        case 'entity': {
+          return <EntityTable entity={k.value} key={k.id} id={String(k.id)} doc={parsedDoc} />
         }
-        case 'enumRefs': {
-          const [id, v] = enumRefs[i]
-          return <EnumTable enumEntity={v} key={id} id={id} />
+        case 'enum': {
+          return <EnumTable enumEntity={k.value} key={k.id} id={String(k.id)} />
         }
-        case 'nonLiterals': {
-          const obj = nonLiterals[i]
-          return <NonLiteralEntity key={obj.type} obj={obj} />
+        case 'nonLiteral': {
+          return <NonLiteralEntity key={k.value.type} obj={k.value} />
         }
-        case 'tupleRefs': {
-          const [id, v] = tupleRefs[i]
-          return <TupleContent obj={v} id={id} key={id} doc={entities} />
+        case 'tuple': {
+          return <TupleContent obj={k.value} id={String(k.id)} key={k.id} doc={parsedDoc} />
+        }
 
-        }
       }
     }
     )
   }
+  const node2tabItem = (v: DocNode): NonNullable<TabsProps['items']>[number] => {
+    switch (v.kind) {
+      case DocKind.EntityRef: {
+        const entity = doc.entityRefs[v.id]
+        const key = String(v.id)
+        return {
+          key,
+          tabKey: key,
+          label: entity.name,
+          children: renderContent(v, key)
+        }
+      }
+      case DocKind.Array: {
+        const item = node2tabItem(v.element)
+        const { label } = item
+        item.label = String(label).includes('|') ? `(${label}) [ ]` : `${label} [ ]`
+        return item
+      }
+      case DocKind.LiteralObject: {
+        const statusCodeProp = v.props.find(p => p.name === kStatusCodeKey)
+        if (statusCodeProp == null) {
+          const key = Math.random().toString(16)
+          return {
+            key,
+            tabKey: key,
+            label: '{...}',
+            children: renderContent(v, key)
+          }
+        }
+        const statusCode = `${(statusCodeProp as NumberLiteral).value}`
+        const descProp = v.props.find(v => v.name === kStatusDescKey) as StringLiteral | null
+        return { key: statusCode, label: statusCode, children: <p>{descProp?.value}</p> }
+      }
+      default: {
+        const key = Math.random().toString(16)
+        return {
+          key,
+          tabKey: key,
+          label: 'PARSER_ERROR',
+          children: (<p className='text-red'>
+            <span>Unexpect doc node</span>
+            {JSON.stringify(v)}</p>)
+        }
+      }
+    }
+  }
+  const tabItems = targetNode.kind === DocKind.Union ? targetNode.types.map(node2tabItem)
+    : [node2tabItem(targetNode)]
+
   return (
     <div className="flex flex-col gap-3 pb-10">
 
-      {renderEntities()}
+      {/* {renderEntities()} */}
+      <Tabs items={tabItems} tabPosition='left' />
     </div>
   )
 }
+
 
 function TupleContent({
   obj,
@@ -183,7 +237,7 @@ function TupleContent({
 }: {
   id: string
   obj: TupleEntity
-  doc: OneApiScopeEntitie
+  doc: EntityOnlyDoc
 }) {
   return (
     <div className="text-lg">
@@ -235,7 +289,7 @@ function PlaygroundPanel({
 }: {
   oneApiSummary: OneApiSummary
   apperanceKeys: SegmentTabKeys[]
-  memoMap: Map<SegmentTabKeys, OneApiScopeEntitie>
+  memoMap: Map<SegmentTabKeys, AppearedEntity[]>
 }) {
   const { doc, docItem, identity } = oneApiSummary
   const payloadProps = apperanceKeys

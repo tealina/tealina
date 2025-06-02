@@ -2,8 +2,11 @@ import type {
   ApiDoc,
   DocItem,
   DocNode,
+  Entity,
+  EnumEntity,
   ObjectType,
   PropType,
+  TupleEntity,
 } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 import type { SegmentedValue } from 'antd/es/segmented'
@@ -20,6 +23,20 @@ export type OneApiScopeEntitie = Pick<
   nonLiterals: ObjectType[]
 }
 
+export type EntityOnlyDoc = Pick<ApiDoc, 'entityRefs' | 'enumRefs' | 'tupleRefs'>
+export type MemoedAppearedEntity = Map<string, AppearedEntity[]>
+export type AppearedEntity =
+  | { belong: 'enum'; id: number, value: EnumEntity }
+  | { belong: 'entity'; id: number, value: Entity }
+  | { belong: 'tuple'; id: number, value: TupleEntity }
+  | { belong: 'nonLiteral'; value: ObjectType }
+
+export const appearedEntity2doc = (entities: AppearedEntity[]): EntityOnlyDoc => {
+  const entityRefs = Object.fromEntries(entities.filter(v => v.belong === 'entity').map(v => [v.id, v.value]))
+  const enumRefs = Object.fromEntries(entities.filter(v => v.belong === 'enum').map(v => [v.id, v.value]))
+  const tupleRefs = Object.fromEntries(entities.filter(v => v.belong === 'tuple').map(v => [v.id, v.value]))
+  return { entityRefs, enumRefs, tupleRefs }
+}
 /**
  *
  * @returns  {true|undefined} if true, means first one not match
@@ -27,58 +44,66 @@ export type OneApiScopeEntitie = Pick<
 export function getNestEntity(
   d: DocNode,
   doc: ApiDoc,
-  inScope: OneApiScopeEntitie,
-  sortRecord: (keyof OneApiScopeEntitie)[]
+  inScope: AppearedEntity[],
 ) {
   switch (d.kind) {
-    case DocKind.NonLiteralObject:
-      if (inScope.nonLiterals.find(v => v.type === d.type)) {
+    case DocKind.NonLiteralObject: {
+      const nonLiterals = inScope.filter(v => v.belong === 'nonLiteral')
+      if (nonLiterals.find(v => v.value.type === d.type)) {
         break
       }
-      inScope.nonLiterals.push(d)
-      sortRecord.push('nonLiterals')
+      inScope.push({ belong: 'nonLiteral', value: d })
       break
+    }
     case DocKind.Array:
-      getNestEntity(d.element, doc, inScope, sortRecord)
+      getNestEntity(d.element, doc, inScope)
       break
     case DocKind.EntityRef: {
-      if (inScope.entityRefs[d.id]) return
+      const entityRefsRecord = inScope.filter(v => v.belong === 'entity')
+      if (entityRefsRecord.find(v => v.id === d.id)) return
       const { entityRefs } = doc
-      inScope.entityRefs[d.id] = entityRefs[d.id]
-      entityRefs[d.id].props.forEach(v => getNestEntity(v, doc, inScope, sortRecord))
-      sortRecord.push('entityRefs')
+      inScope.push({ belong: 'entity', id: d.id, value: entityRefs[d.id] })
+      entityRefs[d.id].props.forEach(v =>
+        getNestEntity(v, doc, inScope),
+      )
       break
     }
     case DocKind.Union:
-      d.types.forEach(v => getNestEntity(v, doc, inScope, sortRecord))
+      d.types.forEach(v => getNestEntity(v, doc, inScope))
       break
-    case DocKind.EnumRef:
-      if (inScope.enumRefs[d.id]) return
-      inScope.enumRefs[d.id] = doc.enumRefs[d.id]
-      sortRecord.push('enumRefs')
+    case DocKind.EnumRef: {
+      const enumRefsRecord = inScope.filter(v => v.belong === 'enum')
+      if (enumRefsRecord.find(v => v.id === d.id)) return
+      inScope.push({ belong: 'enum', id: d.id, value: doc.enumRefs[d.id] })
       break
+    }
     case DocKind.Tuple:
-      d.elements.forEach(e => getNestEntity(e, doc, inScope, sortRecord))
+      d.elements.forEach(e => getNestEntity(e, doc, inScope))
       break
-    case DocKind.RecursionTuple:
-      inScope.tupleRefs[d.id] = doc.tupleRefs[d.id]
-      sortRecord.push('tupleRefs')
+    case DocKind.RecursionTuple: {
+      const tupleRefsRecord = inScope.filter(v => v.belong === 'tuple')
+      if (tupleRefsRecord.find(v => v.id === d.id)) return
+      inScope.push({ belong: 'tuple', id: d.id, value: doc.tupleRefs[d.id] })
+      break
+    }
+    case DocKind.LiteralObject:
+      d.props.forEach(e => getNestEntity(e, doc, inScope))
       break
 
-    case DocKind.LiteralObject:
-      d.props.forEach(e => getNestEntity(e, doc, inScope, sortRecord))
-      break
+    // case DocKind.Never: {
+    //   const { httpStatusCode } = d.jsDoc ?? {}
+    //   if (httpStatusCode != null) {
+    //     inScope.push({ belong: "variousHTTPCode", value: { comment: d.comment, statusCode: httpStatusCode } })
+    //   }
+    //   break
+    // }
     default:
       if (d.kind === DocKind.Record) {
-        getNestEntity(d.value, doc, inScope, sortRecord)
+        getNestEntity(d.value, doc, inScope)
       }
-      return true
   }
 }
-export type ApperanceEntiryRecord = {
-  sorts: (keyof OneApiScopeEntitie)[]
-  entities: OneApiScopeEntitie
-}
+
 export const nodeNull: DocNode = { kind: DocKind.Primitive, type: 'null' }
 
 export type SegmentTabKeys = PayloadKeys | 'play'
@@ -104,17 +129,16 @@ export function genEmptyApiDoc(): OneApiScopeEntitie {
 
 export function toPropType(
   docItem: DocItem,
-  memoMap: Map<SegmentTabKeys, OneApiScopeEntitie>,
+  memoMap: Map<SegmentTabKeys, AppearedEntity[]>,
   doc: ApiDoc,
 ): (value: SegmentTabKeys) => PropType {
   return k => {
     const key = (k as string).toLowerCase() as PayloadKeys
     const node = docItem[key]!
     if (memoMap.has(key)) return { name: key, ...node }
-    const next = genEmptyApiDoc()
-    const sortRercord: (keyof OneApiScopeEntitie)[] = []
-    getNestEntity(node, doc, next, sortRercord)
-    memoMap.set(key, next)
+    const container: AppearedEntity[] = []
+    getNestEntity(node, doc, container)
+    memoMap.set(key, container)
     return { name: key, ...node }
   }
 }
@@ -139,8 +163,7 @@ export function useDetailState(_doc: ApiDoc, docItem: DocItem) {
   const tabOptions = useMemo(() => keys2tabOptions(appearedKeys), [docItem])
   const [curTab, setCurTab] = useState<SegmentTabKeys>(appearedKeys[0])
 
-
-  const memoMap = useRef(new Map<PayloadKeys, ApperanceEntiryRecord>())
+  const memoMap = useRef(new Map<PayloadKeys, AppearedEntity[]>())
   const handleTabChange = (v: SegmentedValue) => {
     setCurTab(v as SegmentTabKeys)
   }

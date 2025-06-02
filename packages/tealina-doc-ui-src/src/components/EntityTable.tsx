@@ -1,12 +1,12 @@
-import { Table, type TableProps } from 'antd'
-import { useAtomValue } from 'jotai'
 import type { Entity, PropType } from '@tealina/doc-types'
+import { Table, Tag, type TableProps } from 'antd'
+import { useAtomValue } from 'jotai'
 import { syntaxColorAtom } from '../atoms/themeAtom'
 import { type2cell } from '../transformer/type2cell'
+import { Anchor } from './Anchor'
 import { ColorText } from './ColorText'
 import { CommentSummary } from './CommentSummary'
-import type { OneApiScopeEntitie } from './api_detail/useDetailState'
-import { Anchor } from './Anchor'
+import type { EntityOnlyDoc } from './api_detail/useDetailState'
 
 export function EntityTable({
   entity,
@@ -15,7 +15,7 @@ export function EntityTable({
 }: {
   id: string
   entity: Entity
-  doc: OneApiScopeEntitie
+  doc: EntityOnlyDoc
 }) {
   const TypeColors = useAtomValue(syntaxColorAtom)
   const columns: TableProps<PropType>['columns'] = [
@@ -43,6 +43,15 @@ export function EntityTable({
       width: '35%',
       key: 'comment',
       dataIndex: 'comment',
+      render: (comment, record) => {
+        if (record.jsDoc?.deprecated != null) {
+          return <span>
+            <Tag>deprecated</Tag>
+            <br />
+            {comment}
+          </span>
+        }
+      }
     },
     {
       title: 'Default Value',
