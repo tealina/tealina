@@ -1,3 +1,13 @@
+export interface StatusWith<
+  Code extends number,
+  Desc extends string | undefined = undefined,
+> {
+  '~statusCode': Code
+  '~desc': Desc
+}
+export const kStatusCodeKey: keyof StatusWith<number> = '~statusCode'
+export const kStatusDescKey: keyof StatusWith<number> = '~desc'
+
 export const DocKind = {
   /** eg: string,number */
   Primitive: 0,

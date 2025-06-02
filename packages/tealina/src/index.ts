@@ -4,6 +4,7 @@ import type { GdocConfig } from './commands/gdoc'
 
 export type { OpenAPIV3_1, OpenAPIV3 } from 'openapi-types'
 export type { CustomOutputFn } from './commands/gdoc'
+export type { StatusWith } from '@tealina/doc-types'
 // gpure tyes ---- begin
 
 export type MutationKind = 'CreateInput' | 'UpdateInput' | ''
