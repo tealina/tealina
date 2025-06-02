@@ -1,8 +1,7 @@
-import { type ReactElement, type ReactNode, cloneElement } from 'react'
-import type { DocNode } from '@tealina/doc-types'
+import type { ApiDoc, DocNode } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
+import { type ReactElement, type ReactNode, cloneElement } from 'react'
 import { ColorText } from '../components/ColorText'
-import type { OneApiScopeEntitie } from '../components/api_detail/useDetailState'
 
 const id2name = (id: number) => ['{', id, '}'].join(' ')
 
@@ -14,7 +13,7 @@ function injectDivider([first, ...rest]: ReactElement[], divider = ' | ') {
 
 export function type2cell(
   d: DocNode,
-  doc: Omit<OneApiScopeEntitie, 'nonLiterals'>,
+  doc: Pick<ApiDoc, 'entityRefs' | 'enumRefs' | 'tupleRefs'>,
 ): ReactElement {
   const { entityRefs, enumRefs } = doc
   switch (d.kind) {
@@ -111,7 +110,10 @@ export function type2cell(
         </ColorText>
       )
     case DocKind.LiteralObject: {
-      const nest = d.props.map(n => <div key={n.name} className='indent-md'><ColorText type="prop">{n.name}</ColorText>: {type2cell(n, doc)}{','} </div>)
+      const nest = d.props.map(n => (
+        <div key={n.name} className='indent-md'>
+          <ColorText type="prop">{n.name}</ColorText><span>{n.isOptional ? "?" : ""}</span>: {type2cell(n, doc)}{','}
+        </div>))
       return <span>{'{ '}{nest}{' }'}</span>
     }
     default:
