@@ -179,7 +179,6 @@ const syncApiByFile = asyncFlow(
   collectContext,
   calcSnapshots,
   effectFiles,
-  waitAll,
   logResults,
 )
 
