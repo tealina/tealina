@@ -8,7 +8,7 @@ function MenuInfo() {
     <Menu
       items={items}
       mode="inline"
-      className="h-screen"
+      className="h-screen overflow-y-auto"
       defaultOpenKeys={defaultOpenKeys}
       defaultSelectedKeys={defaultOpenKeys}
       multiple={false}

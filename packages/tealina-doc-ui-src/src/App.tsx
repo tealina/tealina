@@ -13,7 +13,7 @@ function MyApp() {
   return (
     <ErrorBoundary
       fallbackRender={err => (
-        <div className="text-center py-5 text-red-5 font-bold text-lg">
+        <div className="text-center py-5 text-red-5 font-bold">
           {String(err.error)}
         </div>
       )}
@@ -26,7 +26,7 @@ function MyApp() {
       >
         <App>
           <Layout className="max-h-screen dark:bg-[rgb(24,24,24)]">
-            <Sider className="h-screen overflow-y-auto" width="min(20em, 30%)">
+            <Sider className="h-screen" width="min(20em, 30%)">
               <ApiMenus />
             </Sider>
             <Layout className="max-h-screen overflow-y-auto text-lg">
