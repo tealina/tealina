@@ -22,6 +22,7 @@ import { Anchor } from '../Anchor'
 import { ColorText } from '../ColorText'
 import { EntityTable } from '../EntityTable'
 import { EnumTable } from '../EnumTable'
+import { MarkdownView } from '../Markdown'
 import type { OneApiDoc as OneApiSummary } from './ApiDetail'
 import {
   appearedEntity2doc,
@@ -83,9 +84,9 @@ export function DetailContent(summary: OneApiSummary) {
           />
         </div>
 
-        <p className="dark:text-white/75 whitespace-pre-wrap">
+        <MarkdownView>
           {docItem.comment}
-        </p>
+        </MarkdownView>
 
       </div>
       <div className="flex-shrink-0">
