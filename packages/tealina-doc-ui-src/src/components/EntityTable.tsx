@@ -33,14 +33,14 @@ export function EntityTable({
     },
     {
       title: 'Type',
-      width: '25%',
+      width: '30%',
       key: 'parsedType',
       dataIndex: 'name',
-      render: (v, record) => type2cell(record, doc),
+      render: (_v, record) => type2cell(record, doc),
     },
     {
       title: 'Comment',
-      width: '35%',
+      width: '30%',
       key: 'comment',
       dataIndex: 'comment',
       render: (comment, record) => {
@@ -62,7 +62,7 @@ export function EntityTable({
     },
   ]
   return (
-    <div>
+    <div className='text-lg'>
       <div>
         {entity.comment && <CommentSummary comment={entity.comment} />}
         <Anchor id={id} style={{ color: TypeColors.any }}>
@@ -71,7 +71,7 @@ export function EntityTable({
       </div>
       <Table
         rowKey="name"
-        rowClassName="text-[15px]"
+        rowClassName="text-lg"
         columns={columns}
         dataSource={entity.props}
         pagination={false}
