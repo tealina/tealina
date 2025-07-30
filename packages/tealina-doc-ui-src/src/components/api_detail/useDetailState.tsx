@@ -4,6 +4,7 @@ import type {
   DocNode,
   Entity,
   EnumEntity,
+  LiteralEntity,
   ObjectType,
   PropType,
   TupleEntity,
@@ -29,6 +30,7 @@ export type AppearedEntity =
   | { belong: 'enum'; id: number, value: EnumEntity }
   | { belong: 'entity'; id: number, value: Entity }
   | { belong: 'tuple'; id: number, value: TupleEntity }
+  | { belong: 'literal'; value: LiteralEntity }
   | { belong: 'nonLiteral'; value: ObjectType }
 
 export const appearedEntity2doc = (entities: AppearedEntity[]): EntityOnlyDoc => {
@@ -87,6 +89,9 @@ export function getNestEntity(
       break
     }
     case DocKind.LiteralObject:
+      if (inScope.length === 0) {
+        inScope.push({ belong: 'literal', value: d })
+      }
       d.props.forEach(e => getNestEntity(e, doc, inScope))
       break
 
@@ -109,8 +114,8 @@ export const nodeNull: DocNode = { kind: DocKind.Primitive, type: 'null' }
 export type SegmentTabKeys = PayloadKeys | 'play'
 const kPaloadKeys: PayloadKeys[] = [
   'headers',
-  'body',
   'response',
+  'body',
   'query',
   'params',
 ]

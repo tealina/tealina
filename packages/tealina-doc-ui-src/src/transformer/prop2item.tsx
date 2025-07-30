@@ -41,18 +41,18 @@ import { type2text } from './type2text'
 
 type ScopedDoc = Omit<ApiDoc, 'apis' | 'docTypeVersion'>
 
-const AllNumberPattern = /^\d+$/
 
-const toNumber = (v: null | undefined | string) => {
+const toNumber = (v: null | undefined | string | number) => {
   if (v == null) return
-  const x = v.trim()
-  if (AllNumberPattern.test(x)) return Number(x)
+  const x = Number(v)
+  if (Number.isNaN(x)) return
+  return x
 }
 
 const toBigInt = (v: null | undefined | string) => {
   if (v == null) return
   try {
-    return BigInt(v.trim())
+    return BigInt(v)
   } catch (error) { }
 }
 
@@ -255,6 +255,21 @@ export const prop2item = (
           preNamepath={preNamepath}
           key={[...preNamepath, prop.name].join('.')}
         />
+      )
+    case DocKind.LiteralObject:
+      return (
+        <FormItem key={[...preNamepath, prop.name].join('.')} noStyle>
+          <FormItem
+            label={String(prop.name)}
+            className="capitalize"
+            required={!prop.isOptional}
+          />
+          <Col offset={1 + preNamepath.length}>
+            {prop.props.map(p =>
+              prop2item(doc, p, [...preNamepath, prop.name]),
+            )}
+          </Col>
+        </FormItem>
       )
   }
 }

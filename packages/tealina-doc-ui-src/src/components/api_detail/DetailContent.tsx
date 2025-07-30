@@ -13,7 +13,6 @@ import {
   type TupleEntity
 } from '@tealina/doc-types'
 import { Button, Segmented, Spin, Tabs, Tag, type TabsProps } from 'antd'
-import { isEmpty } from 'fp-lite'
 import { useAtomValue } from 'jotai'
 import { Suspense, lazy } from 'react'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
@@ -35,6 +34,7 @@ import {
   type PayloadKeys,
   type SegmentTabKeys
 } from './useDetailState'
+
 const Playground = lazy(() => import('../features/playground/Playground'))
 
 function CopyButton({
@@ -82,9 +82,11 @@ export function DetailContent(summary: OneApiSummary) {
             className="invisible group-hover:visible pl-2"
           />
         </div>
+
         <p className="dark:text-white/75 whitespace-pre-wrap">
           {docItem.comment}
         </p>
+
       </div>
       <div className="flex-shrink-0">
         <div className="h-8" />
@@ -134,23 +136,23 @@ function PlayloadPanel({
   if (targetNode == null) {
     return null
   }
-  function renderContent(beginDoc: DocNode, id: string) {
+  function renderContent(beginDoc: DocNode) {
     if (!memoMap.has(`${keyPrefix}/${key}`)) {
-      const container: AppearedEntity[] = []
-      getNestEntity(beginDoc, doc, container)
-      memoMap.set(key, container)
+      const results: AppearedEntity[] = []
+      getNestEntity(beginDoc, doc, results)
+      memoMap.set(key, results)
     }
     const record = memoMap.get(key) ?? []
-    if (isEmpty(record)) {
-      // const tabItem = docItem[key]
-      // if (tabItem == null) {
-      //   return null
-      // }
-      if (beginDoc.kind === DocKind.LiteralObject) {
-        return <EntityTable entity={{ ...beginDoc, name: '{...}' }} key={id} id={id} doc={doc} />
-      }
-      return type2cell(beginDoc, doc)
-    }
+    // if (isEmpty(record)) {
+    //   // const tabItem = docItem[key]
+    //   // if (tabItem == null) {
+    //   //   return null
+    //   // }
+    //   if (beginDoc.kind === DocKind.LiteralObject) {
+    //     return <EntityTable entity={{ ...beginDoc, name: '{...}' }} key={id} id={id} doc={doc} />
+    //   }
+    //   return type2cell(beginDoc, doc)
+    // }
     const parsedDoc = appearedEntity2doc(record)
     return record.map(k => {
       switch (k.belong) {
@@ -166,7 +168,10 @@ function PlayloadPanel({
         case 'tuple': {
           return <TupleContent obj={k.value} id={String(k.id)} key={k.id} doc={parsedDoc} />
         }
-
+        case 'literal': {
+          const key = Math.random().toString(16)
+          return <EntityTable entity={{ ...k.value, name: '{...}' }} key={key} id={key} doc={parsedDoc} />
+        }
       }
     }
     )
@@ -180,7 +185,7 @@ function PlayloadPanel({
           key,
           tabKey: key,
           label: entity.name,
-          children: renderContent(v, key)
+          children: renderContent(v)
         }
       }
       case DocKind.Array: {
@@ -197,11 +202,17 @@ function PlayloadPanel({
             key,
             tabKey: key,
             label: '{...}',
-            children: renderContent(v, key)
+            children: renderContent(v)
           }
         }
         const statusCode = `${(statusCodeProp as NumberLiteral).value}`
         const descProp = v.props.find(v => v.name === kStatusDescKey) as StringLiteral | null
+        const resProp = v.props.find(v => v.name === 'response') as DocNode | null
+        if (resProp != null) {
+          return {
+            key: statusCode, label: statusCode, children: renderContent(resProp)
+          }
+        }
         return { key: statusCode, label: statusCode, children: <p>{descProp?.value}</p> }
       }
       default: {
@@ -216,6 +227,11 @@ function PlayloadPanel({
         }
       }
     }
+  }
+  if (curTab !== 'response') {
+    return <div className="flex flex-col gap-3 pb-10">
+      {renderContent(targetNode)}
+    </div>
   }
   const tabItems = targetNode.kind === DocKind.Union ? targetNode.types.map(node2tabItem)
     : [node2tabItem(targetNode)]

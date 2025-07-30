@@ -28,11 +28,15 @@ const mayNotJSON = (responseType?: DocNode) => {
 const descendByKeyLength = (kvs: [string, any][]): [string, any][] =>
   kvs.sort((a, b) => b[0].length - a[0].length)
 
-const replaceURL = (url: string) => (sortedKeyValues: [string, any][]) =>
-  sortedKeyValues.reduce(
-    (acc, [k, v]) => acc.replace(`:${k}`, v as string),
+const replaceURL = (url: string) => (sortedKeyValues: [string, any][]) => {
+  const getMatch = url.includes(':')
+    ? (k: string) => `:${k}`
+    : (k: string) => `{${k}}`
+  return sortedKeyValues.reduce(
+    (acc, [k, v]) => acc.replace(getMatch(k), v as string),
     url,
   )
+}
 
 const saveFile = (response: AxiosResponse) => {
   const filename = getFilenameFrom(response)

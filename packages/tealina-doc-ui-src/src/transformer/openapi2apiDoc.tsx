@@ -1,4 +1,4 @@
-import type { ApiDoc, DocItem, DocNode, Entity } from '@tealina/doc-types'
+import type { ApiDoc, DocItem, DocNode, Entity, StringLiteral } from '@tealina/doc-types'
 import { kStatusDescKey } from '@tealina/doc-types'
 import { DocKind, kStatusCodeKey } from '@tealina/doc-types'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
@@ -74,19 +74,24 @@ export function openApi2apiDoc(
     if (response == null) return {}
     const statusList = Object.keys(response)
     const nodes: DocNode[] = []
+    const kResponse = 'response'
     for (const status of statusList) {
       const res = response[status]
+      const uniNode: DocNode = {
+        kind: DocKind.LiteralObject, props: [
+          { kind: DocKind.NumberLiteral, value: Number(status), name: kStatusCodeKey },
+        ],
+      }
       if ('$ref' in res) {
-        let node = schema2docNode(doc, res, allSchemas)
+        const node = schema2docNode(doc, res, allSchemas)
         if (node.kind === DocKind.LiteralObject && node.props.length === 0) {
-          node = ({
-            kind: DocKind.LiteralObject, props: [
-              { kind: DocKind.NumberLiteral, value: Number(status), name: kStatusCodeKey },
-              { kind: DocKind.StringLiteral, value: node.comment ?? '', name: kStatusDescKey },
-            ],
-          })
+          uniNode.props.push(
+            { kind: DocKind.StringLiteral, value: node.comment ?? "", name: kStatusDescKey }
+          )
+        } else {
+          uniNode.props.push({ ...node, name: kResponse })
         }
-        nodes.push(node)
+        nodes.push(uniNode)
         continue
       }
       if (res.content != null) {
@@ -97,28 +102,29 @@ export function openApi2apiDoc(
             allSchemas
           )
           node.comment = node.comment ?? res.description
+          uniNode.props.push({ ...node, name: kResponse })
           nodes.push(
-            node
+            uniNode
           )
           continue
         }
         if (res.content[kTextPlain]) {
-          nodes.push(
+          uniNode.props.push(
             {
               kind: DocKind.Primitive,
               type: 'string',
               comment: 'text/plain',
+              name: kResponse
             }
+          )
+          nodes.push(
+            uniNode
           )
           continue
         }
       }
-      nodes.push({
-        kind: DocKind.LiteralObject, props: [
-          { kind: DocKind.NumberLiteral, value: Number(status), name: kStatusCodeKey },
-          { kind: DocKind.StringLiteral, value: res.description, name: kStatusDescKey },
-        ],
-      })
+      uniNode.props.push({ kind: DocKind.StringLiteral, value: res.description, name: kStatusDescKey })
+      nodes.push(uniNode)
     }
     if (nodes.length === 1) {
       return { response: nodes[0] }
