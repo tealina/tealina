@@ -1,3 +1,4 @@
+import { Typography } from 'antd'
 import type { CSSProperties, ReactNode } from 'react'
 
 export function Anchor(props: {
@@ -6,6 +7,6 @@ export function Anchor(props: {
   id: string
 }) {
   return (
-    <div className="text-lg font-bold target:animate-swing w-max" {...props} />
+    <Typography.Title className="font-bold target:animate-swing my-0" {...props} />
   )
 }
