@@ -4,16 +4,17 @@ import { readFile } from 'fs/promises'
 import path from 'node:path'
 import {
   TealinaVdocWebConfig,
-  VDOC_BASENAME,
   getAssetsPath,
   assembleHTML,
 } from '@tealina/doc-ui'
+
+const VDOC_BASENAME = '/api-doc';
 
 const vDocCofig: TealinaVdocWebConfig = {
   sources: [
     {
       baseURL: '/api/v1',
-      jsonURL: `${VDOC_BASENAME}/v1.json`,
+      jsonURL: './v1.json',
       name: 'v1',
     },
   ],

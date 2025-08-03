@@ -1,6 +1,5 @@
 import {
   type TealinaVdocWebConfig,
-  VDOC_BASENAME,
   assembleHTML,
   getAssetsPath,
 } from '@tealina/doc-ui'
@@ -11,11 +10,13 @@ import serve from 'koa-static'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
+const VDOC_BASENAME = '/api-doc';
+
 const vDocCofig: TealinaVdocWebConfig = {
   sources: [
     {
       baseURL: '/api/v1',
-      jsonURL: `${VDOC_BASENAME}/v1.json`,
+      jsonURL: './v1.json',
       name: 'v1',
     },
   ],

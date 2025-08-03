@@ -97,4 +97,3 @@ async function assembleHTML(config: TealinaVdocWebConfig) {
 
 export { getAssetsPath, assembleHTML }
 export type { TealinaVdocWebConfig, CommonFieldsType }
-export const VDOC_BASENAME = '/api-doc'
