@@ -6,8 +6,9 @@ import { invoke } from 'fp-lite'
 const fv = invoke<string>(console.log)
 // https://vitejs.dev/config/
 export default defineConfig(env => ({
-  plugins: [react(), UnoCSS()],
-  base: fv(env.command === 'build' ? VDOC_BASENAME : '/doc'),
+  plugins: [react(), UnoCSS() ],
+  // base: fv(env.command === 'build' ? VDOC_BASENAME : '/doc'),
+  base:'./',
   test: {
     environment: 'jsdom',
     setupFiles: ['./test/setup.ts'],
@@ -29,13 +30,7 @@ export default defineConfig(env => ({
   },
   build: {
     outDir: '../../packages/tealina-doc-ui/static',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'monaco-editor': ['monaco-editor'],
-        },
-      },
-    },
+    
   },
   server: {
     proxy: {

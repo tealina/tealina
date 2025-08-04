@@ -2,7 +2,7 @@ import FormItem from 'antd/es/form/FormItem'
 import type { InternalNamePath } from 'antd/es/form/interface'
 import { useState } from 'react'
 import type { PropType } from '@tealina/doc-types'
-import { Editor } from './monaco/JsonEditor'
+import { JsonEditor } from './monaco/JsonEditor'
 
 function JSON5Editor({
   onChange,
@@ -17,14 +17,14 @@ function JSON5Editor({
   onError: (x: string | null) => void
   onValid: () => void
 }) {
-  const defaultValue = [hint, value ? JSON.stringify(value) : ''].join('\n')
+  const defaultValue = value ? JSON.stringify(value) : ''
   return (
-    <Editor
+    <JsonEditor
+      hint={hint}
       defaultValue={defaultValue}
       className="h-60"
-      onBlur={editor => {
+      onBlur={(fullValue) => {
         try {
-          const fullValue = editor.getValue()
           const validLines = fullValue
             .split('\n')
             .filter(v => !v.startsWith('/'))

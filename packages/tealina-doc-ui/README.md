@@ -31,7 +31,7 @@ const vDocCofig: TealinaVdocWebConfig = {
   sources: [
     {
       baseURL: '/api/v1',
-      jsonURL: `${VDOC_BASENAME}/v1.json`,
+      jsonURL: './v1.json',
       name: 'v1',
     },
   ],

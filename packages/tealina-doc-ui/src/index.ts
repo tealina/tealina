@@ -22,6 +22,8 @@ type CommonFieldsType = Partial<
 >
 
 interface TealinaVdocWebConfig {
+  /** The cnd url to load third part libs,like: monaco-editor, react-markdown */
+  cdnUrl?:string,
   sources: {
     /** eg:'/api' */
     baseURL: string

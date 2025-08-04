@@ -8,7 +8,7 @@ if (import.meta.env.MODE === 'development') {
   window.TEALINA_VDOC_CONFIG = {
     sources: [
       {
-        baseURL: '',
+        baseURL: '/api/v1',
         jsonURL: '/api-doc/v1.json',
         name: '/api/v1',
       },
