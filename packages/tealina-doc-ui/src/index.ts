@@ -21,9 +21,50 @@ type CommonFieldsType = Partial<
   >
 >
 
+type RequestConfig = {
+  method: string
+  url: string
+} & Partial<Record<'body' | 'headers' | 'query' | 'params', unknown>>
+
+type CustomRequestHandler = (
+  requestConfig: RequestConfig,
+  setResult: (result: {
+    statusCode: number
+    code: string
+    isError: boolean
+  }) => void,
+) => Promise<unknown>
+
+type CustomRequestItem = {
+  match: (config: RequestConfig) => boolean
+  handler: CustomRequestHandler
+}
+
 interface TealinaVdocWebConfig {
   /** The cnd url to load third part libs,like: monaco-editor, react-markdown */
-  cdnUrl?:string,
+  cdnUrl?: string
+  /**
+   * inject custom scripts tag, the tag will be placement after configuration
+   * you can use it to initialize  CustomRequests
+   * @example
+   * ```js
+   *
+   *  funtion customUpload(){
+   *  }
+   *
+   *  window.TEALINA_VDOC_CONFIG.customRequests=[
+   *    {
+   *      match: (config) => config.url.includes('/upload'),
+   *      handler: customUpload,
+   *    }
+   *  ]
+   * ```
+   */
+  customScripts?: string[]
+  /**
+   * custom matched request
+   */
+  customRequests?: CustomRequestItem[]
   sources: {
     /** eg:'/api' */
     baseURL: string
@@ -87,13 +128,20 @@ function makeVdocConfigCode(config: TealinaVdocWebConfig) {
 }
 
 async function assembleHTML(config: TealinaVdocWebConfig) {
-  const { title, ...webConfig } = {
+  const {
+    title,
+    customScripts = [],
+    ...webConfig
+  } = {
     ...config,
     title: config.title ?? 'API Document',
   }
   const configuration = `<script>${makeVdocConfigCode(webConfig)}</script>`
+  const customScriptTags = customScripts
+    .map(s => `<script>${s}</script>`)
+    .join('\n')
   return genHtmlContent({
-    inHeadTags: [`<title>${title}</title>`, configuration],
+    inHeadTags: [`<title>${title}</title>`, configuration, customScriptTags],
   })
 }
 

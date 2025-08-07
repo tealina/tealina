@@ -122,6 +122,22 @@ export function useSumit({
       source.baseURL.replace(/\/$/, ''),
       path.replace(/^\//, ''),
     ].join('/')
+
+    const { customRequests = [] } = window.TEALINA_VDOC_CONFIG
+    if (customRequests.length > 0) {
+      const config = {
+        method,
+        url: toActualURL(params, url),
+        headers,
+        responseType: mayNotJSON(responseType),
+        params: query,
+        body,
+      }
+      const item = customRequests.find(item => item.match(config))
+      if (item) {
+        return item.handler(config, setStates).catch(showError)
+      }
+    }
     return req
       .request({
         method,

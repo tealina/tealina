@@ -4,6 +4,31 @@ import { atom } from 'jotai'
 import type { OpenAPIV3_1 } from 'openapi-types'
 import { openApi2apiDoc } from '../transformer/openapi2apiDoc'
 
+function deepFreeze(obj: any) {
+  Object.freeze(obj)
+
+  Object.getOwnPropertyNames(obj).forEach(prop => {
+    const value = obj[prop]
+    if (typeof value === 'function') {
+      Object.defineProperties(value, {
+        name: { writable: false },
+        length: { writable: false },
+        prototype: { writable: false },
+      })
+    }
+    if (Array.isArray(value)) {
+      value.forEach(v => deepFreeze(v))
+    }
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      !Object.isFrozen(value)
+    ) {
+      deepFreeze(value)
+    }
+  })
+  return obj
+}
 if (import.meta.env.MODE === 'development') {
   window.TEALINA_VDOC_CONFIG = {
     sources: [
@@ -30,6 +55,7 @@ if (import.meta.env.MODE === 'development') {
   }
 }
 
+window.TEALINA_VDOC_CONFIG = deepFreeze(window.TEALINA_VDOC_CONFIG)
 const sources = window.TEALINA_VDOC_CONFIG.sources
 /** Users may come from sharing links */
 const paramsFromURL = new window.URLSearchParams(window.location.search)
