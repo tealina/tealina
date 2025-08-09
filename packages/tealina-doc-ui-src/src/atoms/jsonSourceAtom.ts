@@ -6,8 +6,7 @@ import { openApi2apiDoc } from '../transformer/openapi2apiDoc'
 
 function deepFreeze(obj: any) {
   Object.freeze(obj)
-
-  Object.getOwnPropertyNames(obj).forEach(prop => {
+  for (const prop of Object.getOwnPropertyNames(obj)) {
     const value = obj[prop]
     if (typeof value === 'function') {
       Object.defineProperties(value, {
@@ -17,7 +16,9 @@ function deepFreeze(obj: any) {
       })
     }
     if (Array.isArray(value)) {
-      value.forEach(v => deepFreeze(v))
+      for (const v of value) {
+        deepFreeze(v)
+      }
     }
     if (
       typeof value === 'object' &&
@@ -26,33 +27,8 @@ function deepFreeze(obj: any) {
     ) {
       deepFreeze(value)
     }
-  })
-  return obj
-}
-if (import.meta.env.MODE === 'development') {
-  window.TEALINA_VDOC_CONFIG = {
-    sources: [
-      {
-        baseURL: '/api/v1',
-        jsonURL: '/api-doc/v1.json',
-        name: '/api/v1',
-      },
-    ],
-    errorMessageKey: 'message',
-    features: {
-      playground: {
-        commonFields: {
-          headers: {
-            Authorization: 'string',
-          },
-          body: {
-            skip: { type: 'number', default: 0 },
-            take: { type: 'number', default: 10 },
-          },
-        },
-      },
-    },
   }
+  return obj
 }
 
 window.TEALINA_VDOC_CONFIG = deepFreeze(window.TEALINA_VDOC_CONFIG)

@@ -1,14 +1,48 @@
 import react from '@vitejs/plugin-react'
+import { setTimeout } from 'timers/promises'
 import UnoCSS from 'unocss/vite'
 import { defineConfig } from 'vitest/config'
-import { VDOC_BASENAME } from '@tealina/doc-ui'
-import { invoke } from 'fp-lite'
-const fv = invoke<string>(console.log)
+import axios from 'axios'
+
+const kDocFactory = 'http://localhost:6000'
+const kConfigPromise = setTimeout(1000).then(() =>
+  axios
+    .get(`${kDocFactory}/api-doc/config.json`)
+    .then(res => res.data)
+    .catch(e => {
+      console.log(e)
+    }),
+)
+
 // https://vitejs.dev/config/
 export default defineConfig(env => ({
-  plugins: [react(), UnoCSS() ],
+  plugins: [
+    react(),
+    UnoCSS(),
+    {
+      name: 'inject-tealina-config',
+      apply: 'serve',
+      transformIndexHtml: {
+        order: 'pre',
+        handler: async html => {
+          try {
+            const json = await kConfigPromise
+            const index = html.indexOf('<div') - 4
+            const left = html.slice(0, index)
+            return [
+              left,
+              `<script> window.TEALINA_VDOC_CONFIG =  ${JSON.stringify(json)}</script>`,
+              html.slice(index),
+            ].join('\n')
+          } catch (error) {
+            console.log(error)
+          }
+        },
+      },
+    },
+  ],
   // base: fv(env.command === 'build' ? VDOC_BASENAME : '/doc'),
-  base:'./',
+  base: './',
   test: {
     environment: 'jsdom',
     setupFiles: ['./test/setup.ts'],
@@ -30,16 +64,16 @@ export default defineConfig(env => ({
   },
   build: {
     outDir: '../../packages/tealina-doc-ui/static',
-    
   },
+
   server: {
     proxy: {
       '/api-doc': {
-        target: 'http://localhost:6000',
+        target: kDocFactory,
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://localhost:6000',
+        target: kDocFactory,
         changeOrigin: true,
       },
     },
