@@ -12,12 +12,13 @@ import {
   type StringLiteral,
   type TupleEntity
 } from '@tealina/doc-types'
-import { Button, Segmented, Spin, Tabs, Tag, type TabsProps } from 'antd'
+import { Button, Card, Segmented, Spin, Tabs, Tag, type TabsProps } from 'antd'
 import { useAtomValue } from 'jotai'
 import { Suspense, lazy } from 'react'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
 import { syntaxColorAtom } from '../../atoms/themeAtom'
 import { type2cell } from '../../transformer/type2cell'
+import { getMethodColor } from '../../utils/methodColors'
 import { Anchor } from '../Anchor'
 import { ColorText } from '../ColorText'
 import { EntityTable } from '../EntityTable'
@@ -70,11 +71,12 @@ export function DetailContent(summary: OneApiSummary) {
   const { curTab, tabOptions, appearedKeys, memoMap, handleTabChange } =
     useDetailState(doc, docItem)
   const source = useAtomValue(curJsonSourceAtom)
+  const color = getMethodColor(identity.method)
   return (
     <div className="p-3 h-screen flex flex-col">
       <div className="text-lg flex-shrink-0">
         <div className="group">
-          <Tag className="uppercase text-16px px-3 py-1">{identity.method}</Tag>
+          <Tag className="uppercase text-16px px-3 py-1" color={color}>{identity.method}</Tag>
           <ColorText type="string" className="tracking-wider">
             {[source.baseURL, identity.path].join('')}
           </ColorText>
@@ -83,11 +85,11 @@ export function DetailContent(summary: OneApiSummary) {
             className="invisible group-hover:visible pl-2"
           />
         </div>
-
-        <MarkdownView>
-          {docItem.comment}
-        </MarkdownView>
-
+        <Card className='mt-3' bodyStyle={{ padding: '10px' }}>
+          <MarkdownView>
+            {docItem.comment}
+          </MarkdownView>
+        </Card>
       </div>
       <div className="flex-shrink-0">
         <div className="h-8" />
