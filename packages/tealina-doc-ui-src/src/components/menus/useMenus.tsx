@@ -1,4 +1,5 @@
 import type { ApiDoc, DocItem } from '@tealina/doc-types'
+import { Tag } from 'antd'
 import type {
   ItemType,
   MenuItemType,
@@ -10,9 +11,9 @@ import { useEffect, useState } from 'react'
 import {
   type CurApi,
   apiDocAtom,
-  curShowApiAtom,
+  curShowApiAtom
 } from '../../atoms/jsonSourceAtom'
-import { Tag } from 'antd'
+import { getMethodColor } from '../../utils/methodColors'
 
 const toItemModel = ([method, docItem]: [
   string,
@@ -20,16 +21,22 @@ const toItemModel = ([method, docItem]: [
 ]): MenuTreeModel[] =>
   Object.keys(docItem).map(endpoint => {
     const parts = endpoint.split('/')
-
+    const isRoot = parts.length <= 2
+    const isTail = parts[0] === ''
+    const index = isTail ? 1 : 0
+    const module = isRoot ? '/' : isTail ? parts[1] : parts[0]
+    const rest = module === parts[index] ? ['', ...parts.slice(index + 1)] : parts
     return {
-      endpoint: endpoint,
+      endpoint,
+      label: rest.join('/'),
       method,
-      module: parts.length <= 2 ? 'root' : parts[0] === '' ? parts[1] : parts[0],
+      module
     }
   })
 
 interface MenuTreeModel {
   endpoint: string
+  label: string
   method: string
   module: string
 }
@@ -51,13 +58,15 @@ interface MenuTreeModel {
 const toMenuItem = (vmList: MenuTreeModel[]): SubMenuType => {
   const [first] = vmList
   const children = vmList.map(vm => {
-    const hasEndponit = vm.endpoint.length
-    const url = hasEndponit ? vm.endpoint : vm.method.toUpperCase()
+    // const hasEndponit = vm.endpoint.length
+    // const url = hasEndponit ? vm.endpoint : vm.method.toUpperCase()
+    // const url = vm.endpoint
     return {
-      key: [vm.method, ...(hasEndponit ? [vm.endpoint] : [])].join('/'),
+      // key: [vm.method, vm.module, ...(hasEndponit ? [vm.endpoint] : [])].join('/'),
+      key: [vm.method, vm.endpoint].join('/'),
       label: <span>
-        <Tag>{vm.method}</Tag>
-        {url}
+        <Tag color={getMethodColor(vm.method)}>{vm.method}</Tag>
+        {vm.label}
       </span>,
     }
   })
@@ -105,7 +114,11 @@ const reversetInit = (
 export const useMenus = () => {
   const [res] = useAtom(apiDocAtom)
   const [curShowApi, setCurShowApi] = useAtom(curShowApiAtom)
+  // const curJsonItem = useAtomValue(curJsonSourceAtom)
   const items = genMenuItems(res)
+  // if (items.length > 0) {
+  //   items[0].label = curJsonItem.baseURL
+  // }
   const updateCurShowApi = (e: { key: string }) => {
     const { key } = e
     const [method, ...rest] = key.split('/')
@@ -122,6 +135,6 @@ export const useMenus = () => {
       const keys = gatherFirstElement(items[0])
       updateCurShowApi({ key: keys.at(-1)! })
     }
-  }, [])
+  }, [curShowApi])
   return { items, defaultOpenKeys, updateCurShowApi }
 }

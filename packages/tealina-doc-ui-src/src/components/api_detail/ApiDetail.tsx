@@ -1,11 +1,10 @@
-import { useAtomValue } from 'jotai'
 import type { ApiDoc, DocItem } from '@tealina/doc-types'
+import { useAtomValue } from 'jotai'
 import {
   apiDocAtom,
   curJsonSourceAtom,
   curShowApiAtom,
 } from '../../atoms/jsonSourceAtom'
-import { Await } from '../Await'
 import { DetailContent } from './DetailContent'
 
 export interface OneApiDoc {
@@ -32,11 +31,7 @@ function useDocItem(): OneApiDoc | null {
 function ApiDetail() {
   const info = useDocItem()
   if (info == null) return null
-  return (
-    <Await>
-      <DetailContent {...info} />
-    </Await>
-  )
+  return (<DetailContent {...info} />)
 }
 
 export { ApiDetail }

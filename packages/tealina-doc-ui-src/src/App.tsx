@@ -5,6 +5,7 @@ import { ApiMenus } from './components/menus/ApiMenus'
 import { ApiDetail } from './components/api_detail/ApiDetail'
 import { HeaderAction } from './components/HeaderAction'
 import { ErrorBoundary } from 'react-error-boundary'
+import { Await } from './components/Await'
 
 const { Sider, Content } = Layout
 
@@ -32,7 +33,9 @@ function MyApp() {
             <Layout className="max-h-screen overflow-y-auto text-lg">
               <HeaderAction />
               <Content className="h-screen">
-                <ApiDetail />
+                <Await>
+                  <ApiDetail />
+                </Await>
               </Content>
             </Layout>
           </Layout>
