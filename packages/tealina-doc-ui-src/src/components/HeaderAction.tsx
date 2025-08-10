@@ -1,12 +1,13 @@
 import { SettingOutlined } from '@ant-design/icons'
+import { Button, Modal, Select } from 'antd'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { curJsonSourceAtom, curShowApiAtom, jsonSourceAtom } from '../atoms/jsonSourceAtom'
-import { MoonIcon } from './icon/MoonIcon'
-import { SunIcon } from './icon/SunIcon'
 import { themeAtom } from '../atoms/themeAtom'
 import { ComonFields } from './features/playground/CommonFields'
-import { Button, Modal, Select } from 'antd'
+import { MoonIcon } from './icon/MoonIcon'
+import { SunIcon } from './icon/SunIcon'
+import { SearchBtn } from './Search'
 
 const isPlaygroundEnable =
   window.TEALINA_VDOC_CONFIG.features?.playground != null
@@ -22,6 +23,7 @@ export function HeaderAction() {
 
   return (
     <div className="fixed z-3 flex justify-end gap-3 p-2 top-0 right-0 items-center pt-3">
+      <SearchBtn />
       <ThemeToggle />
       <Select
         className="min-w-30"
@@ -46,10 +48,7 @@ function CommonFieldToggle() {
     <>
       <Button
         icon={
-          <SettingOutlined
-            onPointerEnterCapture={undefined}
-            onPointerLeaveCapture={undefined}
-          />
+          <SettingOutlined />
         }
         onClick={() => setOpen(true)}
       />

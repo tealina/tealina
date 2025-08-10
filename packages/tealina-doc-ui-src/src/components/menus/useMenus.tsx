@@ -5,8 +5,8 @@ import type {
   MenuItemType,
   SubMenuType,
 } from 'antd/es/menu/hooks/useItems'
-import { flat, flow, map, pipe, separeBy } from 'fp-lite'
-import { useAtom } from 'jotai'
+import { flat, flow, map, pickFn, pipe, separeBy } from 'fp-lite'
+import { useAtom, useAtomValue } from 'jotai'
 import { useEffect, useState } from 'react'
 import {
   type CurApi,
@@ -14,32 +14,24 @@ import {
   curShowApiAtom
 } from '../../atoms/jsonSourceAtom'
 import { getMethodColor } from '../../utils/methodColors'
+import { apiSummariesAtom, ApiSummary } from '../../atoms/summaryAtom'
 
-const toItemModel = ([method, docItem]: [
-  string,
-  Record<string, DocItem>,
-]): MenuTreeModel[] =>
-  Object.keys(docItem).map(endpoint => {
-    const parts = endpoint.split('/')
-    const isRoot = parts.length <= 2
-    const isTail = parts[0] === ''
-    const index = isTail ? 1 : 0
-    const module = isRoot ? '/' : isTail ? parts[1] : parts[0]
-    const rest = module === parts[index] ? ['', ...parts.slice(index + 1)] : parts
-    return {
-      endpoint,
-      label: rest.join('/'),
-      method,
-      module
-    }
-  })
 
-interface MenuTreeModel {
-  endpoint: string
-  label: string
-  method: string
-  module: string
+
+const reversetInit = (
+  { method, path }: CurApi,
+  items: SubMenuType<MenuItemType>[],
+) => {
+  const route = path.replace(/^[/]|[/]$/g, '')
+  const fullKey = pipe(
+    route.includes('/') ? [method, path] : [path, method.toLowerCase()],
+    xs => xs.join('/'),
+  )
+  const target = items.find(v => v.children.some(v => v?.key === fullKey))
+  if (target == null) return []
+  return [target.key, fullKey]
 }
+
 
 /**
  * craete menu item by api route\
@@ -55,7 +47,7 @@ interface MenuTreeModel {
  * - health
  *    - GET
  */
-const toMenuItem = (vmList: MenuTreeModel[]): SubMenuType => {
+const toMenuItem = (vmList: ApiSummary[]): SubMenuType => {
   const [first] = vmList
   const children = vmList.map(vm => {
     // const hasEndponit = vm.endpoint.length
@@ -78,10 +70,7 @@ const toMenuItem = (vmList: MenuTreeModel[]): SubMenuType => {
 }
 
 const genMenuItems = flow(
-  (res: ApiDoc) => Object.entries(res.apis),
-  map(toItemModel),
-  flat,
-  separeBy(x => x.module),
+  separeBy((x: ApiSummary) => x.module),
   map(toMenuItem),
 )
 
@@ -97,25 +86,12 @@ const gatherFirstElement = (x: ItemType, records: string[] = []): string[] => {
   return records
 }
 
-const reversetInit = (
-  { method, path }: CurApi,
-  items: SubMenuType<MenuItemType>[],
-) => {
-  const route = path.replace(/^[/]|[/]$/g, '')
-  const fullKey = pipe(
-    route.includes('/') ? [method, path] : [path, method.toLowerCase()],
-    xs => xs.join('/'),
-  )
-  const target = items.find(v => v.children.some(v => v?.key === fullKey))
-  if (target == null) return []
-  return [target.key, fullKey]
-}
 
 export const useMenus = () => {
-  const [res] = useAtom(apiDocAtom)
+  const summaries = useAtomValue(apiSummariesAtom)
   const [curShowApi, setCurShowApi] = useAtom(curShowApiAtom)
   // const curJsonItem = useAtomValue(curJsonSourceAtom)
-  const items = genMenuItems(res)
+  const items = genMenuItems(summaries)
   // if (items.length > 0) {
   //   items[0].label = curJsonItem.baseURL
   // }
@@ -126,15 +102,18 @@ export const useMenus = () => {
     setCurShowApi({ method, path: nextPath })
     return
   }
-  const [defaultOpenKeys] = useState<string[]>(() => {
+  const [seletedKeys, setSelectedKeys] = useState<string[]>(() => {
     if (curShowApi == null) return []
     return reversetInit(curShowApi, items)
   })
+  // const seletedKeys = curShowApi ? reversetInit(curShowApi, items) : defaultOpenKeys
   useEffect(() => {
     if (curShowApi == null) {
       const keys = gatherFirstElement(items[0])
       updateCurShowApi({ key: keys.at(-1)! })
+      return
     }
+    setSelectedKeys(reversetInit(curShowApi, items))
   }, [curShowApi])
-  return { items, defaultOpenKeys, updateCurShowApi }
+  return { items, seletedKeys, setSelectedKeys, updateCurShowApi }
 }

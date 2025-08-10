@@ -6,6 +6,7 @@ import { ApiDetail } from './components/api_detail/ApiDetail'
 import { HeaderAction } from './components/HeaderAction'
 import { ErrorBoundary } from 'react-error-boundary'
 import { Await } from './components/Await'
+import { DocSearchProvider } from './components/Search'
 
 const { Sider, Content } = Layout
 
@@ -31,7 +32,11 @@ function MyApp() {
               <ApiMenus />
             </Sider>
             <Layout className="max-h-screen overflow-y-auto text-lg">
-              <HeaderAction />
+              <Await>
+                <DocSearchProvider>
+                  <HeaderAction />
+                </DocSearchProvider>
+              </Await>
               <Content className="h-screen">
                 <Await>
                   <ApiDetail />
