@@ -163,6 +163,7 @@ function PlayloadPanel({
           return <EntityTable entity={k.value} key={k.id} id={String(k.id)} doc={parsedDoc} />
         }
         case 'enum': {
+          if (k.value.name === '') return null
           return <EnumTable enumEntity={k.value} key={k.id} id={String(k.id)} />
         }
         case 'nonLiteral': {

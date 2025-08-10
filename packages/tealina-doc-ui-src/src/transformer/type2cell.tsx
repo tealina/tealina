@@ -40,7 +40,12 @@ export function type2cell(
       )
     }
     case DocKind.EnumRef: {
-      const eShowName = enumRefs[d.id].name
+      const target = enumRefs[d.id]
+      const eShowName = target.name
+      if (eShowName === '') {
+        const textList = target.members.map(v => type2cell(v.value, doc))
+        return <>{injectDivider(textList)}</>
+      }
       return (
         <ColorText type="object">
           <a className="text-inherit" href={`#${d.id}`}>

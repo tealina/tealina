@@ -6,6 +6,7 @@ import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 const kApplicationJson = 'application/json'
 const kTextPlain = 'text/plain'
 const kMultipartForm = 'multipart/form-data'
+type ApiRefs = Pick<ApiDoc, 'enumRefs' | 'entityRefs' | 'tupleRefs'>
 export function openApi2apiDoc(
   doc: OpenAPIV3_1.Document,
   baseURL: string,
@@ -15,7 +16,12 @@ export function openApi2apiDoc(
     ...Object.keys(schemas).map(k => `#/components/schemas/${k}`),
     ...Object.keys(responses).map(k => `#/components/responses/${k}`),
   ]
-  const entityRefs: ApiDoc['entityRefs'] = {}
+  const refs: ApiRefs = {
+    entityRefs: {},
+    enumRefs: {},
+    tupleRefs: {}
+  }
+  const { entityRefs } = refs
   let i = 0
   const collectEntity = (schema: OpenAPIV3_1.SchemaObject): void => {
     const name = allSchemas[i].split('/').pop() ?? '{ }'
@@ -25,7 +31,7 @@ export function openApi2apiDoc(
       props: Object.entries(properties).map(([name, schema]) => {
         return {
           name,
-          ...schema2docNode(doc, schema, allSchemas),
+          ...schema2docNode(doc, schema, allSchemas, refs),
         }
       }),
       comment: schema.description,
@@ -45,6 +51,7 @@ export function openApi2apiDoc(
             doc,
             requestBody.content[kApplicationJson].schema!,
             allSchemas,
+            refs,
           ),
         }
       }
@@ -54,6 +61,7 @@ export function openApi2apiDoc(
             doc,
             requestBody.content[kMultipartForm].schema!,
             allSchemas,
+            refs,
           ),
         }
       }
@@ -64,6 +72,7 @@ export function openApi2apiDoc(
         doc,
         requestBody as unknown as OpenAPIV3_1.ReferenceObject,
         allSchemas,
+        refs,
       ),
     }
   }
@@ -83,7 +92,7 @@ export function openApi2apiDoc(
         ],
       }
       if ('$ref' in res) {
-        const node = schema2docNode(doc, res, allSchemas)
+        const node = schema2docNode(doc, res, allSchemas, refs)
         if (node.kind === DocKind.LiteralObject && node.props.length === 0) {
           uniNode.props.push(
             { kind: DocKind.StringLiteral, value: node.comment ?? "", name: kStatusDescKey }
@@ -99,7 +108,8 @@ export function openApi2apiDoc(
           const node = schema2docNode(
             doc,
             res.content[kApplicationJson].schema!,
-            allSchemas
+            allSchemas,
+            refs
           )
           node.comment = node.comment ?? res.description
           uniNode.props.push({ ...node, name: kResponse })
@@ -136,7 +146,7 @@ export function openApi2apiDoc(
     param: OpenAPIV3_1.ParameterObject,
     entiry: Entity,
   ) => {
-    const node = schema2docNode(doc, param.schema!, allSchemas)
+    const node = schema2docNode(doc, param.schema!, allSchemas, refs)
     entiry.props.push({
       ...node,
       name: param.name,
@@ -227,7 +237,7 @@ export function openApi2apiDoc(
       }
     })
   })
-  return { apis, entityRefs, docTypeVersion: 1.0, enumRefs: {}, tupleRefs: {} }
+  return { apis, docTypeVersion: 1.0, ...refs }
 }
 
 function extraMetaInfo(schema: OpenAPIV3_1.SchemaObject) {
@@ -244,7 +254,8 @@ function _schema2docNodeCore(
   doc: OpenAPIV3_1.Document,
   schema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject,
   allSchems: string[],
-  parsingList: OpenAPIV3_1.SchemaObject[] = [],
+  refs: ApiRefs,
+  parsingList: OpenAPIV3_1.SchemaObject[] = []
 ): DocNode {
   if ('$ref' in schema) {
     const id = allSchems.indexOf(schema.$ref)
@@ -261,7 +272,7 @@ function _schema2docNodeCore(
       doc,
     ) as OpenAPIV3_1.SchemaObject
     if (entity.type !== 'object') {
-      return schema2docNode(doc, entity, allSchems, parsingList)
+      return schema2docNode(doc, entity, allSchems, refs, parsingList)
     }
     return { id: id, kind: DocKind.EntityRef, ...extraMetaInfo(schema) }
   }
@@ -275,7 +286,7 @@ function _schema2docNodeCore(
           element: {
             kind: DocKind.Tuple,
             elements: schema.oneOf!.map(v =>
-              schema2docNode(doc, v, allSchems, parsingList),
+              schema2docNode(doc, v, allSchems, refs, parsingList),
             ),
           },
           ...extraMetaInfo(schema),
@@ -286,7 +297,7 @@ function _schema2docNodeCore(
           kind: DocKind.Array,
           element: isUnknowType ?
             { kind: DocKind.Primitive, type: 'unknow' }
-            : schema2docNode(doc, schema.items, allSchems, parsingList),
+            : schema2docNode(doc, schema.items, allSchems, refs, parsingList),
           ...extraMetaInfo(schema),
         }
       }
@@ -302,9 +313,18 @@ function _schema2docNodeCore(
     case 'integer':
     case 'number':
       if (schema.enum != null) {
+        const enumId = Object.keys(refs.enumRefs).length + 1
+        refs.enumRefs[enumId] = {
+          members: schema.enum.map((v, i) => ({
+            key: v,
+            value: { kind: DocKind.NumberLiteral, value: v },
+            memberId: i
+          })),
+          name: '',// empty string tells the render funtion it canbe render directly
+        }
         return {
-          kind: DocKind.NumberLiteral,
-          value: schema.enum[0],
+          kind: DocKind.EnumRef,
+          id: enumId,
           ...extraMetaInfo(schema),
         }
       }
@@ -322,11 +342,21 @@ function _schema2docNodeCore(
         }
       }
       if (schema.enum != null) {
+        const enumId = Object.keys(refs.enumRefs).length + 1
+        refs.enumRefs[enumId] = {
+          members: schema.enum.map((v, i) => ({
+            key: v,
+            value: { kind: DocKind.StringLiteral, value: v },
+            memberId: i
+          })),
+          name: schema.title ?? '',
+        }
         return {
-          kind: DocKind.StringLiteral,
-          value: schema.enum[0],
+          kind: DocKind.EnumRef,
+          id: enumId,
           ...extraMetaInfo(schema),
         }
+
       }
       return {
         kind: DocKind.Primitive,
@@ -354,6 +384,7 @@ function _schema2docNodeCore(
             doc,
             schema.additionalProperties,
             allSchems,
+            refs,
             parsingList,
           ),
           ...extraMetaInfo(schema),
@@ -369,7 +400,7 @@ function _schema2docNodeCore(
             ([name, _nestSchema]) => {
               return {
                 name,
-                ...schema2docNode(doc, _nestSchema, allSchems, parsingList),
+                ...schema2docNode(doc, _nestSchema, allSchems, refs, parsingList),
                 ...(requiredList.includes(name) ? {} : { isOptional: true })
               }
             },
@@ -391,19 +422,19 @@ function _schema2docNodeCore(
       if (oneOf != null) {
         result = {
           kind: DocKind.Union,
-          types: oneOf.map(v => schema2docNode(doc, v, allSchems, parsingList)),
+          types: oneOf.map(v => schema2docNode(doc, v, allSchems, refs, parsingList)),
         } // Union
       } else if (allOf != null) {
         result = {
           kind: DocKind.Tuple,
           elements: allOf.map(v =>
-            schema2docNode(doc, v, allSchems, parsingList),
+            schema2docNode(doc, v, allSchems, refs, parsingList),
           ),
         } // Union
       } else if (anyOf != null) {
         result = {
           kind: DocKind.Union,
-          types: anyOf.map(v => schema2docNode(doc, v, allSchems, parsingList)),
+          types: anyOf.map(v => schema2docNode(doc, v, allSchems, refs, parsingList)),
         } // Union
       } else if (Object.keys(schema).length > 0) {
         result = { kind: DocKind.LiteralObject, props: [], ...extraMetaInfo(schema) }
@@ -420,6 +451,7 @@ export function schema2docNode(
   doc: OpenAPIV3_1.Document,
   schema: OpenAPIV3.BaseSchemaObject | OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject,
   allSchems: string[],
+  refs: ApiRefs,
   parsingList: OpenAPIV3_1.SchemaObject[] = [],
 ): DocNode {
   let node: DocNode;
@@ -427,11 +459,11 @@ export function schema2docNode(
     node = {
       kind: DocKind.Union, types: [
         { kind: DocKind.Primitive, type: 'null' },
-        _schema2docNodeCore(doc, schema, allSchems, parsingList)
+        _schema2docNodeCore(doc, schema, allSchems, refs, parsingList)
       ]
     }
   } else {
-    node = _schema2docNodeCore(doc, schema, allSchems, parsingList)
+    node = _schema2docNodeCore(doc, schema, allSchems, refs, parsingList)
   }
   if ('deprecated' in schema) {
     node.jsDoc = { ...(node.jsDoc ?? {}), deprecated: '' }
