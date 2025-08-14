@@ -11,13 +11,11 @@ export const genTopIndexProp =
   (dir: string) =>
     `  '${dir}': import('./${dir}/index${suffix}'),`
 
-const kSimpleKeyPattern = /^[A-Za-z0-9_-]+$/
 export const genIndexProp =
   (suffix = '') =>
   (fullPathArr: string[]) => {
     const key = toRoutePath(fullPathArr)
-    const mayHasQuote = kSimpleKeyPattern.test(key) ? key : `'${key}'`
-    return `  ${mayHasQuote}: import('./${fullPathArr.join('/')}${suffix}'),`
+    return `  '/${key}': import('./${fullPathArr.join('/')}${suffix}'),`
   }
 
 export const genWithWrapper = (contens: string[]) =>

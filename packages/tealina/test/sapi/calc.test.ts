@@ -39,8 +39,8 @@ test('sync api in deep', () => {
         kind: 'post',
         content: [
           'export default {',
-          "  'login': import('./user/login.js'),",
-          "  'user/delete': import('./user/delete.js'),",
+          "  '/login': import('./user/login.js'),",
+          "  '/user/delete': import('./user/delete.js'),",
           '}',
         ].join('\n'),
         files: ['/user/login.ts', '/user/delete.ts'],
@@ -52,8 +52,8 @@ test('sync api in deep', () => {
   expect(result[0].code).eq(
     [
       'export default {',
-      "  'user/delete': import('./user/delete.js'),",
-      "  'user/login': import('./user/login.js'),",
+      "  '/user/delete': import('./user/delete.js'),",
+      "  '/user/login': import('./user/login.js'),",
       '}',
       '',
     ].join('\n'),
@@ -67,8 +67,8 @@ test('sync api work other suffix, eg: tsx, mts', () => {
         kind: 'post',
         content: [
           'export default {',
-          "  'user/delete': import('./user/delete.js'),",
-          "  'user/login': import('./user/login.js'),",
+          "  '/user/delete': import('./user/delete.js'),",
+          "  '/user/login': import('./user/login.js'),",
           '}',
         ].join('\n'),
         files: ['/page/pdf.tsx', '/user/delete.mts'],
@@ -80,8 +80,8 @@ test('sync api work other suffix, eg: tsx, mts', () => {
   expect(result[0].code).eq(
     [
       'export default {',
-      "  'page/pdf': import('./page/pdf.js'),",
-      "  'user/delete': import('./user/delete.js'),",
+      "  '/page/pdf': import('./page/pdf.js'),",
+      "  '/user/delete': import('./user/delete.js'),",
       '}',
       '',
     ].join('\n'),

@@ -88,9 +88,9 @@ describe('test dapi calculation part', function () {
         [
           'post',
           [
-            "  'role/create': import('./role/create.js'),",
-            "  'role/getList': import('./role/getList.js'),",
-            "  'other/action': import('./other/action.js'),",
+            "  '/role/create': import('./role/create.js'),",
+            "  '/role/getList': import('./role/getList.js'),",
+            "  '/other/action': import('./other/action.js'),",
           ],
         ],
       ]),
@@ -112,9 +112,9 @@ describe('test dapi calculation part', function () {
         [
           'post',
           [
-            "  'role/create': import('./role/create'),",
-            "  'role/getList': import('./role/getList'),",
-            "  'other/action': import('./other/action'),",
+            "  '/role/create': import('./role/create'),",
+            "  '/role/getList': import('./role/getList'),",
+            "  '/other/action': import('./other/action'),",
           ],
         ],
       ]),
@@ -144,15 +144,15 @@ describe('test dapi calculation part', function () {
     const newFiles = [
       'index.ts',
       'post/index.ts',
-      'post/student/create.ts',
-      'post/student/getList.ts',
-      'post/student/update.ts',
-      'post/student/delete.ts',
+      '/post/student/create.ts',
+      '/post/student/getList.ts',
+      '/post/student/update.ts',
+      '/post/student/delete.ts',
 
-      'post/student/create.test.ts',
-      'post/student/getList.test.ts',
-      'post/student/update.test.ts',
-      'post/student/delete.test.ts',
+      '/post/student/create.test.ts',
+      '/post/student/getList.test.ts',
+      '/post/student/update.test.ts',
+      '/post/student/delete.test.ts',
     ]
     expect(snapshots.length).eq(newFiles.length)
     const [topIndexSnapshot, ...deletions] = snapshots
@@ -166,9 +166,9 @@ describe('test dapi calculation part', function () {
     const snapshots = calcSnapshots({
       seeds: [parseByRoute(route, RestfulCRUD)].map(withFileSummary),
       kindIndexContentMap: new Map([
-        ['get', ["  'user': import('./user.js'),"]],
-        ['put', ["  'user/:id/': import('./user/[id].js'),"]],
-        ['post', ["  'user': import('./user.js'),"]],
+        ['get', ["  '/user': import('./user.js'),"]],
+        ['put', ["  '/user/:id': import('./user/[id].js'),"]],
+        ['post', ["  '/user': import('./user.js'),"]],
       ]),
       topIndexContent: [
         "  'get': import('./get/index.js'),",
@@ -203,9 +203,9 @@ describe('test dapi calculation part', function () {
     const snapshots = calcSnapshots({
       seeds: [parseByRoute(route, RestfulCRUD)].map(withOtherFileSummary),
       kindIndexContentMap: new Map([
-        ['get', ["  'user': import('./user.js'),"]],
-        ['put', ["  'user/:id/': import('./user/[id].js'),"]],
-        ['post', ["  'user': import('./user.js'),"]],
+        ['get', ["  '/user': import('./user.js'),"]],
+        ['put', ["  '/user/:id': import('./user/[id].js'),"]],
+        ['post', ["  '/user': import('./user.js'),"]],
       ]),
       topIndexContent: [
         "  'get': import('./get/index.js'),",
