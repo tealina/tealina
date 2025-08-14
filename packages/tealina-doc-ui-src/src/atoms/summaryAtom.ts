@@ -1,5 +1,5 @@
-import type { ApiDoc, DocItem } from '@tealina/doc-types'
-import { flat, flow, map, pipe } from 'fp-lite'
+import type { DocItem } from '@tealina/doc-types'
+import { flat, map, pipe } from 'fp-lite'
 import { atom } from 'jotai'
 import { apiDocAtom } from './jsonSourceAtom'
 export interface ApiSummary {
@@ -9,13 +9,13 @@ export interface ApiSummary {
   module: string
 }
 
-const toItemModel = ([method, docItem]: [
+const toSummary = ([method, docItem]: [
   string,
   Record<string, DocItem>,
 ]): ApiSummary[] =>
   Object.keys(docItem).map(endpoint => {
     const parts = endpoint.split('/')
-    const isRoot = parts.length <= 2
+    const isRoot = parts.length < 3
     const isTail = parts[0] === ''
     const index = isTail ? 1 : 0
     const module = isRoot ? '/' : isTail ? parts[1] : parts[0]
@@ -31,7 +31,7 @@ const toItemModel = ([method, docItem]: [
 
 export const apiSummariesAtom = atom(async get => {
   const doc = await get(apiDocAtom)
-  const summaries = pipe(Object.entries(doc.apis), map(toItemModel), flat, xs =>
+  const summaries = pipe(Object.entries(doc.apis), map(toSummary), flat, xs =>
     xs.sort((a, b) => a.module.localeCompare(b.module)),
   )
   return summaries
