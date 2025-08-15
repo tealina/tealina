@@ -1,11 +1,13 @@
+import { build } from 'esbuild'
+import { unlink } from 'fs'
+import { writeFile } from 'fs/promises'
 import fs, { readFileSync } from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { extname, normalize, resolve } from 'pathe'
+import { extname, normalize } from 'pathe'
 import ts from 'typescript'
 import type { RawOptions } from '../commands'
-import type { FullOptions } from '../commands/capi'
 import type { TealinaConifg, TemplateContext } from '../index'
 
 export const capitalize = (str: string) =>
@@ -62,20 +64,24 @@ export const readIndexFile = (indexFilePath: string): Promise<string[]> =>
     () => [],
   )
 
-export const loadConfig = async (
-  opt: RawOptions & { apiDir: string; route?: string },
-): Promise<FullOptions> =>
-  import(pathToFileURL(resolve(opt.configPath)).href)
-    .then(v => v.default as TealinaConifg)
-    .then(v => ({
-      ...v,
-      typesDir: normalize(v.typesDir),
-      testDir: v.testDir ? normalize(v.testDir) : void 0,
-      suffix: v.suffix ?? '.js',
-      ...opt,
-      apiDir: normalize(opt.apiDir),
-      route: opt.route ?? '',
-    }))
+export const mergeInlineOptions = (
+  config: TealinaConifg,
+  inlineOption: InlineOptions,
+) => {
+  return {
+    ...config,
+    typesDir: normalize(config.typesDir),
+    testDir: config.testDir ? normalize(config.testDir) : void 0,
+    suffix: config.suffix ?? '.js',
+    ...inlineOption,
+    apiDir: normalize(inlineOption.apiDir),
+    route: inlineOption.route ?? '',
+  }
+}
+type InlineOptions = RawOptions & {
+  apiDir: string
+  route?: string
+}
 
 export interface TsConfig {
   compilerOptions?: {
@@ -94,4 +100,36 @@ export const readTsConfig = async (tsconfigPath: string) => {
     )
   }
   return parsedConfig.config as TsConfig
+}
+
+const transform2mjs = async (configPath: string) => {
+  const result = await build({
+    absWorkingDir: process.cwd(),
+    entryPoints: [configPath],
+    bundle: false,
+    write: false,
+    platform: 'node',
+    format: 'esm',
+    target: 'esnext',
+    loader: { '.ts': 'ts' },
+    sourcemap: 'inline',
+  })
+  const fileBase = `${configPath}.${Date.now()}-${Math.random().toString(16).slice(2)}`
+  const fileNameTmp = `${fileBase}.mjs`
+  await writeFile(fileNameTmp, result.outputFiles[0].text)
+  return fileNameTmp
+}
+
+export const loadConfigFromPath = async (configPath: string) => {
+  if (extname(configPath) === 'mjs') {
+    const fileUrl = pathToFileURL(configPath).href
+    return import(fileUrl).then(v => v.default)
+  }
+  const jsFilePath = await transform2mjs(configPath)
+  const fileUrl = pathToFileURL(jsFilePath).href
+  return import(fileUrl)
+    .then(v => v.default)
+    .finally(() => {
+      unlink(jsFilePath, () => {})
+    })
 }

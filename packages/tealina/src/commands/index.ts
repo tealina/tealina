@@ -1,6 +1,6 @@
 import { cac } from 'cac'
 import { exitIfHasDeprecated } from '../utils/exitIfHasDeprecated'
-import { loadConfig } from '../utils/tool'
+import { loadConfigFromPath, mergeInlineOptions } from '../utils/tool'
 import { createApis } from './capi'
 import { deleteApis } from './dapi'
 import { pickOption4gdoc, startGenerateDoc } from './gdoc'
@@ -27,8 +27,9 @@ const distribuite = async (...rawArgs: unknown[]) => {
   const args = rawArgs as ReadonlyArray<string>
   const [apiDir, route] = args
   exitIfHasDeprecated(apiDir, route, options)
-  const rawOptions = { ...options, apiDir, route }
-  const config = await loadConfig(rawOptions)
+  const inlineOptions = { ...options, apiDir, route }
+  const basicConfig = await loadConfigFromPath(options.configPath)
+  const config = mergeInlineOptions(basicConfig, inlineOptions)
   if (options.align) {
     return syncApiByFile(pickOption4align(config))
   }
