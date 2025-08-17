@@ -5,14 +5,19 @@ import { defineConfig } from 'vitest/config'
 import axios from 'axios'
 
 const kDocFactory = 'http://localhost:6000'
-const kConfigPromise = setTimeout(1000).then(() =>
-  axios
-    .get(`${kDocFactory}/api-doc/config.json`)
-    .then(res => res.data)
-    .catch(e => {
-      console.log(e)
-    }),
-)
+let kConfigPromise = null
+const getRemoteConfig = async () => {
+  if (kConfigPromise) return kConfigPromise
+  kConfigPromise = await setTimeout(1000).then(() =>
+    axios
+      .get(`${kDocFactory}/api-doc/config.json`)
+      .then(res => res.data)
+      .catch(e => {
+        console.log(e)
+      }),
+  )
+  return kConfigPromise
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(env => ({
@@ -26,7 +31,7 @@ export default defineConfig(env => ({
         order: 'pre',
         handler: async html => {
           try {
-            const json = await kConfigPromise
+            const json = await getRemoteConfig()
             const index = html.indexOf('<div') - 4
             const left = html.slice(0, index)
             return [
