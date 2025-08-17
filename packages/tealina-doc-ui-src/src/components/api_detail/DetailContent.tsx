@@ -2,14 +2,13 @@ import { CopyOutlined } from '@ant-design/icons'
 import {
   DocKind,
   kStatusCodeKey,
-  kStatusDescKey,
+  kStatusResKey,
   type ApiDoc,
   type DocItem,
   type DocNode,
   type Entity,
   type NumberLiteral,
   type ObjectType,
-  type StringLiteral,
   type TupleEntity
 } from '@tealina/doc-types'
 import { Button, Card, Segmented, Spin, Tabs, Tag, type TabsProps } from 'antd'
@@ -157,7 +156,7 @@ function PlayloadPanel({
     //   return type2cell(beginDoc, doc)
     // }
     const parsedDoc = appearedEntity2doc(record)
-    return record.map(k => {
+    const contents = record.map(k => {
       switch (k.belong) {
         case 'entity': {
           return <EntityTable entity={k.value} key={k.id} id={String(k.id)} doc={parsedDoc} />
@@ -179,6 +178,7 @@ function PlayloadPanel({
       }
     }
     )
+    return <div className='flex flex-col gap-10'>{contents}</div>
   }
   const node2tabItem = (v: DocNode): NonNullable<TabsProps['items']>[number] => {
     switch (v.kind) {
@@ -210,24 +210,26 @@ function PlayloadPanel({
           }
         }
         const statusCode = `${(statusCodeProp as NumberLiteral).value}`
-        const descProp = v.props.find(v => v.name === kStatusDescKey) as StringLiteral | null
-        const resProp = v.props.find(v => v.name === 'response') as DocNode | null
+        const resProp = v.props.find(v => v.name === kStatusResKey) as DocNode | null
         if (resProp != null) {
           return {
             key: statusCode, label: statusCode, children: renderContent(resProp)
           }
         }
-        return { key: statusCode, label: statusCode, children: <p>{descProp?.value}</p> }
+        return { key: statusCode, label: statusCode, children: <p></p> }
       }
       default: {
+        //  return type2text(v,doc)
         const key = Math.random().toString(16)
         return {
           key,
           tabKey: key,
-          label: 'PARSER_ERROR',
-          children: (<p className='text-red'>
-            <span>Unexpect doc node</span>
-            {JSON.stringify(v)}</p>)
+          label: curTab,
+          children: type2cell(v, doc)
+          // label: 'PARSER_ERROR',
+          // children: (<p className='text-red'>
+          //   <span>Unexpect doc node</span>
+          //   {JSON.stringify(v)}</p>)
         }
       }
     }

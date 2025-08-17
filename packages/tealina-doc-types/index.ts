@@ -1,12 +1,9 @@
-export interface StatusWith<
-  Code extends number,
-  Desc extends string | undefined = undefined,
-> {
+export interface StatusWith<Code extends number, Desc = unknown> {
   '~statusCode': Code
-  '~desc': Desc
+  '~response': Desc
 }
 export const kStatusCodeKey: keyof StatusWith<number> = '~statusCode'
-export const kStatusDescKey: keyof StatusWith<number> = '~desc'
+export const kStatusResKey: keyof StatusWith<number> = '~response'
 
 export const DocKind = {
   /** eg: string,number */

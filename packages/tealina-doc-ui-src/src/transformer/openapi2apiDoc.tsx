@@ -1,6 +1,5 @@
-import type { ApiDoc, DocItem, DocNode, Entity, StringLiteral } from '@tealina/doc-types'
-import { kStatusDescKey } from '@tealina/doc-types'
-import { DocKind, kStatusCodeKey } from '@tealina/doc-types'
+import type { ApiDoc, DocItem, DocNode, Entity } from '@tealina/doc-types'
+import { DocKind, kStatusCodeKey, kStatusResKey } from '@tealina/doc-types'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
 const kApplicationJson = 'application/json'
@@ -83,7 +82,6 @@ export function openApi2apiDoc(
     if (response == null) return {}
     const statusList = Object.keys(response)
     const nodes: DocNode[] = []
-    const kResponse = 'response'
     for (const status of statusList) {
       const res = response[status]
       const uniNode: DocNode = {
@@ -95,10 +93,10 @@ export function openApi2apiDoc(
         const node = schema2docNode(doc, res, allSchemas, refs)
         if (node.kind === DocKind.LiteralObject && node.props.length === 0) {
           uniNode.props.push(
-            { kind: DocKind.StringLiteral, value: node.comment ?? "", name: kStatusDescKey }
+            { kind: DocKind.StringLiteral, value: node.comment ?? "", name: kStatusResKey }
           )
         } else {
-          uniNode.props.push({ ...node, name: kResponse })
+          uniNode.props.push({ ...node, name: kStatusResKey })
         }
         nodes.push(uniNode)
         continue
@@ -112,7 +110,7 @@ export function openApi2apiDoc(
             refs
           )
           node.comment = node.comment ?? res.description
-          uniNode.props.push({ ...node, name: kResponse })
+          uniNode.props.push({ ...node, name: kStatusResKey })
           nodes.push(
             uniNode
           )
@@ -124,7 +122,7 @@ export function openApi2apiDoc(
               kind: DocKind.Primitive,
               type: 'string',
               comment: 'text/plain',
-              name: kResponse
+              name: kStatusResKey
             }
           )
           nodes.push(
@@ -133,7 +131,7 @@ export function openApi2apiDoc(
           continue
         }
       }
-      uniNode.props.push({ kind: DocKind.StringLiteral, value: res.description, name: kStatusDescKey })
+      uniNode.props.push({ kind: DocKind.StringLiteral, value: res.description, name: kStatusResKey })
       nodes.push(uniNode)
     }
     if (nodes.length === 1) {
