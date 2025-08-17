@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import type { AuthHeaders, AuthedLocals } from './common.js'
 
-export type EmptyObj = Record<string, unknown>
+export type EmptyObj = {}
 
 /** [doc](https://github.com/sindresorhus/type-fest/blob/main/source/simplify.d.ts) */
 type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
@@ -20,12 +20,14 @@ type LastElement<T> = T extends ReadonlyArray<unknown>
     : T
   : T
 
+type OmitEmpty<P, T extends string> = P extends EmptyObj ? {} : { [K in T]: P }
+
 type ExtractApiType<T> = LastElement<T> extends AuthedHandler<
   infer Payload,
   infer Response,
   infer Headers
 >
-  ? Simplify<Payload & { response: Response; headers: Headers }>
+  ? Simplify<Payload & { response: Response } & OmitEmpty<Headers, 'headers'>>
   : never
 
 /**
@@ -46,7 +48,7 @@ type ExtractApiType<T> = LastElement<T> extends AuthedHandler<
 export interface AuthedHandler<
   T extends RawPayload = EmptyObj,
   Tresponse = null,
-  _Theaders extends Request['headers'] = AuthHeaders,
+  _Theaders = AuthHeaders,
   Tlocals extends EmptyObj = AuthedLocals,
 > {
   (
@@ -60,7 +62,7 @@ export interface AuthedHandler<
 export type OpenHandler<
   Tbody = null,
   Tresponse = null,
-  Theaders extends Request['headers'] = Request['headers'],
+  Theaders = EmptyObj,
   Tlocals extends EmptyObj = EmptyObj,
 > = AuthedHandler<
   Tbody extends null ? EmptyObj : { body: Tbody },

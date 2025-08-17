@@ -3,7 +3,7 @@ import apisV1 from '../../../api-v1/index.js'
 // import { checkMethodType, loadAPIs } from '../utils/resolveBatchExport.js'
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
 import { verifyToken } from '../../preHandlers/verifyToken.js'
-import type { Simplify } from '../../../../types/utility.js'
+import type { Simplify } from '../../../../types/handler.js'
 
 export type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
   [K in keyof T]: { [N in keyof Awaited<T[K]>['default']]?: true }
@@ -14,7 +14,7 @@ export type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
  * Don't forget use OpenHandler to declare your handler type
  */
 const OpenPathRecord: Partial<TakeMethodAndPathRecord<typeof apisV1>> = {
-  get: { status: true },
+  get: { '/status': true },
   // post: { 'user/login': true },
 }
 

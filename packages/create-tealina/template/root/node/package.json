@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "concurrently \"pnpm -F server dev\" \"bun -F web dev\""
+    "dev": "concurrently \"pnpm -F server dev\" \"pnpm -F web dev\""
   },
   "workspaces": [
     "packages/*"

@@ -1,7 +1,7 @@
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
 import { Router } from 'express'
 import type { CustomHandlerType } from '../../../../types/handler.js'
-import type { Simplify } from '../../../../types/utility.js'
+import type { Simplify } from '../../../../types/handler.js'
 import apisV1 from '../../../api-v1/index.js'
 import { verifyToken } from '../../middlewares/verifyToken.js'
 
@@ -14,7 +14,7 @@ type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
  * Don't forget use OpenHandler to declare your handler type
  */
 const OpenPathRecord: Partial<TakeMethodAndPathRecord<typeof apisV1>> = {
-  get: { status: true },
+  get: { '/status': true },
   // post: { 'user/login': true },
 }
 

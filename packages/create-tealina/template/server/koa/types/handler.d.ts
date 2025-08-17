@@ -54,13 +54,15 @@ type LastElement<T> = T extends ReadonlyArray<unknown>
     : T
   : T
 
+type OmitEmpty<P, T extends string> = P extends EmptyObj ? {} : { [K in T]: P }
+
 export type ExtractApiType<T> = LastElement<T> extends ShortName<
   infer Payload,
   infer Response,
   infer Headers,
   infer _X
 >
-  ? Simplify<Payload & { response: Response; headers: Headers }>
+  ? Simplify<Payload & { response: Response } & OmitEmpty<Headers, 'headers'>>
   : never
 
 export type ResolveApiType<

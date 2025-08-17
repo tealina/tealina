@@ -278,7 +278,7 @@ const updatePackageJson = (webDestDir: string) => {
   const pkg = JSON.parse(
     fs.readFileSync(join(webDestDir, 'package.json'), 'utf-8'),
   )
-  pkg.dependencies['@tealina-client'] = '^1.0.0'
+  pkg.dependencies['@tealina/client'] = '^1.0.0'
   pkg.dependencies.axios = '^1.7.7'
   pkg.devDependencies.server = 'workspace:*'
   pkg.devDependencies['@shared/type'] = 'workspace:*'
@@ -361,8 +361,8 @@ const createCtx = async () => {
 const getRuntime = (ctx: ContextType) => {
   switch (ctx.pkgManager) {
     case 'bun':
-    case 'deno':
-      return ctx.pkgManager
+    // case 'deno':
+    //   return ctx.pkgManager
     default:
       return 'node'
   }
