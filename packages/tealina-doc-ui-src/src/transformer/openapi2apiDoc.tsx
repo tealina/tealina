@@ -453,7 +453,13 @@ export function schema2docNode(
   parsingList: OpenAPIV3_1.SchemaObject[] = [],
 ): DocNode {
   let node: DocNode;
-  if ('nullable' in schema) {
+  let isNullable = 'nullable' in schema;
+  if ('$ref' in schema) {
+    const names = schema.$ref.split('/').slice(2)
+    const target = names.reduce((obj, key) => obj?.[key as keyof {}], doc.components ?? {})
+    isNullable = ('nullable' in target && target.nullable as boolean)
+  }
+  if (isNullable) {
     node = {
       kind: DocKind.Union, types: [
         { kind: DocKind.Primitive, type: 'null' },
