@@ -79,7 +79,7 @@ cli
     default: './tsconfig.json',
   })
   .option('--config-path <path>', 'Tealina config path', {
-    default: './tealina.config.mjs',
+    default: './tealina.config.ts',
   })
   .option('--verbose', 'Show execution stack when error')
   .action(distribuite)
