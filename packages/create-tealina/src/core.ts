@@ -77,9 +77,13 @@ const writeInitDevFile = (
   const initCommands = [
     ...setupLines,
     command(' install'),
+    '// Initialize sqlite database',
     command(' prisma db push'),
+    '// Align index.ts exports with the actual file structure',
+    command(' v1 -a'),
+    '// Generating shareable types from prisma.schema',
     command(' v1 gtype'),
-    command(' v1 get/status'),
+    '// Generating API document',
     command(' v1 gdoc'),
   ]
   fs.writeFileSync(join(destServerDir, kInitDemo), initCommands.join('\n'))
@@ -154,15 +158,15 @@ const collectUserAnswer = (argProjectName: string | undefined) =>
           { title: 'Koa', value: 'koa' },
         ],
       },
-      {
-        message: reset('Select an API style:'),
-        name: 'apiStyle',
-        type: 'select',
-        choices: [
-          { title: 'RESTful', value: 'restful' },
-          { title: 'POST + GET', value: 'post-get' },
-        ],
-      },
+      // {
+      //   message: reset('Select an API style:'),
+      //   name: 'apiStyle',
+      //   type: 'select',
+      //   choices: [
+      //     { title: 'RESTful', value: 'restful' },
+      //     { title: 'POST + GET', value: 'post-get' },
+      //   ],
+      // },
       {
         message: reset('Select a web template:'),
         name: 'web',
@@ -217,25 +221,25 @@ const createServerProject = async (ctx: ContextType) => {
   const templateServerDir = join(templateDir, 'server', server)
   mayCopyCommonDir(templateDir, destServerDir)
   copyDir(templateServerDir, destServerDir)
-  const isRestful = answer.apiStyle === 'restful'
-  const templateSnaps = createTemplates({
-    isRestful,
-    framwork: answer.server,
-  })
-  writeTemplates(
-    path.join(destServerDir, 'dev-templates/handlers'),
-    templateSnaps,
-  )
+  // const isRestful = answer.apiStyle === 'restful'
+  // const templateSnaps = createTemplates({
+  //   isRestful,
+  //   framwork: answer.server,
+  // })
+  // writeTemplates(
+  //   path.join(destServerDir, 'dev-templates/handlers'),
+  //   templateSnaps,
+  // )
   createProject(templateServerDir, destServerDir, pkg => {
     const runtime = getRuntime(ctx)
     pkg.scripts['init-demo'] = `${runtime} ${kInitDemo}`
     return pkg
   })
-  if (isRestful) {
-    copyDir(join(templateDir, 'restful-only'), destServerDir)
-  } else {
-    copyDir(join(templateDir, 'post-get'), destServerDir)
-  }
+  // if (isRestful) {
+  //   copyDir(join(templateDir, 'restful-only'), destServerDir)
+  // } else {
+  copyDir(join(templateDir, 'post-get'), destServerDir)
+  // }
   writeInitDevFile(ctx.pkgManager, destServerDir)
 }
 
