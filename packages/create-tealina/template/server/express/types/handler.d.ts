@@ -60,16 +60,11 @@ export interface AuthedHandler<
 
 /** no headers and locals preseted */
 export type OpenHandler<
-  Tbody = null,
+  T extends RawPayload = EmptyObj,
   Tresponse = null,
   Theaders = EmptyObj,
   Tlocals extends EmptyObj = EmptyObj,
-> = AuthedHandler<
-  Tbody extends null ? EmptyObj : { body: Tbody },
-  Tresponse,
-  Theaders,
-  Tlocals
->
+> = AuthedHandler<T, Tresponse, Theaders, Tlocals>
 
 export type ResolveApiType<
   T extends Record<string, Promise<{ default: unknown }>>,
