@@ -41,62 +41,70 @@ type CustomRequestItem = {
 }
 
 interface TealinaVdocWebConfig {
-  /** The cnd url to load third part libs,like: monaco-editor, react-markdown */
-  cdnUrl?: string
   /**
-   * inject custom scripts tag, the tag will be placement after configuration
-   * you can use it to initialize  CustomRequests
+   * Custom script tags to inject after configuration.
+   * Can be used to initialize CustomRequests.
    * @example
    * ```js
+   * function customUpload() {
+   *   // Upload implementation
+   * }
    *
-   *  funtion customUpload(){
-   *  }
-   *
-   *  window.TEALINA_VDOC_CONFIG.customRequests=[
-   *    {
-   *      match: (config) => config.url.includes('/upload'),
-   *      handler: customUpload,
-   *    }
-   *  ]
+   * window.TEALINA_VDOC_CONFIG.customRequests = [
+   *   {
+   *     match: (config) => config.url.includes('/upload'),
+   *     handler: customUpload,
+   *   }
+   * ]
    * ```
    */
   customScripts?: string[]
-  /**
-   * custom matched request
-   */
+
+  /** Custom request handlers for specific endpoints */
   customRequests?: CustomRequestItem[]
+
   sources: {
-    /** eg:'/api' */
+    /** Base URL for API requests (e.g., '/api') */
     baseURL: string
-    /** Will be the select option label */
+
+    /** Display name for the source (used as select option label) */
     name?: string
-    /** The endpoint path for fetch the api.json */
+
+    /**
+     * Introduction URL for the current source.
+     * Returns either plain text or markdown content.
+     * Displays at the top of the menu if provided.
+     */
+    introduceURL?: string
+
+    /** Endpoint path for fetching the api.json specification */
     jsonURL: string
   }[]
 
-  /**
-   * @default "API Document"
-   */
+  /** Document title (default: "API Document") */
   title?: string
+
   /**
-   * when error, show reason by this key, format line break
+   * Key for error messages that will be displayed
+   * (supports line breaks in error formatting)
    */
   errorMessageKey?: string
+
   features?: {
-    /**
-     * Enable the Playground section
-     */
+    /** Playground feature configuration */
     playground?: {
       /**
-       *  Common Fields in request payload,\
-       *  such like `Authorization` in headers.\
-       *  Document Page will create a Form by it,\
-       *  so you can setup and reuse when the payload is match the fields.
+       * Common fields for request payloads (e.g., Authorization headers).
+       * Creates a reusable form for matching payloads.
        * @example
        * ```ts
-       * const config = { commonFields: { headers: { Authorization: 'string'}}}
+       * const config = {
+       *   commonFields: {
+       *     headers: { Authorization: 'string' }
+       *   }
+       * }
        * ```
-       *  */
+       */
       commonFields?: CommonFieldsType
     }
   }
