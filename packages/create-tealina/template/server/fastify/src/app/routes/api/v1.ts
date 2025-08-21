@@ -14,8 +14,8 @@ export type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
  * Don't forget use OpenHandler to declare your handler type
  */
 const OpenPathRecord: Partial<TakeMethodAndPathRecord<typeof apisV1>> = {
-  get: { '/status': true },
-  // post: { 'user/login': true },
+  get: { '/health': true },
+  post: { '/login': true },
 }
 
 export const buildV1Router: FastifyPluginAsync = async (fastify, _option) => {

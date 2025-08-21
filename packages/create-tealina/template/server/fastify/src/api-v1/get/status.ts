@@ -1,10 +1,13 @@
-import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
+import type { AuthedHandler, EmptyObj } from '../../../types/handler.js'
 import { convention } from '../../convention.js'
 
-type ApiType = OpenHandler<EmptyObj, { status: string }>
+type ApiType = AuthedHandler<EmptyObj, { status: string }>
 
-const handler: ApiType = async (_req, res) => {
-  res.send({ status: 'Fine' })
+/**
+ *  Get server status. Login required.
+ */
+const handler: ApiType = async (_request, reply) => {
+  reply.send({ status: 'Fine' })
 }
 
 export default convention(handler)
