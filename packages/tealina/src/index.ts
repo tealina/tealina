@@ -125,18 +125,17 @@ export interface ApiTemplateType {
   generateFn: CodeGenerateFnType
 }
 
-export interface TealinaConifg {
-  template: {
-    handlers: ApiTemplateType[]
-    /**  Generate integration test file */
-    test?: {
-      genSuite: GenTestSuiteFnType
-      genHelper?: GenTestHelperFnType
-    }
+export type TemplateConfig = {
+  handlers: ApiTemplateType[]
+  /**  Generate integration test file */
+  test?: {
+    genSuite: GenTestSuiteFnType
+    genHelper?: GenTestHelperFnType
   }
-  /**
-   * Where generated type file store
-   */
+}
+
+export interface TealinaConifg {
+  template?: TemplateConfig
   typesDir: string
   /**
    * Where generated integration test file store

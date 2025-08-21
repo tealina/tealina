@@ -20,6 +20,7 @@ import type {
   ApiTemplateType,
   GenTestSuiteFnType,
   TealinaConifg,
+  TemplateConfig,
 } from '../index'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { type Snapshot, completePath, effectFiles } from '../utils/effectFiles'
@@ -66,7 +67,7 @@ interface FullContext {
   typeFileInfo: TypeFileInfo
   options: FullOptions
   testHelperInfo: { isExists: boolean; filePath: string }
-  testTemplate: TealinaConifg['template']['test']
+  testTemplate: TemplateConfig['test']
   suffix: string
 }
 
@@ -136,13 +137,14 @@ const prepareKindArgsByModel = async (
   return parseByAlias(rawNames.map(unCapitalize), tempConfig, templateAlias)
 }
 
-const getTouchedKinds = (opt: FullOptions, tempConfig: ApiTemplateType[]) => {
+const getTouchedKinds = (opt: FullOptions) => {
   const resftulOpt = opt
   const { templateAlias, route } = resftulOpt
   if (templateAlias == null) return route.split('/').slice(0, 1)
   const aliasMap = new Map(templateAlias.split('').map(v => [v, true]))
+
   return pipe(
-    tempConfig,
+    opt.template?.handlers ?? [],
     filter(t => aliasMap.has(t.alias)),
     map(v => v.method ?? 'post'),
     unique,
@@ -355,7 +357,7 @@ const withFileState =
 
 const getSeeds = (
   opt: FullOptions,
-  tempConfig: ApiTemplateType[],
+  tempConfig: ApiTemplateType[] = [],
 ): Promise<FullSeeds[]> =>
   asyncPipe(
     opt.model
@@ -382,17 +384,16 @@ const collectContext = asyncFlow(
   loadTemplateConfig,
   config =>
     [
-      getSeeds(config, config.template.handlers).then(toKeyValue('seeds')),
-      pipe(
-        getTouchedKinds(config, config.template.handlers),
-        gatherIndexContent(config.apiDir),
-      ).then(toKeyValue('kindIndexContentMap')),
+      getSeeds(config).then(toKeyValue('seeds')),
+      pipe(getTouchedKinds(config), gatherIndexContent(config.apiDir)).then(
+        toKeyValue('kindIndexContentMap'),
+      ),
       readIndexFile(join(config.apiDir, 'index.ts')).then(
         toKeyValue('topIndexContent'),
       ),
       collectTypeFileInfo(config).then(toKeyValue('typeFileInfo')),
       checkTestHelper(config).then(toKeyValue('testHelperInfo')),
-      toKeyValue('testTemplate')(config.template.test),
+      toKeyValue('testTemplate')(config.template?.test),
       toKeyValue('options')(config),
       ['suffix', config.suffix],
     ] as const,
