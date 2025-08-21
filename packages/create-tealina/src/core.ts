@@ -123,7 +123,7 @@ const showGuide = ({ answer, pkgManager }: ContextType) => {
       title: blue('Done. Now run:'),
       items: [
         `cd ${projectName}`,
-        `${leader} ${kInitCommand}`,
+        `${leader} -F server ${kInitCommand}`,
         `${leader} dev`,
       ],
     },
