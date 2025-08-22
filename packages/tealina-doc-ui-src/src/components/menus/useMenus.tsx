@@ -1,13 +1,13 @@
 import type { ApiDoc, DocItem } from '@tealina/doc-types'
-import { Tag } from 'antd'
+import { MenuProps, Tag } from 'antd'
 import type {
   ItemType,
   MenuItemType,
   SubMenuType,
 } from 'antd/es/menu/hooks/useItems'
-import { flat, flow, map, pickFn, pipe, separeBy } from 'fp-lite'
+import { flat, flow, isEmpty, map, pickFn, pipe, separeBy } from 'fp-lite'
 import { useAtom, useAtomValue } from 'jotai'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   type CurApi,
   apiDocAtom,
@@ -90,11 +90,13 @@ const gatherFirstElement = (x: ItemType, records: string[] = []): string[] => {
 export const useMenus = () => {
   const summaries = useAtomValue(apiSummariesAtom)
   const [curShowApi, setCurShowApi] = useAtom(curShowApiAtom)
-  // const curJsonItem = useAtomValue(curJsonSourceAtom)
-  const items = genMenuItems(summaries)
-  // if (items.length > 0) {
-  //   items[0].label = curJsonItem.baseURL
-  // }
+  const menuProps = useMemo(() => {
+    const items = genMenuItems(summaries)
+    const [headOne] = items
+    const defaultOpenKeys = [headOne.key]
+    const defaultSelectedKeys = isEmpty(headOne.children) ? defaultOpenKeys : [headOne.children[0]!.key as string, ...defaultOpenKeys]
+    return { items, defaultOpenKeys, defaultSelectedKeys }
+  }, [summaries])
   const updateCurShowApi = (e: { key: string }) => {
     const { key } = e
     const [method, ...rest] = key.split('/')
@@ -102,18 +104,12 @@ export const useMenus = () => {
     setCurShowApi({ method, path: nextPath })
     return
   }
-  const [seletedKeys, setSelectedKeys] = useState<string[]>(() => {
-    if (curShowApi == null) return []
-    return reversetInit(curShowApi, items)
-  })
-  // const seletedKeys = curShowApi ? reversetInit(curShowApi, items) : defaultOpenKeys
   useEffect(() => {
     if (curShowApi == null) {
-      const keys = gatherFirstElement(items[0])
+      const keys = gatherFirstElement(menuProps.items[0])
       updateCurShowApi({ key: keys.at(-1)! })
       return
     }
-    setSelectedKeys(reversetInit(curShowApi, items))
   }, [curShowApi])
-  return { items, seletedKeys, setSelectedKeys, updateCurShowApi }
+  return { menuProps, updateCurShowApi }
 }
