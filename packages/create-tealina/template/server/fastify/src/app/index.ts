@@ -1,8 +1,7 @@
-import { VDOC_BASENAME } from '@tealina/doc-ui'
 import Fastify, { FastifyPluginAsync } from 'fastify'
 import qs from 'qs'
 import { buildApiRouter } from './routes/api/index.js'
-import { docRouter } from './routes/static/docs.js'
+import { docRouter, VDOC_BASENAME } from './routes/static/docs.js'
 import { buildAssetsRouter } from './routes/static/assets.js'
 
 const buildAppRouter: FastifyPluginAsync = async (fastify, _option) => {
