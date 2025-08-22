@@ -65,7 +65,7 @@ export const startGenerateDoc = async (options: GdocOptions) => {
     const filePath = `${join(outputDir, basename(context.apiDir))}.json`
     return { content: JSON.stringify(apiDoc, null, 2), filePath }
   }
-  const outputs = options.gdoc?.customOutputs ?? [defaultOutputs]
+  const outputs = options.gdoc?.customOutputs ?? []
   const keepOriginalOutput = options.gdoc?.keepOriginalOutput ?? false
   if (keepOriginalOutput || options.gdoc == null) {
     outputs.push(defaultOutputs)
@@ -83,7 +83,7 @@ export const startGenerateDoc = async (options: GdocOptions) => {
     chalk.green(
       [
         'Document generated successfully! Results saved at:',
-        filenames.map(v => `  - ${v}`),
+        filenames.map(v => `  - ${v}\n`),
       ].join('\n'),
     ),
   )

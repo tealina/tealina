@@ -401,8 +401,8 @@ type GtypeOption = Required<
 >
 const pickOption4gtype = (full: FullOptions): GtypeOption => {
   const x = pickFn(full, 'gtype', 'output', 'input', 'namespace')
-  const output = x.output ?? 'types/pure.d.ts'
   const gtype = x.gtype ?? {}
+  const output = x.output ?? gtype.output ?? 'types/pure.d.ts'
   return { ...x, output, gtype }
 }
 const generatePureTypes = async (option: GtypeOption) => {
