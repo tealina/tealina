@@ -1,60 +1,33 @@
-import type { ApiDoc, DocItem } from '@tealina/doc-types'
 import { MenuProps, Tag } from 'antd'
 import type {
   ItemType,
-  MenuItemType,
-  SubMenuType,
+  SubMenuType
 } from 'antd/es/menu/hooks/useItems'
-import { flat, flow, isEmpty, map, pickFn, pipe, separeBy } from 'fp-lite'
+import { flow, isEmpty, map, separeBy } from 'fp-lite'
 import { useAtom, useAtomValue } from 'jotai'
 import { useEffect, useMemo, useState } from 'react'
 import {
-  type CurApi,
-  apiDocAtom,
   curShowApiAtom
 } from '../../atoms/jsonSourceAtom'
-import { getMethodColor } from '../../utils/methodColors'
 import { apiSummariesAtom, ApiSummary } from '../../atoms/summaryAtom'
-
-
-
-const reversetInit = (
-  { method, path }: CurApi,
-  items: SubMenuType<MenuItemType>[],
-) => {
-  const route = path.replace(/^[/]|[/]$/g, '')
-  const fullKey = pipe(
-    route.includes('/') ? [method, path] : [path, method.toLowerCase()],
-    xs => xs.join('/'),
-  )
-  const target = items.find(v => v.children.some(v => v?.key === fullKey))
-  if (target == null) return []
-  return [target.key, fullKey]
-}
-
+import { getMethodColor } from '../../utils/methodColors'
 
 /**
  * craete menu item by api route\
- * follow some rules below:
- * +  /get/user/create
- * +  /post/user/update
- * - user
- *    - create
- *    - update
- *
- * if only two slash, put method on tail and upercase
- * + /get/health
- * - health
- *    - GET
  */
-const toMenuItem = (vmList: ApiSummary[]): SubMenuType => {
+const toMenuItem = (vmList: ApiSummary[]): SubMenuType | Omit<SubMenuType, 'children'> => {
   const [first] = vmList
-  const children = vmList.map(vm => {
-    // const hasEndponit = vm.endpoint.length
-    // const url = hasEndponit ? vm.endpoint : vm.method.toUpperCase()
-    // const url = vm.endpoint
+  if (first.module == '' && vmList.length == 1) {
     return {
-      // key: [vm.method, vm.module, ...(hasEndponit ? [vm.endpoint] : [])].join('/'),
+      key: [first.method, '', ''].join('/'),
+      label: <span>
+        <Tag color={getMethodColor(first.method)}>{first.method}</Tag>
+        {'/'}
+      </span>,
+    }
+  }
+  const children = vmList.map(vm => {
+    return {
       key: [vm.method, vm.endpoint].join('/'),
       label: <span>
         <Tag color={getMethodColor(vm.method)}>{vm.method}</Tag>
@@ -90,15 +63,23 @@ const gatherFirstElement = (x: ItemType, records: string[] = []): string[] => {
 export const useMenus = () => {
   const summaries = useAtomValue(apiSummariesAtom)
   const [curShowApi, setCurShowApi] = useAtom(curShowApiAtom)
-  const menuProps = useMemo(() => {
+  const { items, defaultOpenKeys, defaultSelectedKeys } = useMemo(() => {
     const items = genMenuItems(summaries)
+    if (items.length <= 0) {
+      return { items, defaultOpenKeys: [], defaultSelectedKeys: [] }
+    }
     const [headOne] = items
     const defaultOpenKeys = [headOne.key]
-    const defaultSelectedKeys = isEmpty(headOne.children) ? defaultOpenKeys : [headOne.children[0]!.key as string, ...defaultOpenKeys]
+    const defaultSelectedKeys = 'children' in headOne
+      ? isEmpty(headOne.children)
+        ? defaultOpenKeys
+        : [headOne.children[0]!.key as string, ...defaultOpenKeys]
+      : []
     return { items, defaultOpenKeys, defaultSelectedKeys }
   }, [summaries])
-  const updateCurShowApi = (e: { key: string }) => {
-    const { key } = e
+  const [openKeys, setOpenKeys] = useState(defaultOpenKeys);
+  const [selectedKeys, setSelectedKeys] = useState(defaultSelectedKeys);
+  const updateCurShowApi = (key: string) => {
     const [method, ...rest] = key.split('/')
     const nextPath = rest.join('/')
     setCurShowApi({ method, path: nextPath })
@@ -106,10 +87,31 @@ export const useMenus = () => {
   }
   useEffect(() => {
     if (curShowApi == null) {
-      const keys = gatherFirstElement(menuProps.items[0])
-      updateCurShowApi({ key: keys.at(-1)! })
+      const keys = gatherFirstElement(items[0])
+      updateCurShowApi(keys.at(-1)!)
       return
     }
+    const { method, path } = curShowApi
+    const _keys = [method, path].join('/')
+    const [, part] = path.split('/')
+    const _open = [_keys, part]
+    setSelectedKeys([_keys])
+    setOpenKeys(_open)
   }, [curShowApi])
-  return { menuProps, updateCurShowApi }
+  const menuProps: MenuProps = {
+    items,
+    selectedKeys,
+    openKeys,
+    defaultOpenKeys,
+    defaultSelectedKeys,
+    onSelect: (info) => {
+      setOpenKeys(info.keyPath)
+      setSelectedKeys(info.selectedKeys)
+      updateCurShowApi(info.key)
+    },
+    onOpenChange: (keys) => {
+      setOpenKeys(keys)
+    }
+  }
+  return menuProps
 }

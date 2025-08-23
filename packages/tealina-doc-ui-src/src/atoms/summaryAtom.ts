@@ -15,12 +15,10 @@ const toSummary = ([method, docItem]: [
 ]): ApiSummary[] =>
   Object.keys(docItem).map(endpoint => {
     const parts = endpoint.split('/')
-    const isRoot = parts.length < 3
     const isTail = parts[0] === ''
     const index = isTail ? 1 : 0
-    const module = isRoot ? '/' : isTail ? parts[1] : parts[0]
-    const rest =
-      module === parts[index] ? ['', ...parts.slice(index + 1)] : parts
+    const module = isTail ? parts[1] : parts[0]
+    const rest = module === parts[index] ? parts.slice(index + 1) : parts
     return {
       endpoint,
       label: rest.join('/'),

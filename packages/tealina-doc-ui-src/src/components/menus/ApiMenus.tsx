@@ -3,7 +3,7 @@ import { Await } from '../Await'
 import { useMenus } from './useMenus'
 
 function MenuInfo() {
-  const { menuProps, updateCurShowApi } = useMenus()
+  const menuProps = useMenus()
 
   return (
     <Menu
@@ -11,7 +11,6 @@ function MenuInfo() {
       mode="inline"
       className="h-screen overflow-y-auto"
       multiple={false}
-      onClick={updateCurShowApi}
     />
   )
 }
