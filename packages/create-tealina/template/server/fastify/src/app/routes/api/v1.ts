@@ -32,7 +32,7 @@ export const buildV1Router: FastifyPluginAsync = async (fastify, _option) => {
         ? fastify
         : restrictFastify
       instance.route({
-        url: `/${url}`,
+        url,
         method: method.toUpperCase() as HTTPMethods,
         preHandler: handler.slice(0, -1),
         handler: handler.at(-1)!,

@@ -28,7 +28,7 @@ export const buildV1Router = async () => {
   >
   for (const { url, method, handler } of routeOptions) {
     const router = rawOpenApiRecord[method]?.[url] ? openRouter : authRouter
-    router[method as HTTPMethods](`/${url}`, ...handler)
+    router[method as HTTPMethods](url, ...handler)
   }
   const v1ApiRouter = new Router({ prefix: '/v1' })
   v1ApiRouter.use(openRouter.routes())

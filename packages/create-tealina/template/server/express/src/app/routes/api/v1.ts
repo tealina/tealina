@@ -41,7 +41,7 @@ export const buildV1Router = async () => {
   >
   for (const { url, method, handler } of routeOptions) {
     const instance = rawOpenPathRecord[method]?.[url] ? openRouter : authRouter
-    instance[method as HttpMethod](`/${url}`, handler)
+    instance[method as HttpMethod](url, handler)
   }
   const router = Router().use(openRouter).use(authRouter)
   return router
