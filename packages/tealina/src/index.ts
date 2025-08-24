@@ -54,26 +54,31 @@ export interface Overwrite {
 
 export interface GtypeConfig {
   /**
+   * Output path for generated type definitions
    * @default "./types/pure.d.ts"
    */
   output?: string
+
   /**
+   * Namespace for generated types
    * @default "Pure"
-   * If no namespace is needed, assign an empty string.
+   * Use empty string if no namespace is needed.
    */
-  namesapce?: string
+  namespace?: string
+
   /**
-   *  Overwrite specific prop.type\
-   *  eg: OrderNo should be optional or exclude in OrderUpdateInput\
-   *  **Attention**: Optional field will always append `| null`
+   * Override specific property types
+   * Example: Make OrderNo optional or exclude it from OrderUpdateInput
+   * Note: Optional fields will always include `| null` in the type definition
    */
   overwrite?: Overwrite
+
   /**
-   * Remap type\
-   * eg: DateTime => number, \
-   * **Attention**:
-   *  1. Effect mutation types only
-   *  2. Optional field will always append `| null`
+   * Custom type remapping function
+   * Example: Convert DateTime to number
+   * Important notes:
+   * 1. Only affects mutation types
+   * 2. Optional fields will always include `| null` in the type definition
    */
   typeRemap?: (type: string) => string | null
 }
@@ -81,17 +86,21 @@ export interface GtypeConfig {
 // gpure tyes ---- end
 
 export interface TemplateContext {
+  /** Directory path */
   dir?: string
-  /** captialized directory name */
+  /** Capitalized directory name */
   Dir?: string
+  /** Original filename */
   filename: string
+  /** Capitalized filename */
   Filename: string
+  /** Relative path to API directory */
   relative2api: string
-  /** http method */
+  /** HTTP method (lowercase) */
   method: string
 }
 
-type CodeGenerateFnType = (ctx: TemplateContext) => string
+type CodeGenerateFuntion = (ctx: TemplateContext) => string
 
 export type GenTestSuiteFnType = (ctx: {
   method: string
@@ -107,25 +116,30 @@ export type GenTestHelperFnType = (ctx: {
 
 export interface ApiTemplateType {
   /**
-   * Short name for this template.\
-   * one character, case sensitive.\
-   * `*` means fallback, when both alias and name not matched
+   * Template short identifier
+   * - Single character, case sensitive
+   * - `*` indicates fallback template when no alias or name matches
    */
   alias: string
+
   /**
-   * Will be use as filename, can be empty string
+   * Template name
+   * - Used as the generated filename
    */
   name: string
+
   /**
-   * Http Method
+   * HTTP request method
    * @default 'post'
    */
   method?: string
-  /** Code generate function */
-  generateFn: CodeGenerateFnType
+
+  /** Code generation function */
+  generateFn: CodeGenerateFuntion
 }
 
 export type TemplateConfig = {
+  /** Collection of API handler templates */
   handlers: ApiTemplateType[]
   /**  Generate integration test file */
   test?: {
@@ -143,7 +157,9 @@ export interface TealinaConifg {
   testDir?: string
   gtype?: GtypeConfig
   gdoc?: GdocConfig
-  /** The import statement suffix @default {".js"} */
+  /** Import statement file extension
+   * @default ".js"
+   */
   suffix?: string
 }
 
@@ -151,7 +167,7 @@ export const defineConfig = (config: TealinaConifg) => config
 
 export const defineApiTemplates = (config: ApiTemplateType[]) => config
 
-export const makeTemplate = (fn: CodeGenerateFnType) => fn
+export const makeTemplate = (fn: CodeGenerateFuntion) => fn
 
 export const makeTestSuiteTemplate = (fn: GenTestSuiteFnType) => fn
 export const makeTestHelperTemplate = (fn: GenTestHelperFnType) => fn
