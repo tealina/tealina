@@ -17,36 +17,30 @@ interface RawPayload {
 interface ExtendedRouteHandler<
   T extends RawPayload = EmptyObj,
   Tresponse = unknown,
-  Theaders extends EmptyObj = EmptyObj,
+  Theaders = null,
   Tlocals extends EmptyObj = EmptyObj,
 > {
   (
     ctx: ExtendableContext & {
-      request: Pick<T, 'body' | 'params' | 'query'> & { headers: Theaders }
+      request: Pick<T, 'body' | 'params' | 'query'> & {
+        headers: Theaders extends null ? {} : Theaders
+      }
     } & { body: Tresponse; response: { body: Tresponse } } & { state: Tlocals },
     next: () => Promise<any>,
   ): void
 }
 
-// Shorter definition displayed on hover.
-interface ShortName<
-  T extends RawPayload = EmptyObj,
-  Response = unknown,
-  Headers extends EmptyObj = EmptyObj,
-  Locals extends EmptyObj = EmptyObj,
-> extends ExtendedRouteHandler<T, Response, Headers, Locals> {}
-
 export type AuthedHandler<
   T extends RawPayload = EmptyObj,
   Response = unknown,
   Headers extends AuthHeaders = AuthHeaders,
-> = ShortName<T, Response, Headers, AuthedLocals>
+> = ExtendedRouteHandler<T, Response, Headers, AuthedLocals>
 
 export type OpenHandler<
   T extends RawPayload = EmptyObj,
   Response = unknown,
-  Headers extends EmptyObj = EmptyObj,
-> = ShortName<T, Response, Headers>
+  Headers = null,
+> = ExtendedRouteHandler<T, Response, Headers>
 
 type LastElement<T> = T extends ReadonlyArray<unknown>
   ? T extends readonly [...unknown[], infer U]
@@ -54,9 +48,10 @@ type LastElement<T> = T extends ReadonlyArray<unknown>
     : T
   : T
 
-type OmitEmpty<P, T extends string> = P extends EmptyObj ? {} : { [K in T]: P }
+type OmitEmpty<P, T extends string> = P extends null ? {} : { [K in T]: P }
 
-export type ExtractApiType<T> = LastElement<T> extends ShortName<
+type a = OmitEmpty<AuthHeaders, 'x'>
+export type ExtractApiType<T> = LastElement<T> extends ExtendedRouteHandler<
   infer Payload,
   infer Response,
   infer Headers,

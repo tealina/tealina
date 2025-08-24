@@ -13,6 +13,7 @@
   "exclude": [
     "test-*",
     "prisma",
-    "vitest.*"
+    "vitest.*",
+    "*.config.ts"
   ]
 }
