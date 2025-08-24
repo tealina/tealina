@@ -1,4 +1,4 @@
-import Router from 'koa-router'
+import Router from '@koa/router'
 import { buildV1Router } from './v1.js'
 
 export const buildApiRouter = async () => {

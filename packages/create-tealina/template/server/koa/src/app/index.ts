@@ -3,7 +3,7 @@ import { buildApiRouter } from './routes/api/index.js'
 import { buildAssetsRouter } from './routes/static/assets.js'
 import { docRouter } from './routes/static/docs.js'
 import { errorHandler } from './middlewares/errorHandler.js'
-import bodyParser from 'koa-bodyparser'
+import bodyParser from '@koa/bodyparser'
 
 const buildAppRouter = async (app: Koa) => {
   const apiRouter = await buildApiRouter()

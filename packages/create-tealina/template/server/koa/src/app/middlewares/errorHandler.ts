@@ -1,4 +1,4 @@
-import type { IMiddleware } from 'koa-router'
+import type { Middleware } from '@koa/router'
 
 interface KoaError extends Error {
   status?: number
@@ -11,7 +11,7 @@ interface ErrorShapre {
 
 export const formatErrorResponse = (data: ErrorShapre) => data
 
-export const errorHandler: IMiddleware = async (ctx, next) => {
+export const errorHandler: Middleware = async (ctx, next) => {
   try {
     await next()
   } catch (err) {

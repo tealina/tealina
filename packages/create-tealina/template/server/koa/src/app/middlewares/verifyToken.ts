@@ -1,7 +1,7 @@
-import type { IMiddleware } from 'koa-router'
+import type { Middleware } from '@koa/router'
 import { formatErrorResponse } from './errorHandler.js'
 
-const verifyToken: IMiddleware = async (ctx, next) => {
+const verifyToken: Middleware = async (ctx, next) => {
   const { authorization } = ctx.headers
   if (authorization == null) {
     ctx.status = 401

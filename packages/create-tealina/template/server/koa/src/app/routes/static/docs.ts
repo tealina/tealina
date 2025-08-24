@@ -5,7 +5,7 @@ import {
 } from '@tealina/doc-ui'
 import type Koa from 'koa'
 import mount from 'koa-mount'
-import Router from 'koa-router'
+import Router from '@koa/router'
 import serve from 'koa-static'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
