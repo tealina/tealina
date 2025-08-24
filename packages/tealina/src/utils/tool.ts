@@ -106,7 +106,7 @@ const transform2mjs = async (configPath: string) => {
   const result = await build({
     absWorkingDir: process.cwd(),
     entryPoints: [configPath],
-    bundle: false,
+    bundle: true,
     write: false,
     platform: 'node',
     format: 'esm',
