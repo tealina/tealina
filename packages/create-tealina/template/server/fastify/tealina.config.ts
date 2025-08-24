@@ -1,18 +1,17 @@
 import { defineConfig, TemplateContext } from 'tealina'
 
 export default defineConfig({
+  typesDir: 'types',
+  gtype: {
+    output: '../shared-type/pure.d.ts',
+  },
   template: {
     handlers: [
       {
-        name: '',
         alias: '*',
         generateFn: generateBasicCode,
       },
     ],
-  },
-  typesDir: 'types',
-  gtype: {
-    output: '../shared-type/pure.d.ts',
   },
 })
 
@@ -23,7 +22,7 @@ function generateBasicCode({ relative2api }: TemplateContext) {
     '',
     `/** TODO: describe what it does */`,
     `const handler: AuthedHandler = async (request, reply) => {`,
-    '  throw new Error("Unimplement handler")',
+    '  throw new Error("Handler not implemented.")',
     '}',
     '',
     `export default convention(handler)`,
