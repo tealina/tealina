@@ -320,7 +320,7 @@ const updateViteConfig = (webDest: string) => {
     'server: {',
     '  proxy: {',
     "    '/api': 'http://localhost:8000'",
-    '  }',
+    '  },',
     '  open: true',
     '},',
   ].map(v => `  ${v}`)
