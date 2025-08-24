@@ -2,7 +2,7 @@
   "name": "@tealina/client",
   "version": "1.0.0",
   "description": "Parse tealina-server type for client.",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -22,14 +22,12 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && tsup"
+    "build": "rm -rf dist && tsup",
+    "test": "vitest --run"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@tealina/client": "link:"
-  },
   "devDependencies": {
     "axios": "^1.7.7"
   }

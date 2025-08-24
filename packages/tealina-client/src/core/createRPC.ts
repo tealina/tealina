@@ -6,6 +6,7 @@ import type {
   FullPayload,
   MakeParameters,
   PayloadType,
+  RemoveBeginSlash,
   UnionToIntersection,
 } from './types'
 
@@ -13,16 +14,16 @@ type PathToObject<
   RoutePath extends string,
   Payload extends FullPayload,
   Config,
-> = RoutePath extends `${infer Head}/${infer Tail}`
+> = RoutePath extends `/${infer Head}/${infer Tail}`
   ? {
-      [K in Head as K extends '' ? never : K]: PathToObject<
+      [K in RemoveBeginSlash<Head> as K extends '' ? never : K]: PathToObject<
         Tail,
         Payload,
         Config
       >
     }
   : {
-      [K in RoutePath as K extends '' ? never : K]: (
+      [K in RemoveBeginSlash<RoutePath> as K extends '' ? never : K]: (
         ...args: MakeParameters<Payload, Config>
       ) => Promise<Payload['response']>
     }

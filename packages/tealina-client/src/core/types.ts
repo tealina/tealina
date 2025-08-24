@@ -9,8 +9,8 @@ export type FullPayload = {
   body?: unknown
   query?: unknown
   params?: unknown
-  headers: any
-  response: unknown
+  headers?: any
+  response?: unknown
 }
 
 type EndpointType = Record<string, FullPayload>
@@ -74,3 +74,5 @@ export type UnionToIntersection<U> = (
 ) extends (arg: infer T) => void
   ? T
   : never
+
+export type RemoveBeginSlash<T> = T extends `/${infer P}` ? P : T

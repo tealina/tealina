@@ -27,13 +27,13 @@ type FindManyArgs = {
 }
 export type MockApi = {
   get: {
-    health: {
+    '/health': {
       response: {
         status: string
       }
       headers: EmptyObj
     }
-    user: {
+    '/user': {
       query: {
         name: string
       }
@@ -42,17 +42,17 @@ export type MockApi = {
     }
   }
   post: {
-    'user/create': {
+    '/user/create': {
       body: UserCreateInput
       response: User
       headers: AuthHeaders
     }
-    'user/getList': {
+    '/user/getList': {
       body: FindManyArgs
       response: User[]
       headers: AuthHeaders
     }
-    'user/:id/update': {
+    '/user/:id/update': {
       body: UserUpdateInput
       params: { id: string }
       response: User
@@ -60,17 +60,17 @@ export type MockApi = {
     }
   }
   delete: {
-    'user/:id': {
+    '/user/:id': {
       params: { id: string }
       response: User
       headers: AuthHeaders
     }
-    'user/:id/:addressId': {
+    '/user/:id/:addressId': {
       params: { id: string; addressId: string }
       response: User
       headers: AuthHeaders
     }
-    'post/:id': {
+    '/post/:id': {
       params: { id: string }
       response: { title: string }
       headers: AuthHeaders
