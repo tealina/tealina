@@ -1,9 +1,14 @@
 import type { OpenHandler } from '../../../types/handler.js'
 import { convention } from '../../convention.js'
 
+/**
+ * Use the 'interface' keyword to declare types
+ * to ensure the type name is preserved in the API documentation.
+ */
 interface LoginPayload {
-  // Should not contains special symbol
+  // Single-line comments with slashes will be ignored
   account: string
+  /** This JSDoc comment will appear in the documentation */
   password: string
 }
 
