@@ -57,11 +57,15 @@ const runScripts = async (dir: string) => {
 
 export async function validate(dir: string) {
   // return runScripts(dir)
-  const serverPkg = path.join(dir, 'package.json')
-  const devTemplateDir = path.join(dir, 'dev-templates')
-  const serverTypesDir = path.join(dir, 'types')
-  expect(existsSync(serverPkg)).true
-  expect(existsSync(devTemplateDir)).true
-  expect(existsSync(serverTypesDir)).true
+  const rootPkg = path.join(dir, 'package.json')
+  const packagesDir = path.join(dir, 'packages')
+  const serverDir = path.join(dir, 'packages/server')
+  const shareTypesDir = path.join(dir, 'packages/shared-type')
+  const workspaceFile = path.join(dir, 'pnpm-workspace.yaml')
+  expect(existsSync(rootPkg)).true
+  expect(existsSync(packagesDir)).true
+  expect(existsSync(workspaceFile)).true
+  expect(existsSync(serverDir)).true
+  expect(existsSync(shareTypesDir)).true
   console.log('test done')
 }
