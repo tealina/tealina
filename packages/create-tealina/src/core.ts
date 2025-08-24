@@ -123,7 +123,7 @@ const showGuide = ({ answer, pkgManager }: ContextType) => {
       title: blue('Done. Now run:'),
       items: [
         `cd ${projectName}`,
-        `${leader} -F server ${kInitCommand}`,
+        `${leader} ${kInitCommand}`,
         `${leader} dev`,
       ],
     },
@@ -319,7 +319,7 @@ const updateViteConfig = (webDest: string) => {
   const proxyConfig = [
     'server: {',
     '  proxy: {',
-    "    '/api': 'http://localhost:5000'",
+    "    '/api': 'http://localhost:8000'",
     '  }',
     '},',
   ].map(v => `  ${v}`)
