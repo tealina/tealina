@@ -1,5 +1,5 @@
 import type { Entity, PropType } from '@tealina/doc-types'
-import { Table, Tag, type TableProps } from 'antd'
+import { Card, Table, Tag, type TableProps } from 'antd'
 import { useAtomValue } from 'jotai'
 import { syntaxColorAtom } from '../atoms/themeAtom'
 import { type2cell } from '../transformer/type2cell'
@@ -44,13 +44,13 @@ export function EntityTable({
       key: 'comment',
       dataIndex: 'comment',
       render: (comment, record) => {
-        if (record.jsDoc?.deprecated != null) {
-          return <span>
-            <Tag>deprecated</Tag>
+        const isDeperated = record.jsDoc?.deprecated != null
+        return <span>
+          {isDeperated ? <><Tag>deprecated</Tag>
             <br />
-            {comment}
-          </span>
-        }
+          </> : null}
+          {comment}
+        </span>
       }
     },
     {
@@ -62,20 +62,22 @@ export function EntityTable({
     },
   ]
   return (
-    <div className='text-lg'>
-      <div>
-        {entity.comment && <CommentSummary comment={entity.comment} />}
-        <Anchor id={id} style={{ color: TypeColors.any }}>
-          {entity.name}
-        </Anchor>
+    <Card bodyStyle={{ padding: 10 }}>
+      <div className='text-lg'>
+        <div>
+          {entity.comment && <CommentSummary comment={entity.comment} />}
+          <Anchor id={id} style={{ color: TypeColors.any }}>
+            {entity.name}
+          </Anchor>
+        </div>
+        <Table
+          rowKey="name"
+          rowClassName="text-lg"
+          columns={columns}
+          dataSource={entity.props}
+          pagination={false}
+        />
       </div>
-      <Table
-        rowKey="name"
-        rowClassName="text-lg"
-        columns={columns}
-        dataSource={entity.props}
-        pagination={false}
-      />
-    </div>
+    </Card>
   )
 }
