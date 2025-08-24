@@ -11,8 +11,6 @@ instance.interceptors.request.use(config => {
   return config
 })
 
-instance.interceptors.response.use(v => v.data)
-
 /**
  * @example
  * ```ts
