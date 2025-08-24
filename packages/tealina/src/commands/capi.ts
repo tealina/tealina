@@ -81,7 +81,7 @@ const parseByAlias = (
     pipe(
       templates,
       filter(v => apperenceAlias.includes(v.alias)),
-      map(({ generateFn, name, method }) => ({
+      map(({ generateFn, name = '', method }) => ({
         generateFn,
         namePaths: name.length ? [preName, name] : [preName],
         kind: method ?? 'post',
@@ -384,7 +384,7 @@ const collectContext = asyncFlow(
   loadTemplateConfig,
   config =>
     [
-      getSeeds(config).then(toKeyValue('seeds')),
+      getSeeds(config, config.template?.handlers).then(toKeyValue('seeds')),
       pipe(getTouchedKinds(config), gatherIndexContent(config.apiDir)).then(
         toKeyValue('kindIndexContentMap'),
       ),

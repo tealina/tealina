@@ -126,7 +126,7 @@ export interface ApiTemplateType {
    * Template name
    * - Used as the generated filename
    */
-  name: string
+  name?: string
 
   /**
    * HTTP request method
