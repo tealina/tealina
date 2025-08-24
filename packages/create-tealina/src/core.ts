@@ -321,6 +321,7 @@ const updateViteConfig = (webDest: string) => {
     '  proxy: {',
     "    '/api': 'http://localhost:8000'",
     '  }',
+    '  open: true',
     '},',
   ].map(v => `  ${v}`)
   const viteConfigPath = path.join(webDest, 'vite.config.ts')
