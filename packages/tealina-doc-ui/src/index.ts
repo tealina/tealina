@@ -30,7 +30,9 @@ type CustomRequestHandler = (
   requestConfig: RequestConfig,
   setResult: (result: {
     statusCode: number
-    code: string
+    /** The json or text result*/
+    result: string
+    /** When it's true, the result will be render in red color */
     isError: boolean
   }) => void,
 ) => Promise<unknown>

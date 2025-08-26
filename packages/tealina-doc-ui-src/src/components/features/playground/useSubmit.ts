@@ -99,18 +99,18 @@ export function useSumit({
     const isError = false
     const statusCode = response.status
     if (response.headers['content-disposition']) {
-      setStates({ isError, statusCode, code: '' })
+      setStates({ isError, statusCode, result: '' })
       return saveFile(response)
     }
     const code = JSON.stringify(response.data, null, 2)
-    setStates({ isError, statusCode, code })
+    setStates({ isError, statusCode, result: code })
   }
   const showError = (err: AxiosError) => {
     const statusCode = err.response ? err.response.status : err.status
     const data = findReason(err)
     setStates({
       statusCode,
-      code: typeof data === 'string' ? data : JSON.stringify(data, null, 2),
+      result: typeof data === 'string' ? data : JSON.stringify(data, null, 2),
       isError: true,
     })
   }

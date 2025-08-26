@@ -17,12 +17,12 @@
   "keywords": [],
   "author": "Neo Yeo",
   "license": "MIT",
-  "devDependencies": {},
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
   },
   "dependencies": {
-    "@tealina/doc-types": "workspace:*"
+    "@tealina/doc-types": "workspace:*",
+    "@tealina/doc-ui": "link:"
   },
   "publishConfig": {
     "access": "public",

@@ -8,13 +8,13 @@ export interface MemoState {
   states: {
     isError: boolean
     statusCode?: number
-    code: string
+    result: string
   }
 }
 
 const DefaultCache: MemoState = {
   formValues: {},
-  states: { isError: false, code: '' },
+  states: { isError: false, result: '' },
 }
 
 const memoAtom = atom(new Map<string, MemoState>())

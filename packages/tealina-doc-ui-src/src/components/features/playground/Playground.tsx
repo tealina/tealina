@@ -44,10 +44,10 @@ const Playground = (props: {
         </div>
         {states.isError ? (
           <p className="h-full p-3 whitespace-pre-wrap dark:bg-[rgb(30,30,30)] text-red-500 bg-white">
-            {states.code}
+            {states.result}
           </p>
         ) : (
-          <JsonView value={states.code} language="json" className="h-full" />
+          <JsonView value={states.result} language="json" className="h-full" />
         )}
       </div>
     </div>
