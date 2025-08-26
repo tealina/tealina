@@ -9,17 +9,20 @@
     "release": "pnpm build && pnpm changeset version && pnpm up-temp-versions && pnpm changeset publish",
     "test": "pnpm recursive exec -- npm run test",
     "preinstall": "npx only-allow pnpm",
+    "dev:ui": "concurrently 'pnpm -C playground/doc-factory dev' 'pnpm -F @tealina/doc-ui-src dev'",
     "cproj": "node packages/create-tealina/dist/index.mjs",
     "up-temp-versions": "node scripts/update-version-in-template.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
+    "@biomejs/biome": "^2.1.0",
     "@types/node": "^18.19.64",
     "@vitest/coverage-v8": "^2.1.3",
+    "concurrently": "^9.2.0",
+    "dotenv-cli": "^10.0.0",
     "lefthook": "^1.7.15",
     "tsup": "^8.3.5",
     "tsx": "4.19.2",
-    "typescript": "~5.6.2",
+    "typescript": "^5.7.3",
     "unbuild": "^2.0.0",
     "vitest": "^2.1.3"
   },
