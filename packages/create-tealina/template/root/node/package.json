@@ -1,6 +1,7 @@
 {
   "scripts": {
     "dev": "concurrently -n \"Server Web\" \"pnpm -F server dev\" \"pnpm -F web dev\"",
+    "build": "pnpm -F server build && pnpm -F web build",
     "init-demo": "pnpm -F server init-demo"
   },
   "workspaces": [
