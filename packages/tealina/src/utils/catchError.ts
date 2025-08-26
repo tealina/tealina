@@ -7,7 +7,7 @@ const formatError = (logger: LoggerType) => (e: Error) => {
   // console.log(chalk.red(e.message))
   const message = process.argv.includes('--verbose')
     ? e.stack
-    : e.message ?? String(e)
+    : (e.message ?? String(e))
   logger(chalk.red(message))
 }
 

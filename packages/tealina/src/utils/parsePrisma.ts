@@ -61,7 +61,6 @@ const separeBlock = (lines: string[]) => {
   const blockList: string[][] = [[]]
   each(lines, line => {
     if (line.length === 0) return
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const block = blockList.at(-1)!
     if (isEndOfBlock(line)) {
       blockList.push([])

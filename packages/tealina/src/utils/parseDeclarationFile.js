@@ -159,7 +159,6 @@ const makeEnumValueParser =
     const symbol = mt.symbol
     if ('value' in mt) {
       if (isCompatible(ts.TypeFlags.NumberLiteral, mt.flags)) {
-        // biome-ignore lint/style/noParameterAssign:
         pre = mt.value
         return { kind: DocKind.NumberLiteral, value: mt.value }
       }
@@ -169,7 +168,6 @@ const makeEnumValueParser =
       }
     }
     if (symbol.valueDeclaration.initializer == null) {
-      // biome-ignore lint/style/noParameterAssign:
       return { kind: DocKind.NumberLiteral, value: pre++ }
     }
     const computedType = checker.getTypeAtLocation(
@@ -475,10 +473,10 @@ const findStrategy = (strategies, t) => {
   if (strategy == null) {
     throw new Error(`Unresovled type: ${checker.typeToString(t)}`)
   }
-  // @ts-ignore
   return Array.isArray(strategy.handle)
     ? findStrategy(strategy.handle, t)
-    : strategy
+    : // @ts-ignore
+      strategy
 }
 
 /**
