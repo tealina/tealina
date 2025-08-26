@@ -4,17 +4,17 @@
 #### BREAKING_CHANGE
   - No more auto-append end slash when the route ends with params.
   - The key prop always starts with slash
-```ts
-// Before:
-export default {'user/:id/': import('user/[id].js')}
-// After:
-export default {'/user/:id': import('user/[id].js')}
+    ```ts
+    // Before:
+    export default {'user/:id/': import('user/[id].js')}
+    // After:
+    export default {'/user/:id': import('user/[id].js')}
 
-// Before:
-export default {'user/create': import('user/create.js')}
-// After:
-export default {'/user/create': import('user/create.js')}
-```
+    // Before:
+    export default {'user/create': import('user/create.js')}
+    // After:
+    export default {'/user/create': import('user/create.js')}
+    ```
   - No more export types from @tealina/doc-type; you should directly add the dependency instead.
 
 
