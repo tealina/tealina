@@ -1,13 +1,11 @@
 import chalk from 'chalk'
+import minimist from 'minimist'
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
-import minimist from 'minimist'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ora from 'ora'
 import prompts from 'prompts'
-import { createTemplates } from './template-factory/create'
-import { writeTemplates } from './template-factory/write'
 
 const { blue, green, reset } = chalk
 const { join } = path
