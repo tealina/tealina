@@ -27,7 +27,6 @@ export function type2text(
       const member = enumRefs[d.enumId].members.find(
         v => v.memberId === d.memberId,
       )
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
       return member!.key
     }
     case DocKind.Record:

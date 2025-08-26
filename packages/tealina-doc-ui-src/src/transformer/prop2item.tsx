@@ -41,7 +41,6 @@ import { type2text } from './type2text'
 
 type ScopedDoc = Omit<ApiDoc, 'apis' | 'docTypeVersion'>
 
-
 const toNumber = (v: null | undefined | string | number) => {
   if (v == null) return
   const x = Number(v)
@@ -53,7 +52,7 @@ const toBigInt = (v: null | undefined | string) => {
   if (v == null) return
   try {
     return BigInt(v)
-  } catch (error) { }
+  } catch (error) {}
 }
 
 export const prop2item = (
@@ -306,29 +305,29 @@ function wrapperInDeepList(
 
 const makeFormItem =
   (prop: PropType, preNamePath: InternalNamePath = []) =>
-    (child: ReactNode, itemProp?: FormItemProps) => {
-      const namePath = [...preNamePath, prop.name]
-      return (
-        <FormItem
-          key={namePath.join('.')}
-          label={String(prop.name)}
-          name={namePath}
-          normalize={v => (v == null ? void 0 : v)}
-          rules={
-            prop.isOptional
-              ? void 0
-              : [
+  (child: ReactNode, itemProp?: FormItemProps) => {
+    const namePath = [...preNamePath, prop.name]
+    return (
+      <FormItem
+        key={namePath.join('.')}
+        label={String(prop.name)}
+        name={namePath}
+        normalize={v => (v == null ? void 0 : v)}
+        rules={
+          prop.isOptional
+            ? void 0
+            : [
                 {
                   required: true,
                 },
               ]
-          }
-          {...itemProp}
-        >
-          {child}
-        </FormItem>
-      )
-    }
+        }
+        {...itemProp}
+      >
+        {child}
+      </FormItem>
+    )
+  }
 
 function SimpleUpload({
   onChange,

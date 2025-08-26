@@ -23,7 +23,7 @@ function JSON5Editor({
       hint={hint}
       defaultValue={defaultValue}
       className="h-60"
-      onBlur={(fullValue) => {
+      onBlur={fullValue => {
         try {
           const validLines = fullValue
             .split('\n')

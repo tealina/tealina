@@ -7,6 +7,9 @@ export function Anchor(props: {
   id: string
 }) {
   return (
-    <Typography.Title className="font-bold target:animate-swing !line-height-none !mt-0 !mb-1" {...props} />
+    <Typography.Title
+      className="font-bold target:animate-swing !line-height-none !mt-0 !mb-1"
+      {...props}
+    />
   )
 }

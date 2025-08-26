@@ -31,7 +31,7 @@ function useDocItem(): OneApiDoc | null {
 function ApiDetail() {
   const info = useDocItem()
   if (info == null) return null
-  return (<DetailContent {...info} />)
+  return <DetailContent {...info} />
 }
 
 export { ApiDetail }

@@ -2,7 +2,11 @@ import { SettingOutlined } from '@ant-design/icons'
 import { Button, Modal, Select } from 'antd'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { useState } from 'react'
-import { curJsonSourceAtom, curShowApiAtom, jsonSourceAtom } from '../atoms/jsonSourceAtom'
+import {
+  curJsonSourceAtom,
+  curShowApiAtom,
+  jsonSourceAtom,
+} from '../atoms/jsonSourceAtom'
 import { themeAtom } from '../atoms/themeAtom'
 import { ComonFields } from './features/playground/CommonFields'
 import { MoonIcon } from './icon/MoonIcon'
@@ -46,12 +50,7 @@ function CommonFieldToggle() {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button
-        icon={
-          <SettingOutlined />
-        }
-        onClick={() => setOpen(true)}
-      />
+      <Button icon={<SettingOutlined />} onClick={() => setOpen(true)} />
       <Modal
         open={open}
         onCancel={() => {
@@ -79,7 +78,7 @@ function ThemeToggle() {
       style={{
         borderColor: isDark ? '#424242' : '#d9d9d9',
       }}
-      role='button'
+      role="button"
       tabIndex={0}
       onClick={() => {
         setThemeMode(isDark ? 'light' : 'dark')

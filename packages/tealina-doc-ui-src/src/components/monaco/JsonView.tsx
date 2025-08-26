@@ -7,16 +7,22 @@ export const JsonView = ({
   value,
   className,
   language,
-  ref
+  ref,
 }: {
   value: string
   language?: 'json' | 'text'
-  className?: string,
+  className?: string
   ref?: React.ClassAttributes<SyntaxHighlighter>['ref']
 }) => {
   const curTheme = useAtomValue(themeAtom)
-  return <SyntaxHighlighter style={curTheme === 'dark' ? vscDarkPlus : vs} language={language} className={className} ref={ref}>
-    {value}
-  </SyntaxHighlighter>
-
+  return (
+    <SyntaxHighlighter
+      style={curTheme === 'dark' ? vscDarkPlus : vs}
+      language={language}
+      className={className}
+      ref={ref}
+    >
+      {value}
+    </SyntaxHighlighter>
+  )
 }

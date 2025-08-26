@@ -24,19 +24,30 @@ export type OneApiScopeEntitie = Pick<
   nonLiterals: ObjectType[]
 }
 
-export type EntityOnlyDoc = Pick<ApiDoc, 'entityRefs' | 'enumRefs' | 'tupleRefs'>
+export type EntityOnlyDoc = Pick<
+  ApiDoc,
+  'entityRefs' | 'enumRefs' | 'tupleRefs'
+>
 export type MemoedAppearedEntity = Map<string, AppearedEntity[]>
 export type AppearedEntity =
-  | { belong: 'enum'; id: number, value: EnumEntity }
-  | { belong: 'entity'; id: number, value: Entity }
-  | { belong: 'tuple'; id: number, value: TupleEntity }
+  | { belong: 'enum'; id: number; value: EnumEntity }
+  | { belong: 'entity'; id: number; value: Entity }
+  | { belong: 'tuple'; id: number; value: TupleEntity }
   | { belong: 'literal'; value: LiteralEntity }
   | { belong: 'nonLiteral'; value: ObjectType }
 
-export const appearedEntity2doc = (entities: AppearedEntity[]): EntityOnlyDoc => {
-  const entityRefs = Object.fromEntries(entities.filter(v => v.belong === 'entity').map(v => [v.id, v.value]))
-  const enumRefs = Object.fromEntries(entities.filter(v => v.belong === 'enum').map(v => [v.id, v.value]))
-  const tupleRefs = Object.fromEntries(entities.filter(v => v.belong === 'tuple').map(v => [v.id, v.value]))
+export const appearedEntity2doc = (
+  entities: AppearedEntity[],
+): EntityOnlyDoc => {
+  const entityRefs = Object.fromEntries(
+    entities.filter(v => v.belong === 'entity').map(v => [v.id, v.value]),
+  )
+  const enumRefs = Object.fromEntries(
+    entities.filter(v => v.belong === 'enum').map(v => [v.id, v.value]),
+  )
+  const tupleRefs = Object.fromEntries(
+    entities.filter(v => v.belong === 'tuple').map(v => [v.id, v.value]),
+  )
   return { entityRefs, enumRefs, tupleRefs }
 }
 /**
@@ -65,9 +76,7 @@ export function getNestEntity(
       if (entityRefsRecord.find(v => v.id === d.id)) return
       const { entityRefs } = doc
       inScope.push({ belong: 'entity', id: d.id, value: entityRefs[d.id] })
-      entityRefs[d.id].props.forEach(v =>
-        getNestEntity(v, doc, inScope),
-      )
+      entityRefs[d.id].props.forEach(v => getNestEntity(v, doc, inScope))
       break
     }
     case DocKind.Union:

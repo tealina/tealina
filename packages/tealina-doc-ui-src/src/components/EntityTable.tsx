@@ -45,13 +45,18 @@ export function EntityTable({
       dataIndex: 'comment',
       render: (comment, record) => {
         const isDeperated = record.jsDoc?.deprecated != null
-        return <span>
-          {isDeperated ? <><Tag>deprecated</Tag>
-            <br />
-          </> : null}
-          {comment}
-        </span>
-      }
+        return (
+          <span>
+            {isDeperated ? (
+              <>
+                <Tag>deprecated</Tag>
+                <br />
+              </>
+            ) : null}
+            {comment}
+          </span>
+        )
+      },
     },
     {
       title: 'Default Value',
@@ -63,7 +68,7 @@ export function EntityTable({
   ]
   return (
     <Card bodyStyle={{ padding: 10 }}>
-      <div className='text-lg'>
+      <div className="text-lg">
         <div>
           {entity.comment && <CommentSummary comment={entity.comment} />}
           <Anchor id={id} style={{ color: TypeColors.any }}>

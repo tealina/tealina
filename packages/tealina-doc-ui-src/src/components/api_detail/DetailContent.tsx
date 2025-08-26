@@ -9,7 +9,7 @@ import {
   type Entity,
   type NumberLiteral,
   type ObjectType,
-  type TupleEntity
+  type TupleEntity,
 } from '@tealina/doc-types'
 import { Button, Card, Segmented, Spin, Tabs, Tag, type TabsProps } from 'antd'
 import { useAtomValue } from 'jotai'
@@ -33,7 +33,7 @@ import {
   type EntityOnlyDoc,
   type MemoedAppearedEntity,
   type PayloadKeys,
-  type SegmentTabKeys
+  type SegmentTabKeys,
 } from './useDetailState'
 
 const Playground = lazy(() => import('../features/playground/Playground'))
@@ -75,7 +75,9 @@ export function DetailContent(summary: OneApiSummary) {
     <div className="p-3 h-screen flex flex-col">
       <div className="text-lg flex-shrink-0">
         <div className="group">
-          <Tag className="uppercase text-16px px-3 py-1" color={color}>{identity.method}</Tag>
+          <Tag className="uppercase text-16px px-3 py-1" color={color}>
+            {identity.method}
+          </Tag>
           <ColorText type="string" className="tracking-wider">
             {[source.baseURL, identity.path].join('')}
           </ColorText>
@@ -84,10 +86,8 @@ export function DetailContent(summary: OneApiSummary) {
             className="invisible group-hover:visible pl-2"
           />
         </div>
-        <Card className='mt-3 min-h-18' bodyStyle={{ padding: '10px' }}>
-          <MarkdownView>
-            {docItem.comment}
-          </MarkdownView>
+        <Card className="mt-3 min-h-18" bodyStyle={{ padding: '10px' }}>
+          <MarkdownView>{docItem.comment}</MarkdownView>
         </Card>
       </div>
       <div className="flex-shrink-0">
@@ -125,7 +125,7 @@ function PlayloadPanel({
   memoMap,
   doc,
   docItem,
-  keyPrefix
+  keyPrefix,
 }: {
   memoMap: MemoedAppearedEntity
   docItem: DocItem
@@ -159,7 +159,14 @@ function PlayloadPanel({
     const contents = record.map(k => {
       switch (k.belong) {
         case 'entity': {
-          return <EntityTable entity={k.value} key={k.id} id={String(k.id)} doc={parsedDoc} />
+          return (
+            <EntityTable
+              entity={k.value}
+              key={k.id}
+              id={String(k.id)}
+              doc={parsedDoc}
+            />
+          )
         }
         case 'enum': {
           if (k.value.name === '') return null
@@ -169,18 +176,33 @@ function PlayloadPanel({
           return <NonLiteralEntity key={k.value.type} obj={k.value} />
         }
         case 'tuple': {
-          return <TupleContent obj={k.value} id={String(k.id)} key={k.id} doc={parsedDoc} />
+          return (
+            <TupleContent
+              obj={k.value}
+              id={String(k.id)}
+              key={k.id}
+              doc={parsedDoc}
+            />
+          )
         }
         case 'literal': {
           const key = Math.random().toString(16)
-          return <EntityTable entity={{ ...k.value, name: '{...}' }} key={key} id={key} doc={parsedDoc} />
+          return (
+            <EntityTable
+              entity={{ ...k.value, name: '{...}' }}
+              key={key}
+              id={key}
+              doc={parsedDoc}
+            />
+          )
         }
       }
-    }
-    )
-    return <div className='flex flex-col gap-10'>{contents}</div>
+    })
+    return <div className="flex flex-col gap-10">{contents}</div>
   }
-  const node2tabItem = (v: DocNode): NonNullable<TabsProps['items']>[number] => {
+  const node2tabItem = (
+    v: DocNode,
+  ): NonNullable<TabsProps['items']>[number] => {
     switch (v.kind) {
       case DocKind.EntityRef: {
         const entity = doc.entityRefs[v.id]
@@ -189,13 +211,15 @@ function PlayloadPanel({
           key,
           tabKey: key,
           label: entity.name,
-          children: renderContent(v)
+          children: renderContent(v),
         }
       }
       case DocKind.Array: {
         const item = node2tabItem(v.element)
         const { label } = item
-        item.label = String(label).includes('|') ? `(${label}) [ ]` : `${label} [ ]`
+        item.label = String(label).includes('|')
+          ? `(${label}) [ ]`
+          : `${label} [ ]`
         return item
       }
       case DocKind.LiteralObject: {
@@ -206,14 +230,18 @@ function PlayloadPanel({
             key,
             tabKey: key,
             label: '{...}',
-            children: renderContent(v)
+            children: renderContent(v),
           }
         }
         const statusCode = `${(statusCodeProp as NumberLiteral).value}`
-        const resProp = v.props.find(v => v.name === kStatusResKey) as DocNode | null
+        const resProp = v.props.find(
+          v => v.name === kStatusResKey,
+        ) as DocNode | null
         if (resProp != null) {
           return {
-            key: statusCode, label: statusCode, children: renderContent(resProp)
+            key: statusCode,
+            label: statusCode,
+            children: renderContent(resProp),
           }
         }
         return { key: statusCode, label: statusCode, children: <p></p> }
@@ -225,7 +253,7 @@ function PlayloadPanel({
           key,
           tabKey: key,
           label: curTab,
-          children: type2cell(v, doc)
+          children: type2cell(v, doc),
           // label: 'PARSER_ERROR',
           // children: (<p className='text-red'>
           //   <span>Unexpect doc node</span>
@@ -235,22 +263,24 @@ function PlayloadPanel({
     }
   }
   if (curTab !== 'response') {
-    return <div className="flex flex-col gap-3 pb-10">
-      {renderContent(targetNode)}
-    </div>
+    return (
+      <div className="flex flex-col gap-3 pb-10">
+        {renderContent(targetNode)}
+      </div>
+    )
   }
-  const tabItems = targetNode.kind === DocKind.Union ? targetNode.types.map(node2tabItem)
-    : [node2tabItem(targetNode)]
+  const tabItems =
+    targetNode.kind === DocKind.Union
+      ? targetNode.types.map(node2tabItem)
+      : [node2tabItem(targetNode)]
 
   return (
     <div className="flex flex-col gap-3 pb-10">
-
       {/* {renderEntities()} */}
-      <Tabs items={tabItems} tabPosition='left' />
+      <Tabs items={tabItems} tabPosition="left" />
     </div>
   )
 }
-
 
 function TupleContent({
   obj,

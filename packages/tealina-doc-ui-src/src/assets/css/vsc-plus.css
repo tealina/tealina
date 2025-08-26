@@ -1,9 +1,9 @@
 body.dark .token.namespace {
-  opacity: .7;
+  opacity: 0.7;
 }
 
 body.dark .token.doctype.doctype-tag {
-  color: #569CD6;
+  color: #569cd6;
 }
 
 body.dark .token.doctype.name {
@@ -91,7 +91,7 @@ body.dark .token.entity {
 }
 
 body.dark .token.operator.arrow {
-  color: #569CD6;
+  color: #569cd6;
 }
 
 body.dark .token.atrule {
@@ -115,7 +115,7 @@ body.dark .token.atrule.url.punctuation {
 }
 
 body.dark .token.keyword {
-  color: #569CD6;
+  color: #569cd6;
 }
 
 body.dark .token.keyword.module {
