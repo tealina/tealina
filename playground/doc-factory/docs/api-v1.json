@@ -1,10 +1,10 @@
 {
   "apis": {
     "get": {
-      "health": {
+      "/health": {
         "response": {
           "kind": 4,
-          "id": 323
+          "id": 333
         },
         "headers": {
           "kind": 4,
@@ -13,33 +13,33 @@
       }
     },
     "post": {
-      "case/primitive": {
+      "/case/primitive": {
         "body": {
           "kind": 4,
-          "id": 1769
+          "id": 1874
         },
         "response": {
           "kind": 4,
-          "id": 1769
+          "id": 1874
         },
         "headers": {
           "kind": 4,
-          "id": 1770
+          "id": 1875
         }
       },
-      "user/checkin": {
+      "/user/checkin": {
         "body": {
           "kind": 3,
           "types": [
             {
               "kind": 4,
-              "id": 1808
+              "id": 1913
             },
             {
               "kind": 11,
               "element": {
                 "kind": 4,
-                "id": 1809
+                "id": 1914
               }
             }
           ]
@@ -49,49 +49,49 @@
           "types": [
             {
               "kind": 4,
-              "id": 1808
+              "id": 1913
             },
             {
               "kind": 11,
               "element": {
                 "kind": 4,
-                "id": 1809
+                "id": 1914
               }
             }
           ]
         },
         "headers": {
           "kind": 4,
-          "id": 1770
+          "id": 1875
         },
         "comment": "test tuple type's initialvalue while switching"
       },
-      "user/create": {
+      "/user/create": {
         "body": {
           "kind": 4,
-          "id": 1853
+          "id": 1958
         },
         "response": {
           "kind": 4,
-          "id": 1853
+          "id": 1958
         },
         "headers": {
           "kind": 4,
-          "id": 1770
+          "id": 1875
         }
       },
-      "user/update": {
+      "/user/update": {
         "body": {
           "kind": 4,
-          "id": 1887
+          "id": 1992
         },
         "response": {
           "kind": 4,
-          "id": 1887
+          "id": 1992
         },
         "headers": {
           "kind": 4,
-          "id": 1770
+          "id": 1875
         }
       }
     }
@@ -101,7 +101,7 @@
       "name": "{}",
       "props": []
     },
-    "323": {
+    "333": {
       "name": "{ status: string; }",
       "props": [
         {
@@ -111,7 +111,7 @@
         }
       ]
     },
-    "1769": {
+    "1874": {
       "name": "Input",
       "props": [
         {
@@ -129,7 +129,7 @@
         }
       ]
     },
-    "1770": {
+    "1875": {
       "name": "AuthHeaders",
       "props": [
         {
@@ -139,7 +139,7 @@
         }
       ]
     },
-    "1808": {
+    "1913": {
       "name": "CheckAhead",
       "props": [
         {
@@ -154,7 +154,7 @@
         }
       ]
     },
-    "1809": {
+    "1914": {
       "name": "CheckInTime",
       "props": [
         {
@@ -169,7 +169,7 @@
         }
       ]
     },
-    "1853": {
+    "1958": {
       "name": "UserCreateInput",
       "props": [
         {
@@ -196,7 +196,7 @@
         }
       ]
     },
-    "1887": {
+    "1992": {
       "name": "UserCreateInput",
       "props": [
         {
@@ -219,7 +219,7 @@
                 },
                 {
                   "kind": 12,
-                  "id": 1900
+                  "id": 2005
                 }
               ]
             }
@@ -231,23 +231,23 @@
           "elements": [
             {
               "kind": 4,
-              "id": 1907
+              "id": 2012
             },
             {
               "kind": 4,
-              "id": 1908
+              "id": 2013
             }
           ],
           "name": "deepRecusiveTuple"
         },
         {
           "kind": 4,
-          "id": 1909,
+          "id": 2014,
           "name": "recursiveEntity"
         }
       ]
     },
-    "1907": {
+    "2012": {
       "name": "One",
       "props": [
         {
@@ -257,12 +257,12 @@
         },
         {
           "kind": 12,
-          "id": 1906,
+          "id": 2011,
           "name": "t"
         }
       ]
     },
-    "1908": {
+    "2013": {
       "name": "Two",
       "props": [
         {
@@ -272,7 +272,7 @@
         }
       ]
     },
-    "1909": {
+    "2014": {
       "name": "NestOption",
       "props": [
         {
@@ -289,7 +289,7 @@
           "kind": 11,
           "element": {
             "kind": 13,
-            "id": 1909
+            "id": 2014
           },
           "name": "children"
         }
@@ -298,7 +298,7 @@
   },
   "enumRefs": {},
   "tupleRefs": {
-    "1900": {
+    "2005": {
       "name": "RecursiveTuple",
       "elements": [
         {
@@ -318,22 +318,22 @@
             },
             {
               "kind": 12,
-              "id": 1900
+              "id": 2005
             }
           ]
         }
       ]
     },
-    "1906": {
+    "2011": {
       "name": "DeepRecursiveTuple",
       "elements": [
         {
           "kind": 4,
-          "id": 1907
+          "id": 2012
         },
         {
           "kind": 4,
-          "id": 1908
+          "id": 2013
         }
       ]
     }

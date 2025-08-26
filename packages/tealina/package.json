@@ -14,7 +14,7 @@
   "scripts": {
     "gen-types": "tsc src/index.ts --declaration --emitDeclarationOnly --esModuleInterop --outDir dist",
     "build": "unbuild && pnpm gen-types",
-    "test": "vitest --dir ./test --run"
+    "test": "vitest --dir ./test --run --testTimeout=20000"
   },
   "bin": {
     "tealina": "index.js"

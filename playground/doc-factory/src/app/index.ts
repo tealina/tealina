@@ -1,14 +1,10 @@
-import express, { RequestHandler, Router } from 'express'
+import express, { type RequestHandler, Router } from 'express'
 import { asyncFlow, omitFn, pickFn } from 'fp-lite'
 import path from 'node:path'
 import apisV1 from '../api-v1/index.js'
 import { VDOC_BASENAME, docRouter } from './docRouter.js'
 import { handleError } from './handleError.js'
-import {
-  handleApiNotFound,
-  handleNotFound,
-  handleStaticNotFound,
-} from './handleNotFound.js'
+import { handleApiNotFound, handleNotFound } from './handleNotFound.js'
 import { registeApiRoutes } from './registeApiRoutes.js'
 import { loadAPIs } from './resolveBatchExport.js'
 import { setupApiHeaders } from './setupApiHeaders.js'
