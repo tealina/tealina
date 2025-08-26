@@ -1,12 +1,12 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
   "files": {
-    "ignore": [
-      "build",
-      "dist",
-      "src/api-*/index.ts",
-      "**/node_modules/**",
-      "temp"
+    "includes": [
+      "**",
+      "!**/build",
+      "!**/dist",
+      "!**/src/api-*/index.ts",
+      "!**/node_modules/**"
     ]
   },
   "formatter": {
@@ -17,21 +17,28 @@
     "lineEnding": "lf",
     "lineWidth": 80,
     "attributePosition": "auto",
-    "ignore": [
-      "**/dist",
-      "**/temp",
-      "**/assets",
-      "**/coverage",
-      "**/static",
-      "**/*.yaml",
-      "**/*.json"
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/assets",
+      "!**/coverage",
+      "!**/static",
+      "!**/*.yaml",
+      "!**/*.json"
     ]
   },
-  "organizeImports": {
-    "enabled": false
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
   },
   "linter": {
     "enabled": true,
+    "includes": [
+      "!temp-*"
+    ],
     "rules": {
       "recommended": true,
       "suspicious": {
@@ -46,10 +53,12 @@
         "noForEach": "info"
       },
       "style": {
-        "useShorthandFunctionType": "off"
+        "useShorthandFunctionType": "off",
+        "noNonNullAssertion": "off"
       },
       "a11y": {
-        "useKeyWithClickEvents": "off"
+        "useKeyWithClickEvents": "off",
+        "useSemanticElements": "off"
       }
     }
   },
