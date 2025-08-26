@@ -21,8 +21,7 @@
     "node": "^18.0.0 || >=20.0.0"
   },
   "dependencies": {
-    "@tealina/doc-types": "workspace:*",
-    "@tealina/doc-ui": "link:"
+    "@tealina/doc-types": "workspace:*"
   },
   "publishConfig": {
     "access": "public",
