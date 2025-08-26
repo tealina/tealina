@@ -6,7 +6,9 @@
 Tealina
 </h1>
 <p align="center">
-Enable your full stack project to have end-to-end types and API documentation
+The Full-Stack Automation Kit: Code Gen CLI, Interactive Docs & Type-Safe Client
+<p align="center">
+No Framework Left Behind: Seamless E2E Types for Express, Fastify, and Koa with Minimal Changes.
 </p>
 
 <p align="center">
