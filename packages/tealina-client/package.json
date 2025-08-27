@@ -1,6 +1,6 @@
 {
   "name": "@tealina/client",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Parse tealina-server type for client.",
   "main": "./dist/index.js",
   "exports": {
@@ -25,9 +25,17 @@
     "build": "rm -rf dist && tsup",
     "test": "vitest --run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "tealina",
+    "type-safe-client",
+    "rpc-api-client",
+    "api-client"
+  ],
+  "author": "Neo Yeo",
+  "license": "MIT",
   "devDependencies": {
     "axios": "^1.7.7"
   }
