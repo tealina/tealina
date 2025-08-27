@@ -1,9 +1,11 @@
 import { writeFileSync } from 'node:fs'
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
+import { join } from 'node:path'
 
 const TEMP_LIST = [
-  'packages/create-tealina/template/server/express/common/package.json',
-  'packages/create-tealina/template/server/fastify/common/package.json',
+  'packages/create-tealina/template/server/express/package.json',
+  'packages/create-tealina/template/server/fastify/package.json',
+  'packages/create-tealina/template/server/koa/package.json',
 ]
 
 const updateTeamplateDependance = updates =>
@@ -11,7 +13,9 @@ const updateTeamplateDependance = updates =>
 
 const readJsonFile = dest =>
   readFile(dest, { encoding: 'utf-8' }).then(v => JSON.parse(v.toString()))
-
+const writeJson = (dest, data) => writeFileSync(dest, JSON.stringify(data, null, 2), {
+  encoding: 'utf-8',
+})
 const deepValueEqual = (a, b) => Object.entries(b).every(([k, v]) => a[k] === v)
 
 const formatLog = (dest, result) => {
@@ -44,6 +48,16 @@ const latestTealina = async () => {
   }
 }
 
+const latestTealinaServer = async () => {
+  const next = await readJsonFile('packages/tealina-server/package.json')
+  return {
+    key: 'devDependencies',
+    value: {
+      "@tealina/server": `^${next.version}`,
+    },
+  }
+}
+
 const latestDocUI = async () => {
   const next = await readJsonFile('packages/tealina-doc-ui/package.json')
   return {
@@ -55,10 +69,34 @@ const latestDocUI = async () => {
 }
 
 const workflow = async () => {
-  console.log('Intent to update version No. in templates:')
-  const updates = await Promise.all([latestTealina(), latestDocUI()])
-  await Promise.all(updateTeamplateDependance(updates))
-  console.log('Template dependancies version updated =>\n', updates)
+  const pkgsDir = 'packages'
+  const packagesNames = await readdir(pkgsDir)
+  const subPkgMaps = new Map()
+  for (const subPkg of packagesNames) {
+    const subDir = join(pkgsDir, subPkg)
+    const sta = await stat(subDir)
+    if (!sta.isDirectory()) continue
+    const pkgJson = await readJsonFile(join(pkgsDir, subPkg, 'package.json'))
+    subPkgMaps.set(pkgJson.name, pkgJson)
+  }
+  const kVersionMapPath = 'packages/create-tealina/src/versionMaps.json'
+  const versionMaps = await readJsonFile(kVersionMapPath)
+  for (const key in versionMaps) {
+    const project = versionMaps[key]
+    for (const depKey in project) {
+      const depend = project[depKey]
+      for (const pkgName of Object.keys(depend)) {
+        const latest = subPkgMaps.get(pkgName)
+        if (latest == null) throw new Error(`sub pkg not found,${pkgName}`)
+        depend[pkgName] = `^${latest.version}`
+      }
+    }
+  }
+  writeJson(kVersionMapPath, versionMaps)
+  // console.log('Intent to update version No. in templates:')
+  // const updates = await Promise.all([latestTealina(), latestDocUI()])
+  // await Promise.all(updateTeamplateDependance(updates))
+  console.log('Template dependancies version updated =>\n', versionMaps)
   // execSync('pnpm test -F create-tealina', { stdio: 'inherit' })
 }
 

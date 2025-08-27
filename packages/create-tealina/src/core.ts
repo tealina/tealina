@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ora from 'ora'
 import prompts from 'prompts'
+import versionMap from './versionMaps.json'
 
 const { blue, green, reset } = chalk
 const { join } = path
@@ -33,23 +34,20 @@ const GIT_IGNORE_CONTNET = [
   '.env',
 ].join('\n')
 
-const createProject = (
-  templateDir: string,
-  dest: string,
-  beforeWritePkg?: (pkg: Record<string, any>) => Record<string, any>,
-) => {
+const updateServerPackageJson = (serverDestDir: string, runtime: string) => {
+  const pkgPath = join(serverDestDir, 'package.json')
+  let pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+  pkg.name = path.basename(serverDestDir)
+  pkg.scripts['init-demo'] = `${runtime} ${kInitDemo}`
+  const { server } = versionMap
+  Object.assign(pkg.dependencies, server.dependencies)
+  Object.assign(pkg.devDependencies, server.devDependencies)
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
+}
+const createProject = (dest: string) => {
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true })
   }
-  let pkg = JSON.parse(
-    fs.readFileSync(join(templateDir, 'package.json'), 'utf-8'),
-  )
-  pkg.name = path.basename(dest)
-  if (beforeWritePkg) {
-    pkg = beforeWritePkg(pkg)
-  }
-  fs.writeFileSync(join(dest, 'package.json'), JSON.stringify(pkg, null, 2))
-  fs.writeFileSync(join(dest, '.gitignore'), GIT_IGNORE_CONTNET)
 }
 
 const setupLines = [
@@ -228,11 +226,8 @@ const createServerProject = async (ctx: ContextType) => {
   //   path.join(destServerDir, 'dev-templates/handlers'),
   //   templateSnaps,
   // )
-  createProject(templateServerDir, destServerDir, pkg => {
-    const runtime = getRuntime(ctx)
-    pkg.scripts['init-demo'] = `${runtime} ${kInitDemo}`
-    return pkg
-  })
+  createProject(templateServerDir)
+  updateServerPackageJson(destServerDir, getRuntime(ctx))
   // if (isRestful) {
   //   copyDir(join(templateDir, 'restful-only'), destServerDir)
   // } else {
@@ -276,11 +271,12 @@ const runCreateVite = async (ctx: ContextType, webDest: string) =>
     })
   })
 
-const updatePackageJson = (webDestDir: string) => {
+const updateWebPackageJson = (webDestDir: string) => {
   const pkg = JSON.parse(
     fs.readFileSync(join(webDestDir, 'package.json'), 'utf-8'),
   )
-  pkg.dependencies['@tealina/client'] = '^1.0.0'
+  Object.assign(pkg.dependencies, versionMap.web.dependencies)
+  // pkg.dependencies['@tealina/client'] = '^1.0.0'
   pkg.dependencies.axios = '^1.7.7'
   pkg.devDependencies.server = 'workspace:*'
   pkg.devDependencies['@shared/type'] = 'workspace:*'
@@ -338,7 +334,7 @@ const createWebProject = async (ctx: ContextType) => {
   const webDest = join(dest, 'web')
   await mayOverwrite(webDest)
   await runCreateVite(ctx, webDest)
-  updatePackageJson(webDest)
+  updateWebPackageJson(webDest)
   updateViteConfig(webDest)
   const webExtraTemplateDir = join(projectRootDir, 'template', 'web')
   copyTemplates(webDest, webExtraTemplateDir)

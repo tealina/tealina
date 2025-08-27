@@ -1,0 +1,17 @@
+{
+  "server": {
+    "dependencies": {
+      "@tealina/server": "^1.0.0",
+      "@tealina/doc-ui": "^2.0.0-beta.0"
+    },
+    "devDependencies": {
+      "tealina": "^2.0.0-beta.0"
+    }
+  },
+  "web": {
+    "dependencies": {
+      "@tealina/client": "^1.0.0"
+    },
+    "devDependencies": {}
+  }
+}
