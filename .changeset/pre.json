@@ -10,5 +10,11 @@
     "@tealina/doc-ui-src": "0.0.10",
     "@tealina/server": "1.0.0"
   },
-  "changesets": []
+  "changesets": [
+    "brave-masks-leave",
+    "shaggy-peas-exist",
+    "smooth-peas-help",
+    "twelve-ghosts-judge",
+    "wicked-hotels-yell"
+  ]
 }
