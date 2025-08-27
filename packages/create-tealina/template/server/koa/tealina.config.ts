@@ -3,7 +3,7 @@ import { defineConfig, TemplateContext } from 'tealina'
 export default defineConfig({
   typesDir: 'types',
   gtype: {
-    output: '../shared-type/pure.d.ts',
+    output: '../shared-types/pure.d.ts',
   },
   template: {
     handlers: [
