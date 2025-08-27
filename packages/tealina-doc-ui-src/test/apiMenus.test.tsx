@@ -59,9 +59,8 @@ describe('test use menus hook', () => {
     const list = await result.findAllByText('health')
     const el = list.find(v => v.classList.contains('ant-menu-title-content'))
     expect(el != null).true
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     fireEvent.click(el!)
-    fireEvent.click(result.getByText('GET'))
+    fireEvent.click(result.getByText('health'))
     expect(curApi).toMatchObject({ method: 'get', path: 'health' })
   })
 })
