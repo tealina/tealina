@@ -1,5 +1,12 @@
 # @tealina/doc-types
 
+## 1.1.0-beta.0
+
+### Minor Changes
+
+- 3eb862b: #### Features
+  - New LiteralObject kind
+
 ## 1.0.2
 
 ### Patch Changes
