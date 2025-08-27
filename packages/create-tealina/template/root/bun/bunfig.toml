@@ -1,3 +1,4 @@
 [packages]
 server = { path = "./packages/server" }
 web = { path = "./packages/web" }
+shared-types = { path = "./packages/shared-types" }
