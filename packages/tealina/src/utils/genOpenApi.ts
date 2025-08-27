@@ -303,7 +303,7 @@ export function convertToOpenApiJson(
   for (const [method, endpoints] of Object.entries(apiDoc.apis)) {
     for (const [rawEndpoint, docItem] of Object.entries(endpoints)) {
       const pathItem = convertDocItemToPathItem(docItem)
-      const endpoint = [prefix, transformPath(rawEndpoint)].join('/')
+      const endpoint = [prefix, transformPath(rawEndpoint)].join('')
       if (!openApiJson.paths![endpoint]) {
         openApiJson.paths![endpoint] = {}
       }
