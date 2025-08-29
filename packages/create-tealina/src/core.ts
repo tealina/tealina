@@ -217,6 +217,7 @@ const createServerProject = async (ctx: ContextType) => {
   const templateServerDir = join(templateDir, 'server', server)
   mayCopyCommonDir(templateDir, destServerDir)
   copyDir(templateServerDir, destServerDir)
+  fs.mkdirSync(path.join(destServerDir, 'docs')) //the default docs dir
   // const isRestful = answer.apiStyle === 'restful'
   // const templateSnaps = createTemplates({
   //   isRestful,
