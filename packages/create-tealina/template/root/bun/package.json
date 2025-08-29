@@ -1,8 +1,0 @@
-{
-  "scripts": {
-    "dev": "concurrently \"bun run dev --prefix server\" \"bun run dev --prefix web\""
-  },
-  "devDependencies": {
-    "concurrently": "^9.0.0"
-  }
-}

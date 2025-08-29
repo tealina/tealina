@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "dev": "concurrently -n \"Server Web\"  \"bun run dev:server\" \"bun run dev:web\"",
+    "dev:server": "bun run --filter server dev",
+    "dev:web": "bun run --filter web dev",
+    "build": "bun run --filter server build && bun run --filter web build",
+    "init-demo": "bun run --filter server init-demo"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
