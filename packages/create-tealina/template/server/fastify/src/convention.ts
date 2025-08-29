@@ -3,7 +3,7 @@ import type { CustomHandlerType } from '../types/handler.js'
 
 type PreHanlder = preHandlerHookHandler | preHandlerAsyncHookHandler
 
-type ConstrainedHandlerType = readonly [...PreHanlder[], CustomHandlerType]
+type ConstrainedHandlerType = [...PreHanlder[], CustomHandlerType]
 
 type EnsureHandlerType = <const T extends ConstrainedHandlerType>(
   ...handlers: T
