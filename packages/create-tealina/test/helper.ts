@@ -61,10 +61,8 @@ export async function validate(dir: string) {
   const packagesDir = path.join(dir, 'packages')
   const serverDir = path.join(dir, 'packages/server')
   const shareTypesDir = path.join(dir, 'packages/shared-types')
-  const workspaceFile = path.join(dir, 'pnpm-workspace.yaml')
   expect(existsSync(rootPkg)).true
   expect(existsSync(packagesDir)).true
-  expect(existsSync(workspaceFile)).true
   expect(existsSync(serverDir)).true
   expect(existsSync(shareTypesDir)).true
   console.log('test done')

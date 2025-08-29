@@ -63,26 +63,35 @@ const setupLines = [
   '}',
   '',
 ]
+const kCommandsForInit = [
+  'install',
+  '// Initialize sqlite database',
+  'prisma db push',
+  '// Align index.ts exports with the actual file structure',
+  'v1 -a',
+  '// Generating shareable types from prisma.schema',
+  'v1 gtype',
+  '// Generating API document',
+  'v1 gdoc',
+]
 
-const writeInitDevFile = (
-  pkgManager: ContextType['pkgManager'],
-  destServerDir: string,
-) => {
-  const command = (...args: string[]) =>
-    ['$`', getRunLeader(pkgManager), ...args, '`'].join('')
-  const initCommands = [
-    ...setupLines,
-    command(' install'),
-    '// Initialize sqlite database',
-    command(' prisma db push'),
-    '// Align index.ts exports with the actual file structure',
-    command(' v1 -a'),
-    '// Generating shareable types from prisma.schema',
-    command(' v1 gtype'),
-    '// Generating API document',
-    command(' v1 gdoc'),
-  ]
-  fs.writeFileSync(join(destServerDir, kInitDemo), initCommands.join('\n'))
+const getInitCommands = (leader: ContextType['leader']) => {
+  if (leader.startsWith('bun')) {
+    return [
+      'await Bun.$`bun install`',
+      ...kCommandsForInit.slice(1).map(e => {
+        if (e.startsWith('//')) return e
+        return `await Bun.$\`bun run ${e}\``
+      }),
+    ]
+  }
+  const command = (...args: string[]) => ['$`', leader, ...args, '`'].join('')
+  const initCommands = kCommandsForInit.map(e => {
+    if (e.startsWith('//')) return e
+    return command(` ${e}`)
+  })
+
+  return [...setupLines, command(' install'), ...initCommands]
 }
 
 const copyTemplates = (dest: string, webExtraTemplateDir: string) => {
@@ -111,9 +120,8 @@ const logGuids = (guids: { title?: string; items: string[] }[]) => {
   console.log(all.join('\n'))
 }
 
-const showGuide = ({ answer, pkgManager }: ContextType) => {
+const showGuide = ({ answer, leader }: ContextType) => {
   const { projectName } = answer
-  const leader = getRunLeader(pkgManager)
   return logGuids([
     {
       title: blue('Done. Now run:'),
@@ -218,23 +226,12 @@ const createServerProject = async (ctx: ContextType) => {
   mayCopyCommonDir(templateDir, destServerDir)
   copyDir(templateServerDir, destServerDir)
   fs.mkdirSync(path.join(destServerDir, 'docs')) //the default docs dir
-  // const isRestful = answer.apiStyle === 'restful'
-  // const templateSnaps = createTemplates({
-  //   isRestful,
-  //   framwork: answer.server,
-  // })
-  // writeTemplates(
-  //   path.join(destServerDir, 'dev-templates/handlers'),
-  //   templateSnaps,
-  // )
   createProject(templateServerDir)
-  updateServerPackageJson(destServerDir, getRuntime(ctx))
-  // if (isRestful) {
-  //   copyDir(join(templateDir, 'restful-only'), destServerDir)
-  // } else {
+  updateServerPackageJson(destServerDir, ctx.pkgManager)
   copyDir(join(templateDir, 'post-get'), destServerDir)
-  // }
-  writeInitDevFile(ctx.pkgManager, destServerDir)
+  //init-demo.mjs
+  const initCommands = getInitCommands(ctx.leader)
+  fs.writeFileSync(join(destServerDir, kInitDemo), initCommands.join('\n'))
 }
 
 const runCreateVite = async (ctx: ContextType, webDest: string) =>
@@ -356,32 +353,42 @@ const createCtx = async () => {
     dest: path.join(root, 'packages'),
     projectRootDir,
     pkgManager,
+    runtime: getRuntime(pkgManager),
+    leader: getRunLeader(pkgManager),
   }
 }
-const getRuntime = (ctx: ContextType) => {
-  switch (ctx.pkgManager) {
-    case 'bun':
-    // case 'deno':
-    //   return ctx.pkgManager
-    default:
-      return 'node'
+
+function getRuntime(pkgManager: string) {
+  if (pkgManager.startsWith('bun')) {
+    return 'bun'
   }
+  if (pkgManager.startsWith('deno')) {
+    return 'deno'
+  }
+  return 'node'
 }
+
 const createRoot = (ctx: ContextType) => {
   const pkgDest = path.join(ctx.root, 'packages')
   fs.mkdirSync(pkgDest, { recursive: true })
   const webExtraTemplateDir = join(
     ctx.projectRootDir,
     'template',
-    'root',
-    getRuntime(ctx),
+    'runtime',
+    ctx.runtime,
   )
   copyTemplates(ctx.root, webExtraTemplateDir)
   copyDir(join(ctx.projectRootDir, 'template', 'pkg'), pkgDest)
 }
 
-export const createScaffold = async () => {
+export const createScaffold = async (runtime?: 'node' | 'bun' | 'deno') => {
   const ctx = await createCtx()
+  if (runtime) {
+    //test case
+    ctx.runtime = runtime
+    const pkgManager = pkgFromUserAgent(runtime)
+    ctx.leader = getRunLeader(pkgManager)
+  }
   createRoot(ctx)
   await createServerProject(ctx)
   if (ctx.answer.web !== 'none') {
