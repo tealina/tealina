@@ -79,7 +79,7 @@ const workflow = async () => {
     const pkgJson = await readJsonFile(join(pkgsDir, subPkg, 'package.json'))
     subPkgMaps.set(pkgJson.name, pkgJson)
   }
-  const kVersionMapPath = 'packages/create-tealina/src/versionMaps.json'
+  const kVersionMapPath = 'packages/create-tealina/template/versionMaps.json'
   const versionMaps = await readJsonFile(kVersionMapPath)
   for (const key in versionMaps) {
     const project = versionMaps[key]
