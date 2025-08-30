@@ -1,5 +1,11 @@
 # create-tealina
 
+## 2.0.0-beta.3
+
+### Patch Changes
+
+- c00c855: Fix version and runtime script
+
 ## 2.0.0-beta.2
 
 ### Patch Changes
