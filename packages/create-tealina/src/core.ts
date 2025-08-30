@@ -231,7 +231,6 @@ const createServerProject = async (ctx: ContextType) => {
   const templateServerDir = join(templateDir, 'server', server)
   mayCopyCommonDir(templateDir, destServerDir)
   copyDir(templateServerDir, destServerDir)
-  fs.mkdirSync(path.join(destServerDir, 'docs')) //the default docs dir
   createProject(templateServerDir)
   updateServerPackageJson(destServerDir, ctx.pkgManager)
   copyDir(join(templateDir, 'post-get'), destServerDir)
