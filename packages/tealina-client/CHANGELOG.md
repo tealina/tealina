@@ -1,5 +1,11 @@
 # @tealina/client
 
+## 1.0.0-beta.1
+
+### Patch Changes
+
+- 71eab6f: Update README
+
 ## 1.0.0-beta.0
 
 ### Major Changes

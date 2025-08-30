@@ -1,5 +1,11 @@
 # @tealina/doc-ui
 
+## 2.0.0-beta.1
+
+### Patch Changes
+
+- 71eab6f: Update README
+
 ## 2.0.0-beta.0
 
 ### Major Changes
