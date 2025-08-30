@@ -1,5 +1,12 @@
 # create-tealina
 
+## 2.0.0-beta.2
+
+### Patch Changes
+
+- ae3c05f: Fix working in Bun
+- 71eab6f: Update README
+
 ## 2.0.0-beta.1
 
 ### Patch Changes
