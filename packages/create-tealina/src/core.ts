@@ -232,7 +232,7 @@ const createServerProject = async (ctx: ContextType) => {
   mayCopyCommonDir(templateDir, destServerDir)
   copyDir(templateServerDir, destServerDir)
   createProject(templateServerDir)
-  updateServerPackageJson(destServerDir, ctx.pkgManager)
+  updateServerPackageJson(destServerDir, ctx.runtime)
   copyDir(join(templateDir, 'post-get'), destServerDir)
   //init-demo.mjs
   const initCommands = getInitCommands(ctx.leader)
