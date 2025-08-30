@@ -5,8 +5,7 @@ A utility package for resolving lazy import structures in file-based routing sys
 ## Features
 
 - 🚀 Automatically resolves nested lazy import routing structures
-- 🔧 Native TypeScript support with full type inference
-- 📁 File system-based route organization
+-  File system-based route organization
 - ⚡ Lightweight with zero dependencies
 
 ## Installation
@@ -60,19 +59,18 @@ export default {
 ### 3. Register Routes
 
 ```ts
+import { Router } from 'express'
 import apis from './api-v1/index.js'
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
 
-async function registerRoutes() {
-  // Load and transform API structure
-  const routeOptions = await transformToRouteOptions(apis)
-  
-  // Register routes
+export const buildV1Router = async () => {
+  const apiRecord = await loadAPIs(apisV1)
+  const apiRouter = Router()
+  const routeOptions = transformToRouteOptions(apiRecord)
   for (const { url, method, handler } of routeOptions) {
-    // Register routes here, for example:
-    // app[method](url, handler)
-    console.log(`Registering route: ${method} ${url}`)
+    apiRouter[method](url, handler)
   }
+  return apiRouter
 }
 ```
 

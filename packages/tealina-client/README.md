@@ -48,11 +48,9 @@ type ApiTypesRecord = {
   // Support for other HTTP methods (put, delete, patch, etc.)
 }
 ```
-
-## Fetch Integration
+It's recommend using [create-tealina](https://www.npmjs.com/package/create-tealina) to scaffold your project, which provides pre-configured `ApiTypeRecord` imports from the server - no manual setup required.
 
 ### RPC Style (Method Chaining)
-
 ```ts
 import { createFetchRPC } from '@tealina/client'
 import type { ApiTypesRecord } from 'server/api/v1'
@@ -65,67 +63,33 @@ const rpc = createFetchRPC<ApiTypesRecord, RequestInit>(async (url, config) => {
 
 // Usage examples
 rpc.get.status().then(result => console.log(result))
+
 rpc.get.user[':id']({ params: { id: 'user_id' } }).then(user => console.log(user.name))
 ```
 
 ### Traditional Style
 
 ```ts
-import { createFetchClient } from '@tealina/client'
+import axios, { type AxiosRequestConfig } from 'axios'
+import { createAxiosClient } from '@tealina/client'
+import type { ApiTypesRecord } from 'server/api/v1'
 
-const req = createFetchClient<ApiTypesRecord, RequestInit>(async (url, config) => {
-  const response = await fetch(url, config)
-  const data = await response.json()
-  return data
+const instance = axios.create({
+  baseURL: '/api/v1/',
 })
+
+export const req = createAxiosClient<ApiTypesRecord, AxiosRequestConfig>(c =>
+  instance.request(c).then(v => v.data),
+)
 
 // Usage
 req.get('/status').then(result => console.log(result))
-```
-
-## Axios Integration
-
-### RPC Style
-
-```ts
-import { createAxiosRPC } from '@tealina/client'
-import { axios } from 'axios'
-import type { AxiosRequestConfig } from 'axios'
-
-const rpc = createAxiosRPC<ApiTypesRecord, AxiosRequestConfig>(
-  config => axios.request(config).then(response => response.data)
-)
-```
-
-### Traditional Style
-
-```ts
-import { createAxiosClient } from '@tealina/client'
-
-const req = createAxiosClient<ApiTypesRecord, AxiosRequestConfig>(config =>
-  axios.request(config).then(response => response.data)
-)
-```
-
-### Raw Axios Response (Full Response Access)
-
-```ts
-import { createRawAxiosRPC } from '@tealina/client'
-import type { AxiosRequestConfig, AxiosResponse } from 'axios'
-
-const rpc = createRawAxiosRPC<ApiTypesRecord, AxiosRequestConfig, AxiosResponse>(
-  axios.request
-)
-
-// Access full response object
-rpc.get.status().then(rawResponse => console.log(rawResponse.status))
 ```
 
 ## How It Works
 
 The `createXX` functions handle type adaptation and parameter conversion, returning a proxy object that ultimately invokes your provided handler function. This approach ensures:
 
-- **Full type safety** throughout the request/response cycle
 - **Autocompletion** for all endpoints and parameters
 - **Flexible adapter pattern** for any HTTP client library
 
@@ -136,10 +100,3 @@ The `createXX` functions handle type adaptation and parameter conversion, return
 - 🔌 **Adapter Support**: Works with Fetch, Axios, or any custom HTTP client
 - 🏗️ **Two Styles**: Choose between RPC-style or traditional HTTP-style
 - 📦 **Lightweight**: Zero dependencies, minimal bundle impact
-
-## Notes
-
-- Ensure your TypeScript configuration has strict null checks enabled for optimal type safety
-- The RPC-style client uses JavaScript proxies for method chaining
-- All create functions are generic and support custom configuration types
-- Error handling should be implemented in your provided handler function
