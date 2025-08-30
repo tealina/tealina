@@ -6,7 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ora from 'ora'
 import prompts from 'prompts'
-import versionMap from './versionMaps.json'
+import versionMap from '../template/versionMaps.json'
 
 const { blue, green, reset } = chalk
 const { join } = path
@@ -216,6 +216,12 @@ const pkgFromUserAgent = (userAgent = '') => {
   return pkgSpec.length < 1 ? 'npm' : pkgSpec
 }
 
+const updatePkgJsonForBun = (pkgJsonPath: string) => {
+  const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath).toString())
+  pkgJson.scripts.dev = 'dotenv -c -- bun --watch src'
+  delete pkgJson.devDependencies.tsx
+  fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2))
+}
 const createServerProject = async (ctx: ContextType) => {
   const { projectRootDir, answer } = ctx
   const { server } = answer
@@ -232,6 +238,9 @@ const createServerProject = async (ctx: ContextType) => {
   //init-demo.mjs
   const initCommands = getInitCommands(ctx.leader)
   fs.writeFileSync(join(destServerDir, kInitDemo), initCommands.join('\n'))
+  if (ctx.runtime === 'bun') {
+    updatePkgJsonForBun(path.join(destServerDir, 'package.json'))
+  }
 }
 
 const runCreateVite = async (ctx: ContextType, webDest: string) =>
