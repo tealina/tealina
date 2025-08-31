@@ -1,8 +1,12 @@
-import apisV1 from '../../../api-v1/index.js'
+import Router from '@koa/router'
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
+import type {
+  CustomHandlerType,
+  HTTPMethods,
+  Simplify,
+} from '../../../../types/handler.js'
+import apisV1 from '../../../api-v1/index.js'
 import { verifyToken } from '../../middlewares/verifyToken.js'
-import Router, { type Middleware } from '@koa/router'
-import type { Simplify, HTTPMethods } from '../../../../types/handler.js'
 
 export type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
   [K in keyof T]: { [N in keyof Awaited<T[K]>['default']]?: true }
@@ -22,7 +26,7 @@ export const buildV1Router = async () => {
   const openRouter = new Router()
   const authRouter = new Router()
   authRouter.use(verifyToken)
-  const routeOptions = transformToRouteOptions<Middleware[]>(apiRecord)
+  const routeOptions = transformToRouteOptions<CustomHandlerType[]>(apiRecord)
   const rawOpenApiRecord = OpenPathRecord as Partial<
     Record<string, Partial<Record<string, true>>>
   >
