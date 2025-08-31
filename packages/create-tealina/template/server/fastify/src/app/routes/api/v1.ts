@@ -1,9 +1,8 @@
-import type { FastifyPluginAsync, HTTPMethods, RouteHandler } from 'fastify'
+import type { FastifyPluginAsync, HTTPMethods } from 'fastify'
 import apisV1 from '../../../api-v1/index.js'
-// import { checkMethodType, loadAPIs } from '../utils/resolveBatchExport.js'
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
+import type { CustomHandlerType, Simplify } from '../../../../types/handler.js'
 import { verifyToken } from '../../preHandlers/verifyToken.js'
-import type { Simplify } from '../../../../types/handler.js'
 
 export type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
   [K in keyof T]: { [N in keyof Awaited<T[K]>['default']]?: true }
@@ -23,7 +22,7 @@ export const buildV1Router: FastifyPluginAsync = async (fastify, _option) => {
   const apiRecord = await loadAPIs(apisV1)
   fastify.register((restrictFastify, _opts, done) => {
     restrictFastify.addHook('preValidation', verifyToken)
-    const routeOptions = transformToRouteOptions<RouteHandler[]>(apiRecord)
+    const routeOptions = transformToRouteOptions<CustomHandlerType[]>(apiRecord)
     const rawOpenPathRecord = OpenPathRecord as Partial<
       Record<string, Partial<Record<string, true>>>
     >
