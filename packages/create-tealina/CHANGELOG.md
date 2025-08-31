@@ -1,5 +1,11 @@
 # create-tealina
 
+## 2.0.0-beta.5
+
+### Patch Changes
+
+- f7c4695: Fix build server error
+
 ## 2.0.0-beta.4
 
 ### Patch Changes
