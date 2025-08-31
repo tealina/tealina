@@ -11,6 +11,7 @@
     "@tealina/server": "1.0.0"
   },
   "changesets": [
+    "brave-jobs-mate",
     "brave-masks-leave",
     "famous-trainers-flash",
     "gorgeous-ligers-approve",
