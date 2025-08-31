@@ -1,5 +1,11 @@
 # create-tealina
 
+## 2.0.0-beta.4
+
+### Patch Changes
+
+- 28bb3fd: Fix template types
+
 ## 2.0.0-beta.3
 
 ### Patch Changes
