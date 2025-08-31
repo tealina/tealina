@@ -2,12 +2,9 @@ import type {
   FastifyInstance,
   FastifyReply,
   FastifyRequest,
-  RawReplyDefaultExpression,
-  RawRequestDefaultExpression,
-  RawServerDefault,
   RouteGenericInterface,
 } from 'fastify'
-import type { AuthHeaders, AuthedLocals } from './common.js'
+import type { AuthedLocals, AuthHeaders } from './common.js'
 
 export type EmptyObj = Record<string, unknown>
 
@@ -23,47 +20,35 @@ interface RawPayload {
 interface ExtendedRouteHandler<
   T extends RawPayload = EmptyObj,
   Tresponse = unknown,
-  Theaders extends EmptyObj = EmptyObj,
-  Tlocals extends EmptyObj = EmptyObj,
+  Theaders = null,
+  Tlocals = null,
   RouteGeneric extends RouteGenericInterface = {
     Body: T['body']
     Headers: Theaders
-    Reply: Tresponse
     Params: T['params']
     Querystring: T['query']
+    Reply: Tresponse
   },
 > {
   (
     this: FastifyInstance,
-    request: FastifyRequest<RouteGeneric> & { locals: Tlocals }, // extend `locals` prop
-    reply: FastifyReply<
-      RawServerDefault,
-      RawRequestDefaultExpression<RawServerDefault>,
-      RawReplyDefaultExpression<RawServerDefault>,
-      RouteGeneric
-    >,
+    request: FastifyRequest<RouteGeneric> & OmitEmpty<Tlocals, 'locals'>, // extend `locals` prop
+    reply: FastifyReply<RouteGeneric>,
   ): RouteGeneric['Reply'] | void | Promise<RouteGeneric['Reply'] | void>
 }
-
-// Shorter definition displayed on hover.
-interface ShortName<
-  T extends RawPayload = EmptyObj,
-  Response = unknown,
-  Headers extends EmptyObj = EmptyObj,
-  Locals extends EmptyObj = EmptyObj,
-> extends ExtendedRouteHandler<T, Response, Headers, Locals> {}
 
 export type AuthedHandler<
   T extends RawPayload = EmptyObj,
   Response = unknown,
   Headers extends AuthHeaders = AuthHeaders,
-> = ShortName<T, Response, Headers, AuthedLocals>
+  Tlocals = AuthedLocals,
+> = ExtendedRouteHandler<T, Response, Headers, Tlocals>
 
 export type OpenHandler<
   T extends RawPayload = EmptyObj,
   Response = unknown,
-  Headers extends EmptyObj = EmptyObj,
-> = ShortName<T, Response, Headers>
+  Headers = null,
+> = ExtendedRouteHandler<T, Response, Headers>
 
 type LastElement<T> = T extends ReadonlyArray<unknown>
   ? T extends readonly [...unknown[], infer U]
@@ -71,13 +56,12 @@ type LastElement<T> = T extends ReadonlyArray<unknown>
     : T
   : T
 
-type OmitEmpty<P, T extends string> = P extends EmptyObj ? {} : { [K in T]: P }
+type OmitEmpty<P, T extends string> = P extends null ? {} : { [K in T]: P }
 
-export type ExtractApiType<T> = LastElement<T> extends ShortName<
+export type ExtractApiType<T> = LastElement<T> extends ExtendedRouteHandler<
   infer Payload,
   infer Response,
-  infer Headers,
-  infer _X
+  infer Headers
 >
   ? Simplify<Payload & { response: Response } & OmitEmpty<Headers, 'headers'>>
   : never

@@ -10,6 +10,9 @@ const verifyToken: preValidationAsyncHookHandler = async function (
     return reply
   }
   //TODO: verify token
+
+  //Assigns authorization context to request locals
+  request.locals = { userId: 'xxx' }
 }
 
 export { verifyToken }

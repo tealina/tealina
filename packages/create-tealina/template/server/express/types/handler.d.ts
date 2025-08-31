@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import type { AuthHeaders, AuthedLocals } from './common.js'
 
-export type EmptyObj = {}
+export type EmptyObj = Record<string, unknown>
 
 /** [doc](https://github.com/sindresorhus/type-fest/blob/main/source/simplify.d.ts) */
 type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
@@ -20,12 +20,13 @@ type LastElement<T> = T extends ReadonlyArray<unknown>
     : T
   : T
 
-type OmitEmpty<P, T extends string> = P extends EmptyObj ? {} : { [K in T]: P }
+type OmitEmpty<P, T extends string> = P extends null ? {} : { [K in T]: P }
 
-type ExtractApiType<T> = LastElement<T> extends AuthedHandler<
+type ExtractApiType<T> = LastElement<T> extends OpenHandler<
   infer Payload,
   infer Response,
-  infer Headers
+  infer Headers,
+  infer _Locals
 >
   ? Simplify<Payload & { response: Response } & OmitEmpty<Headers, 'headers'>>
   : never
@@ -45,26 +46,27 @@ type ExtractApiType<T> = LastElement<T> extends AuthedHandler<
  * }
  * ```
  */
-export interface AuthedHandler<
+export interface OpenHandler<
   T extends RawPayload = EmptyObj,
   Tresponse = null,
-  _Theaders = AuthHeaders,
-  Tlocals extends EmptyObj = AuthedLocals,
+  Theaders = null,
+  Tlocals extends EmptyObj = EmptyObj,
 > {
   (
-    req: Request<T['params'], Tresponse, T['body'], T['query']>,
+    req: Request<T['params'], Tresponse, T['body'], T['query']> &
+      OmitEmpty<Theaders, 'headers'>,
     res: Response<Tresponse, Tlocals>,
     next: NextFunction,
   ): unknown
 }
 
 /** no headers and locals preseted */
-export type OpenHandler<
+export type AuthedHandler<
   T extends RawPayload = EmptyObj,
   Tresponse = null,
-  Theaders = EmptyObj,
-  Tlocals extends EmptyObj = EmptyObj,
-> = AuthedHandler<T, Tresponse, Theaders, Tlocals>
+  Theaders = AuthHeaders,
+  Tlocals extends EmptyObj = AuthedLocals,
+> = OpenHandler<T, Tresponse, Theaders, Tlocals>
 
 export type ResolveApiType<
   T extends Record<string, Promise<{ default: unknown }>>,

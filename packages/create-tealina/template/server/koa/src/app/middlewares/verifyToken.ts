@@ -12,6 +12,8 @@ const verifyToken: Middleware = async (ctx, next) => {
     return
   }
   //TODO: verify token
+  //Assigns authorization context to request state
+  ctx.state = { userId: 'xxx' }
   await next()
 }
 
