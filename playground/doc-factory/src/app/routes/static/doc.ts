@@ -18,19 +18,7 @@ const vDocCofig: TealinaVdocWebConfig = {
       jsonURL: `${VDOC_BASENAME}/openapi.json`,
     },
   ],
-  customScripts: [
-    `
-     window.TEALINA_VDOC_CONFIG.customRequests=[
-   {
-     match: (config) => config.url.includes('/health'),
-     handler: (config,setResult)=>fetch(config.url).then(v=>v.text()).then(v=>{
-     debugger
-     setResult({statusCode:100,code:v,isError:false})
-     }),
-   }
- ]
-    `,
-  ],
+  // customScripts: ['./use-fetch.js'],
   features: {
     playground: {
       commonFields: {
@@ -47,6 +35,18 @@ const vDocCofig: TealinaVdocWebConfig = {
 }
 
 const docRouter = Router({ caseSensitive: true })
+  .get('/use-fetch.js', (req, res) => {
+    res.send(`
+             window.TEALINA_VDOC_CUSTOM_REQUESTS=[
+               {
+                 match: (config) => config.url.includes('/health'),
+                   handler: (config,setResult)=>fetch(config.url).then(v=>v.text()).then(result=>{
+                   setResult({statusCode:100,result,isError:false})
+                 }),
+               }
+             ]
+    `)
+  })
   .get('/config.json', (req, res) => {
     res.send(vDocCofig)
   })

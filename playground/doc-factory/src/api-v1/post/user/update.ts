@@ -1,38 +1,20 @@
 import { AuthedHandler } from '../../../../types/handler.js'
-
-interface UserCreateInput {
-  recusiveTuple: RecursiveTuple
-  deepRecusiveTuple: DeepRecursiveTuple
-  recursiveEntity: NestOption
-}
-
-type RecursiveTuple = [number, number, RecursiveTuple | []]
-
-type NestOption = {
-  label: string
-  value: string
-  children: NestOption[]
-}
-
-type One = { one: string; t: DeepRecursiveTuple }
-type Two = { two: string }
-type DeepRecursiveTuple = [One, Two]
-
-// let a: RecusiveTuple = [
-//   { one: '' },
-//   { two: '' },
-//   [{ one: '' }, { two: '' }, []],
-// ]
+import { Pure } from '../../../../types/pure.js'
 
 type ApiType = AuthedHandler<
   {
-    body: UserCreateInput
+    body: Pure.UserUpdateInput
   },
-  UserCreateInput
+  Pure.User
 >
 
 const handler: ApiType = async (req, res) => {
-  res.send(req.body)
+  const {
+    name = 'Tealina',
+    skills = [] as unknown as Pure.User['skills'],
+    email = 'neo@tealina.dev',
+  } = req.body
+  res.send({ name, email, id: 1, skills })
 }
 
 export default handler

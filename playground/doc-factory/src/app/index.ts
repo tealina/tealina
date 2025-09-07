@@ -1,60 +1,32 @@
 import express, { type RequestHandler, Router } from 'express'
-import { asyncFlow, omitFn, pickFn } from 'fp-lite'
-import path from 'node:path'
-import apisV1 from '../api-v1/index.js'
-import { VDOC_BASENAME, docRouter } from './docRouter.js'
-import { handleError } from './handleError.js'
-import { handleApiNotFound, handleNotFound } from './handleNotFound.js'
-import { registeApiRoutes } from './registeApiRoutes.js'
-import { loadAPIs } from './resolveBatchExport.js'
-import { setupApiHeaders } from './setupApiHeaders.js'
-import { verifyToken } from './verifyToken.js'
+import { errorHandler } from './middlewares/errorHandler.js'
+import { buildApiRouter } from './routes/api/index.js'
+import { staticAssetsRouter } from './routes/static/assets.js'
+import { VDOC_BASENAME, docRouter } from './routes/static/doc.js'
 
-const simpleLog: RequestHandler = (req, res, next) => {
-  next()
-  console.log('simple-log:', req.originalUrl)
+const notFoundHandler: RequestHandler = (req, res, next) => {
+  res.status(404)
+  next(new Error(`Not found: ${req.originalUrl}`))
 }
 
-const separateObject = <T, Keys extends ReadonlyArray<keyof T>>(
-  x: T,
-  ...keys: Keys
-) => [pickFn(x, ...keys), omitFn(x, ...keys)] as const
-
-const buildV1Router = async () => {
-  const record = await loadAPIs(apisV1)
-  const openRouter = Router()
-  const authRouter = Router().use(verifyToken)
-  const { get, ...rest } = record
-  const [openGetApis, authGetApis] = separateObject(get, 'health')
-  registeApiRoutes(openRouter, { get: openGetApis })
-  registeApiRoutes(authRouter, { get: authGetApis, ...rest })
-  const router = Router().use(openRouter).use(authRouter)
-  return router
-}
-
-const buildApiRoute = async () => {
-  const v1ApiRouter = await buildV1Router()
-  return Router({ caseSensitive: true })
-    .use('/api', setupApiHeaders)
-    .use('/api/v1', v1ApiRouter)
-}
-
+/**
+ * The order of route registration is important
+ */
 const buildAppRouter = (apiRouter: Router) =>
   Router()
     .use(express.urlencoded({ extended: true }))
     .use(express.json())
-    .use(apiRouter)
+    .use('/api', apiRouter)
     .use(VDOC_BASENAME, docRouter)
-    .use(express.static(path.resolve('public')))
+    .use(staticAssetsRouter)
 
 const createExpressApp = (appRouter: Router) =>
-  express()
-    .use(simpleLog)
-    .use(appRouter)
-    .use('/api', handleApiNotFound) //The following is error handling
-    .use(handleNotFound)
-    .use(handleError)
+  express().use(appRouter).use(notFoundHandler).use(errorHandler)
 
-const buildApp = asyncFlow(buildApiRoute, buildAppRouter, createExpressApp)
+const buildApp = async () => {
+  const apiRouter = await buildApiRouter()
+  const appRouter = buildAppRouter(apiRouter)
+  return createExpressApp(appRouter)
+}
 
 export { buildApp }

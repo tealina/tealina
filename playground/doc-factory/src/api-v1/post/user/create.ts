@@ -1,20 +1,19 @@
 import { AuthedHandler } from '../../../../types/handler.js'
-
-interface UserCreateInput {
-  name: string
-  age: number
-  extra: Record<string, any>
-}
+import { Pure } from '../../../../types/pure.js'
 
 type ApiType = AuthedHandler<
   {
-    body: UserCreateInput
+    body: Pure.UserCreateInput
   },
-  UserCreateInput
+  Pure.User
 >
 
+/**
+ * Create a use
+ */
 const handler: ApiType = async (req, res) => {
-  res.send(req.body)
+  const { name = null, email, skills } = req.body
+  res.send({ name, email, skills, id: 1 })
 }
 
 export default handler

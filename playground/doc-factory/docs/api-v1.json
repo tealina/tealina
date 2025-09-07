@@ -4,11 +4,7 @@
       "/health": {
         "response": {
           "kind": 4,
-          "id": 333
-        },
-        "headers": {
-          "kind": 4,
-          "id": 40
+          "id": 266
         }
       }
     },
@@ -16,15 +12,29 @@
       "/case/primitive": {
         "body": {
           "kind": 4,
-          "id": 1874
+          "id": 2039
         },
         "response": {
           "kind": 4,
-          "id": 1874
+          "id": 2039
         },
         "headers": {
           "kind": 4,
-          "id": 1875
+          "id": 2040
+        }
+      },
+      "/case/recursive": {
+        "body": {
+          "kind": 4,
+          "id": 2078
+        },
+        "response": {
+          "kind": 4,
+          "id": 2078
+        },
+        "headers": {
+          "kind": 4,
+          "id": 2040
         }
       },
       "/user/checkin": {
@@ -33,13 +43,13 @@
           "types": [
             {
               "kind": 4,
-              "id": 1913
+              "id": 2130
             },
             {
               "kind": 11,
               "element": {
                 "kind": 4,
-                "id": 1914
+                "id": 2131
               }
             }
           ]
@@ -49,59 +59,56 @@
           "types": [
             {
               "kind": 4,
-              "id": 1913
+              "id": 2130
             },
             {
               "kind": 11,
               "element": {
                 "kind": 4,
-                "id": 1914
+                "id": 2131
               }
             }
           ]
         },
         "headers": {
           "kind": 4,
-          "id": 1875
+          "id": 2040
         },
         "comment": "test tuple type's initialvalue while switching"
       },
       "/user/create": {
         "body": {
           "kind": 4,
-          "id": 1958
+          "id": 2177
         },
         "response": {
           "kind": 4,
-          "id": 1958
+          "id": 2174
         },
         "headers": {
           "kind": 4,
-          "id": 1875
-        }
+          "id": 2040
+        },
+        "comment": "Create a use"
       },
       "/user/update": {
         "body": {
           "kind": 4,
-          "id": 1992
+          "id": 2219
         },
         "response": {
           "kind": 4,
-          "id": 1992
+          "id": 2174
         },
         "headers": {
           "kind": 4,
-          "id": 1875
+          "id": 2040
         }
       }
     }
   },
   "entityRefs": {
-    "40": {
-      "name": "{}",
-      "props": []
-    },
-    "333": {
+    "266": {
       "name": "{ status: string; }",
       "props": [
         {
@@ -111,7 +118,7 @@
         }
       ]
     },
-    "1874": {
+    "2039": {
       "name": "Input",
       "props": [
         {
@@ -129,7 +136,7 @@
         }
       ]
     },
-    "1875": {
+    "2040": {
       "name": "AuthHeaders",
       "props": [
         {
@@ -139,64 +146,7 @@
         }
       ]
     },
-    "1913": {
-      "name": "CheckAhead",
-      "props": [
-        {
-          "kind": 1,
-          "type": "Date",
-          "name": "date"
-        },
-        {
-          "kind": 7,
-          "value": "before",
-          "name": "type"
-        }
-      ]
-    },
-    "1914": {
-      "name": "CheckInTime",
-      "props": [
-        {
-          "kind": 1,
-          "type": "Date",
-          "name": "date"
-        },
-        {
-          "kind": 7,
-          "value": "inTime",
-          "name": "type"
-        }
-      ]
-    },
-    "1958": {
-      "name": "UserCreateInput",
-      "props": [
-        {
-          "kind": 0,
-          "type": "string",
-          "name": "name"
-        },
-        {
-          "kind": 0,
-          "type": "number",
-          "name": "age"
-        },
-        {
-          "kind": 6,
-          "key": {
-            "kind": 0,
-            "type": "string"
-          },
-          "value": {
-            "kind": 0,
-            "type": "any"
-          },
-          "name": "extra"
-        }
-      ]
-    },
-    "1992": {
+    "2078": {
       "name": "UserCreateInput",
       "props": [
         {
@@ -219,7 +169,7 @@
                 },
                 {
                   "kind": 12,
-                  "id": 2005
+                  "id": 2091
                 }
               ]
             }
@@ -231,23 +181,23 @@
           "elements": [
             {
               "kind": 4,
-              "id": 2012
+              "id": 2098
             },
             {
               "kind": 4,
-              "id": 2013
+              "id": 2099
             }
           ],
           "name": "deepRecusiveTuple"
         },
         {
           "kind": 4,
-          "id": 2014,
+          "id": 2100,
           "name": "recursiveEntity"
         }
       ]
     },
-    "2012": {
+    "2098": {
       "name": "One",
       "props": [
         {
@@ -257,12 +207,12 @@
         },
         {
           "kind": 12,
-          "id": 2011,
+          "id": 2097,
           "name": "t"
         }
       ]
     },
-    "2013": {
+    "2099": {
       "name": "Two",
       "props": [
         {
@@ -272,7 +222,7 @@
         }
       ]
     },
-    "2014": {
+    "2100": {
       "name": "NestOption",
       "props": [
         {
@@ -289,16 +239,199 @@
           "kind": 11,
           "element": {
             "kind": 13,
-            "id": 2014
+            "id": 2100
           },
           "name": "children"
+        }
+      ]
+    },
+    "2130": {
+      "name": "CheckAhead",
+      "props": [
+        {
+          "kind": 1,
+          "type": "Date",
+          "name": "date"
+        },
+        {
+          "kind": 7,
+          "value": "before",
+          "name": "type"
+        }
+      ]
+    },
+    "2131": {
+      "name": "CheckInTime",
+      "props": [
+        {
+          "kind": 1,
+          "type": "Date",
+          "name": "date"
+        },
+        {
+          "kind": 7,
+          "value": "inTime",
+          "name": "type"
+        }
+      ]
+    },
+    "2174": {
+      "name": "User",
+      "props": [
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "id",
+          "jsDoc": {
+            "default": "autoincrement()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "email",
+          "comment": "the email, should be unique"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "name": "name",
+          "comment": "the user name"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 7,
+              "value": "Node"
+            },
+            {
+              "kind": 7,
+              "value": "React"
+            },
+            {
+              "kind": 7,
+              "value": "Typescript"
+            }
+          ],
+          "name": "skills"
+        }
+      ]
+    },
+    "2177": {
+      "name": "UserCreateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "number",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "autoincrement()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "email",
+          "comment": "the email, should be unique"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "name",
+          "comment": "the user name"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 7,
+              "value": "Node"
+            },
+            {
+              "kind": 7,
+              "value": "React"
+            },
+            {
+              "kind": 7,
+              "value": "Typescript"
+            }
+          ],
+          "name": "skills"
+        }
+      ]
+    },
+    "2219": {
+      "name": "UserUpdateInput",
+      "props": [
+        {
+          "kind": 0,
+          "type": "number",
+          "isOptional": true,
+          "name": "id",
+          "jsDoc": {
+            "default": "autoincrement()"
+          }
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "isOptional": true,
+          "name": "email",
+          "comment": "the email, should be unique"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 0,
+              "type": "string"
+            },
+            {
+              "kind": 0,
+              "type": "null"
+            }
+          ],
+          "isOptional": true,
+          "name": "name",
+          "comment": "the user name"
+        },
+        {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 7,
+              "value": "Node"
+            },
+            {
+              "kind": 7,
+              "value": "React"
+            },
+            {
+              "kind": 7,
+              "value": "Typescript"
+            }
+          ],
+          "isOptional": true,
+          "name": "skills"
         }
       ]
     }
   },
   "enumRefs": {},
   "tupleRefs": {
-    "2005": {
+    "2091": {
       "name": "RecursiveTuple",
       "elements": [
         {
@@ -318,22 +451,22 @@
             },
             {
               "kind": 12,
-              "id": 2005
+              "id": 2091
             }
           ]
         }
       ]
     },
-    "2011": {
+    "2097": {
       "name": "DeepRecursiveTuple",
       "elements": [
         {
           "kind": 4,
-          "id": 2012
+          "id": 2098
         },
         {
           "kind": 4,
-          "id": 2013
+          "id": 2099
         }
       ]
     }

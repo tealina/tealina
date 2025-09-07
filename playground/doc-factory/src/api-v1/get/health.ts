@@ -1,6 +1,6 @@
-import type { OpenHandler } from '../../../types/handler.js'
+import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
 
-type ApiType = OpenHandler<null, { status: string }>
+type ApiType = OpenHandler<EmptyObj, { status: string }>
 
 const handler: ApiType = async (req, res) => {
   res.send({ status: 'Fine' })
