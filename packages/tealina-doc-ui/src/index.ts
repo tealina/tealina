@@ -44,15 +44,17 @@ type CustomRequestItem = {
 
 interface TealinaVdocWebConfig {
   /**
-   * Custom script tags to inject after configuration.
-   * Can be used to initialize CustomRequests.
+   * Custom script tags to inject before configuration.
+   * Can be used to initialize TEALINA_VDOC_CUSTOM_REQUESTS.
    * @example
+   * ["./customUpload.js"]
+   *
    * ```js
-   * function customUpload() {
+   * // customUpload.js content
+   * function customUpload(payload,setResult) {
    *   // Upload implementation
    * }
-   *
-   * window.TEALINA_VDOC_CONFIG.customRequests = [
+   * window.TEALINA_VDOC_CUSTOM_REQUESTS = [
    *   {
    *     match: (config) => config.url.includes('/upload'),
    *     handler: customUpload,
@@ -148,10 +150,10 @@ async function assembleHTML(config: TealinaVdocWebConfig) {
   }
   const configuration = `<script>${makeVdocConfigCode(webConfig)}</script>`
   const customScriptTags = customScripts
-    .map(s => `<script>${s}</script>`)
+    .map(url => `<script src="${url}"></script>`)
     .join('\n')
   return genHtmlContent({
-    inHeadTags: [`<title>${title}</title>`, configuration, customScriptTags],
+    inHeadTags: [`<title>${title}</title>`, customScriptTags, configuration],
   })
 }
 

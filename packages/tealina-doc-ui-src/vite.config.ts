@@ -3,8 +3,9 @@ import { setTimeout } from 'timers/promises'
 import UnoCSS from 'unocss/vite'
 import { defineConfig } from 'vitest/config'
 import axios from 'axios'
+import path from 'path/posix'
 
-const kDocFactory = 'http://localhost:6000'
+const kDocFactory = 'http://localhost:6001'
 let kConfigPromise = null
 const getRemoteConfig = async () => {
   if (kConfigPromise) return kConfigPromise
@@ -31,11 +32,14 @@ export default defineConfig(env => ({
         order: 'pre',
         handler: async html => {
           try {
-            const json = await getRemoteConfig()
+            const { customScripts = [], ...json } = await getRemoteConfig()
             const index = html.indexOf('<div') - 4
             const left = html.slice(0, index)
             return [
               left,
+              ...customScripts.map(
+                url => `<script src="${path.join('/api-doc', url)}"></script>`,
+              ),
               `<script> window.TEALINA_VDOC_CONFIG =  ${JSON.stringify(json)}</script>`,
               html.slice(index),
             ].join('\n')

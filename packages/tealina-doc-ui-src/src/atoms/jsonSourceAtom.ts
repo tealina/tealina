@@ -31,7 +31,11 @@ function deepFreeze(obj: any) {
   return obj
 }
 
-window.TEALINA_VDOC_CONFIG = deepFreeze(window.TEALINA_VDOC_CONFIG)
+const config = window.TEALINA_VDOC_CONFIG
+//Assign custom requests that can be pre-injected by users.
+config.customRequests = window.TEALINA_VDOC_CUSTOM_REQUESTS
+window.TEALINA_VDOC_CONFIG = deepFreeze(config)
+
 const sources = window.TEALINA_VDOC_CONFIG.sources
 /** Users may come from sharing links */
 const paramsFromURL = new window.URLSearchParams(window.location.search)
