@@ -1,4 +1,4 @@
-//@ts-check
+// @ts-check
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { DocKind } from '@tealina/doc-types'
@@ -154,27 +154,27 @@ const parseApi = s => {
 
 const makeEnumValueParser =
   (pre = 0) =>
-  // @ts-ignore
-  mt => {
-    const symbol = mt.symbol
-    if ('value' in mt) {
-      if (isCompatible(ts.TypeFlags.NumberLiteral, mt.flags)) {
-        pre = mt.value
-        return { kind: DocKind.NumberLiteral, value: mt.value }
+    // @ts-ignore
+    mt => {
+      const symbol = mt.symbol
+      if ('value' in mt) {
+        if (isCompatible(ts.TypeFlags.NumberLiteral, mt.flags)) {
+          pre = mt.value
+          return { kind: DocKind.NumberLiteral, value: mt.value }
+        }
+        return {
+          kind: DocKind.StringLiteral,
+          value: mt.value,
+        }
       }
-      return {
-        kind: DocKind.StringLiteral,
-        value: mt.value,
+      if (symbol.valueDeclaration.initializer == null) {
+        return { kind: DocKind.NumberLiteral, value: pre++ }
       }
+      const computedType = checker.getTypeAtLocation(
+        symbol.valueDeclaration.initializer,
+      )
+      return parseType(computedType)
     }
-    if (symbol.valueDeclaration.initializer == null) {
-      return { kind: DocKind.NumberLiteral, value: pre++ }
-    }
-    const computedType = checker.getTypeAtLocation(
-      symbol.valueDeclaration.initializer,
-    )
-    return parseType(computedType)
-  }
 
 /**
  *  @param {ts.EnumType&{id:number,types:ts.Type[]}} t
@@ -473,10 +473,11 @@ const findStrategy = (strategies, t) => {
   if (strategy == null) {
     throw new Error(`Unresovled type: ${checker.typeToString(t)}`)
   }
-  return Array.isArray(strategy.handle)
-    ? findStrategy(strategy.handle, t)
-    : // @ts-ignore
-      strategy
+  if (Array.isArray(strategy.handle)) {
+    return findStrategy(strategy.handle, t)
+  }
+  // @ts-ignore
+  return strategy
 }
 
 /**
@@ -494,7 +495,7 @@ const getCommentFromType = type => {
   if (type.symbol == null) return
   const symbol = type.aliasSymbol
     ? // @ts-ignore
-      type.aliasSymbol.declarations[0].symbol
+    type.aliasSymbol.declarations[0].symbol
     : type.getSymbol()
   const comment = getCommentFromSymbol(symbol)
   return comment
@@ -594,7 +595,7 @@ export const parseDeclarationFile = ({ entries, tsconfigPath }) => {
   if (parsedConfig.error) {
     throw new Error(
       parsedConfig?.error?.messageText.toString() ??
-        `Error when parseing ${tsconfigPath}`,
+      `Error when parseing ${tsconfigPath}`,
     )
   }
   const program = ts.createProgram(entries, parsedConfig.config)
