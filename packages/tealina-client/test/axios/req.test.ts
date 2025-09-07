@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest'
-import { createAxiosClient } from '../../src/index'
+import { createAxiosReq } from '../../src/index'
 import type { MockApi } from '../MockApi'
 import type { AxiosRequestConfig } from 'axios'
 import axios from 'axios'
@@ -8,7 +8,7 @@ test('get request', async () => {
   const mockResponse = { status: 'fine' }
   const mockRequester = vi.fn().mockResolvedValue({ data: mockResponse })
   axios.request = mockRequester
-  const req = createAxiosClient<MockApi, AxiosRequestConfig>(config =>
+  const req = createAxiosReq<MockApi, AxiosRequestConfig>(config =>
     axios.request(config).then(v => v.data),
   )
   const res = await req.get('health')
@@ -21,7 +21,7 @@ test('post request', async () => {
   const mockResponse = { ...mockBody, id: 1 }
   const mockRequester = vi.fn().mockResolvedValue({ data: mockResponse })
   axios.request = mockRequester
-  const req = createAxiosClient<MockApi, AxiosRequestConfig>(config =>
+  const req = createAxiosReq<MockApi, AxiosRequestConfig>(config =>
     axios.request(config).then(v => v.data),
   )
   const res = await req.post('user/create', {
@@ -41,7 +41,7 @@ test('In route params case', async () => {
   const updatedUser = { ...mockUser, ...mockUpdate }
   const mockRequester = vi.fn().mockResolvedValue({ data: updatedUser })
   axios.request = mockRequester
-  const req = createAxiosClient<MockApi, AxiosRequestConfig>(config =>
+  const req = createAxiosReq<MockApi, AxiosRequestConfig>(config =>
     axios.request(config).then(v => v.data),
   )
   const res = await req.post('user/:id/update', {
@@ -61,7 +61,7 @@ test('In query case', async () => {
   const mockQuery = { name: 'neo' }
   const mockRequester = vi.fn().mockResolvedValue({ data: mockUser })
   axios.request = mockRequester
-  const req = createAxiosClient<MockApi, AxiosRequestConfig>(config =>
+  const req = createAxiosReq<MockApi, AxiosRequestConfig>(config =>
     axios.request(config).then(v => v.data),
   )
   const res = await req.get('user', {

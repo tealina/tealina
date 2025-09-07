@@ -21,6 +21,7 @@ export type ApiClientShape = Record<HttpMethod, any>
 
 export type ClientRequestContext = {
   method: string
+  /** The resolved URL with all parameters (path and query) encoded.*/
   url: string
   body?: unknown
   raw?: GeneralRequestOption
@@ -60,7 +61,7 @@ export type RequestFn<T extends EndpointType, C> = <K extends keyof T>(
 ) => Promise<T[K]['response']>
 /** The response can be directly use, without response.data */
 
-export type MakeReqType<T extends ApiRecordShape, C> = {
+export type ToReq<T extends ApiRecordShape, C> = {
   [Method in keyof T]: RequestFn<T[Method], C>
 }
 

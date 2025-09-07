@@ -3,7 +3,7 @@ import type {
   ApiClientShape,
   ApiRecordShape,
   ClientRequestContext,
-  MakeReqType,
+  ToReq,
 } from '../core/types'
 import type {
   MakeRawAxiosReqType,
@@ -44,17 +44,17 @@ const makeHandler =
  * import type { AxiosRequestConfig } from 'axios'
  * import type { ApiTypesRecord } from 'server/api/v1'
  *
- * const client = createAxiosClient<ApiTypesRecord, AxiosRequestConfig>(c =>
+ * const client = createAxiosReq<ApiTypesRecord, AxiosRequestConfig>(c =>
  *  axios.request(c).then(v => v.data),
  * )
  * ```
  */
-export const createAxiosClient = <
+export const createAxiosReq = <
   T extends ApiClientShape,
   C extends ShapeOfAxiosReq,
 >(
   requester: (config: C) => unknown,
-) => createReq<MakeReqType<T, C>, C>(makeHandler(requester))
+) => createReq<ToReq<T, C>, C>(makeHandler(requester))
 
 /**
  * Create a type-safe request object,
@@ -66,10 +66,10 @@ export const createAxiosClient = <
  * import type { AxiosRequestConfig, AxiosResponse } from 'axios'
  * import type { ApiTypesRecord } from 'server/api/v1'
  *
- * const client = createRawAxiosClient<ApiTypesRecord, AxiosRequestConfig,AxiosResponse>(axios.request)
+ * const client = createRawAxiosReq<ApiTypesRecord, AxiosRequestConfig,AxiosResponse>(axios.request)
  * ```
  */
-export const createRawAxiosClient = <
+export const createRawAxiosReq = <
   T extends ApiRecordShape,
   C extends ShapeOfAxiosReq,
   R extends ShapeOfAxiosRes,

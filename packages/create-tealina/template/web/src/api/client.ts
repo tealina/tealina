@@ -1,5 +1,5 @@
 import axios, { type AxiosRequestConfig } from 'axios'
-import { createAxiosRPC, createAxiosClient } from '@tealina/client'
+import { createAxiosRPC, createAxiosReq } from '@tealina/client'
 import type { ApiTypesRecord } from 'server/api/v1'
 
 const instance = axios.create({
@@ -37,7 +37,7 @@ export const rpc = createAxiosRPC<ApiTypesRecord, AxiosRequestConfig>(config =>
  *  console.log(user.id)
  *  ```
  */
-export const req = createAxiosClient<ApiTypesRecord, AxiosRequestConfig>(c =>
+export const req = createAxiosReq<ApiTypesRecord, AxiosRequestConfig>(c =>
   instance.request(c).then(v => v.data),
 )
 

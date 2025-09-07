@@ -1,9 +1,5 @@
 import { createRPC, createReq, type ToRPC } from '../core/index'
-import type {
-  ApiRecordShape,
-  ClientRequestContext,
-  MakeReqType,
-} from '../core/types'
+import type { ApiRecordShape, ClientRequestContext, ToReq } from '../core/types'
 
 const payload2config = (payload: ClientRequestContext) => {
   const { body, raw: _ignore, ...rest } = payload
@@ -40,7 +36,7 @@ const createHandler =
  */
 export const createFetchClient = <T extends ApiRecordShape, C>(
   requester: (url: string, config: C) => unknown,
-) => createReq<MakeReqType<T, C>, C>(createHandler(requester))
+) => createReq<ToReq<T, C>, C>(createHandler(requester))
 
 export function createFetchRPC<T extends ApiRecordShape, C>(
   requester: (url: string, config: C) => unknown,

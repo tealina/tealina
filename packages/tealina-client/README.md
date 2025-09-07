@@ -71,14 +71,14 @@ rpc.get.user[':id']({ params: { id: 'user_id' } }).then(user => console.log(user
 
 ```ts
 import axios, { type AxiosRequestConfig } from 'axios'
-import { createAxiosClient } from '@tealina/client'
+import { createAxiosReq } from '@tealina/client'
 import type { ApiTypesRecord } from 'server/api/v1'
 
 const instance = axios.create({
   baseURL: '/api/v1/',
 })
 
-export const req = createAxiosClient<ApiTypesRecord, AxiosRequestConfig>(c =>
+export const req = createAxiosReq<ApiTypesRecord, AxiosRequestConfig>(c =>
   instance.request(c).then(v => v.data),
 )
 
