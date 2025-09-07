@@ -1,38 +1,18 @@
-import type { ApiDoc } from '@tealina/doc-types'
 import chalk from 'chalk'
 import consola from 'consola'
 import { isEmpty, pickFn } from 'fp-lite'
 import { writeFileSync } from 'node:fs'
+import path from 'node:path'
 import { basename, join, normalize } from 'pathe'
 import { parseDeclarationFile } from '../utils/parseDeclarationFile'
 import { getApiTypeFilePath } from '../utils/withTypeFile'
 import type { FullOptions } from './capi'
-import path from 'node:path'
+import { CustomOutputFn, GdocContext } from '..'
 
 type GdocOptions = Required<
   Pick<FullOptions, 'apiDir' | 'output' | 'input' | 'tsconfigPath' | 'typesDir'>
 > &
   Pick<FullOptions, 'gdoc'>
-
-export type GdocContext = {
-  outputDir: string
-  apiDir: string
-}
-
-export type CustomOutputFn = (
-  apiDoc: ApiDoc,
-  context: GdocContext,
-) => {
-  content: string
-  /** The storage location of the file contents */
-  filePath: string
-}
-
-export interface GdocConfig {
-  /** Keep the original output event customOutputs set. */
-  keepOriginalOutput?: boolean
-  customOutputs?: CustomOutputFn[]
-}
 
 export const pickOption4gdoc = (full: FullOptions) => {
   const x = pickFn(

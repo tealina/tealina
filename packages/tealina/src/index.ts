@@ -1,10 +1,26 @@
 // Type definition here can avoid all `.ts` files generate a `.d.ts`
-
-import type { GdocConfig } from './commands/gdoc'
-
 export type { OpenAPIV3_1, OpenAPIV3 } from 'openapi-types'
-export type { CustomOutputFn } from './commands/gdoc'
 export type { StatusWith } from '@tealina/doc-types'
+import type { ApiDoc } from '@tealina/doc-types'
+export type GdocContext = {
+  outputDir: string
+  apiDir: string
+}
+
+export type CustomOutputFn = (
+  apiDoc: ApiDoc,
+  context: GdocContext,
+) => {
+  content: string
+  /** The storage location of the file contents */
+  filePath: string
+}
+
+export interface GdocConfig {
+  /** Keep the original output event customOutputs set. */
+  keepOriginalOutput?: boolean
+  customOutputs?: CustomOutputFn[]
+}
 // gpure tyes ---- begin
 
 export type MutationKind = 'CreateInput' | 'UpdateInput' | ''
@@ -171,5 +187,4 @@ export const makeTemplate = (fn: CodeGenerateFuntion) => fn
 
 export const makeTestSuiteTemplate = (fn: GenTestSuiteFnType) => fn
 export const makeTestHelperTemplate = (fn: GenTestHelperFnType) => fn
-
 export { convertToOpenApiJson } from './utils/genOpenApi'

@@ -7,6 +7,8 @@ export default defineBuildConfig({
       declaration: false,
       input: './src',
       outDir: 'dist',
+      format: 'esm',
+      ext: 'mjs',
     },
   ],
   clean: true,
