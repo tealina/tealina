@@ -1,3 +1,4 @@
+import { Extract2xxResponse } from '@tealina/utility-types'
 import { makeContext } from './makeContext'
 import type {
   ApiClientShape,
@@ -25,7 +26,7 @@ type PathToObject<
   : {
       [K in RemoveBeginSlash<RoutePath> as K extends '' ? never : K]: (
         ...args: MakeParameters<Payload, Config>
-      ) => Promise<Payload['response']>
+      ) => Promise<Extract2xxResponse<Payload['response']>>
     }
 
 type ToNest<

@@ -1,5 +1,5 @@
 export {
-  createAxiosReq as createAxiosReq,
+  createAxiosReq,
   createAxiosRPC,
 } from './axios/index'
 

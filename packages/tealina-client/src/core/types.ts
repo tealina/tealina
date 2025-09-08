@@ -1,9 +1,8 @@
-declare const emptyObjectSymbol: unique symbol
-type EmptyObject = { [emptyObjectSymbol]?: never }
-
-type Simplify<T> = {
-  [KeyType in keyof T]: T[KeyType]
-} & {}
+import type {
+  EmptyObject,
+  Extract2xxResponse,
+  Simplify,
+} from '@tealina/utility-types'
 
 export type FullPayload = {
   body?: unknown
@@ -58,7 +57,7 @@ export type MakeParameters<
 export type RequestFn<T extends EndpointType, C> = <K extends keyof T>(
   url: K,
   ...rest: MakeParameters<T[K], C>
-) => Promise<T[K]['response']>
+) => Promise<Extract2xxResponse<T[K]['response']>>
 /** The response can be directly use, without response.data */
 
 export type ToReq<T extends ApiRecordShape, C> = {
