@@ -25,7 +25,7 @@ interface ExtendedRouteHandler<
       request: Pick<T, 'body' | 'params' | 'query'> & {
         headers: Theaders extends null ? {} : Theaders
       }
-    } & { body: Tresponse; response: { body: Tresponse } } & { state: Tlocals },
+    } & { body: Tresponse } & { state: Tlocals },
     next: () => Promise<any>,
   ): void
 }
