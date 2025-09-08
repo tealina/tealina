@@ -1,6 +1,5 @@
 // Type definition here can avoid all `.ts` files generate a `.d.ts`
 export type { OpenAPIV3_1, OpenAPIV3 } from 'openapi-types'
-export type { StatusWith } from '@tealina/doc-types'
 import type { ApiDoc } from '@tealina/doc-types'
 export type GdocContext = {
   outputDir: string
