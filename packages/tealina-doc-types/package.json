@@ -17,6 +17,9 @@
   ],
   "author": "Neo Yeo",
   "license": "MIT",
+  "devDependencies": {
+    "@tealina/utility-types": "workspace:*"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

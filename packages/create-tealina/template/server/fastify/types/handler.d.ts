@@ -5,11 +5,14 @@ import type {
   RouteGenericInterface,
 } from 'fastify'
 import type { AuthedLocals, AuthHeaders } from './common.js'
+import type {
+  MaybeProperty,
+  Simplify,
+  LastElement,
+  ExtractResponse,
+} from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
-
-/** [doc](https://github.com/sindresorhus/type-fest/blob/main/source/simplify.d.ts) */
-export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 interface RawPayload {
   body?: unknown
@@ -27,12 +30,12 @@ interface ExtendedRouteHandler<
     Headers: Theaders
     Params: T['params']
     Querystring: T['query']
-    Reply: Tresponse
+    Reply: ExtractResponse<Tresponse>
   },
 > {
   (
     this: FastifyInstance,
-    request: FastifyRequest<RouteGeneric> & OmitEmpty<Tlocals, 'locals'>, // extend `locals` prop
+    request: FastifyRequest<RouteGeneric> & MaybeProperty<Tlocals, 'locals'>, // extend `locals` prop
     reply: FastifyReply<RouteGeneric>,
   ): RouteGeneric['Reply'] | void | Promise<RouteGeneric['Reply'] | void>
 }
@@ -50,20 +53,14 @@ export type OpenHandler<
   Headers = null,
 > = ExtendedRouteHandler<T, Response, Headers>
 
-type LastElement<T> = T extends ReadonlyArray<unknown>
-  ? T extends readonly [...unknown[], infer U]
-    ? U
-    : T
-  : T
-
-type OmitEmpty<P, T extends string> = P extends null ? {} : { [K in T]: P }
-
 export type ExtractApiType<T> = LastElement<T> extends ExtendedRouteHandler<
   infer Payload,
   infer Response,
   infer Headers
 >
-  ? Simplify<Payload & { response: Response } & OmitEmpty<Headers, 'headers'>>
+  ? Simplify<
+      Payload & { response: Response } & MaybeProperty<Headers, 'headers'>
+    >
   : never
 
 export type ResolveApiType<

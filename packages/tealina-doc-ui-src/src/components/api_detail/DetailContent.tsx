@@ -1,8 +1,6 @@
 import { CopyOutlined } from '@ant-design/icons'
 import {
   DocKind,
-  kStatusCodeKey,
-  kStatusResKey,
   type ApiDoc,
   type DocItem,
   type DocNode,
@@ -35,6 +33,7 @@ import {
   type PayloadKeys,
   type SegmentTabKeys,
 } from './useDetailState'
+import { kResKey, kStatusCodeKey } from '../../constans/configKeys'
 
 const Playground = lazy(() => import('../features/playground/Playground'))
 
@@ -235,7 +234,7 @@ function PlayloadPanel({
         }
         const statusCode = `${(statusCodeProp as NumberLiteral).value}`
         const resProp = v.props.find(
-          v => v.name === kStatusResKey,
+          v => v.name === kResKey,
         ) as DocNode | null
         if (resProp != null) {
           return {

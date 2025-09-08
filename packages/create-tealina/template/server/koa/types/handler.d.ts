@@ -1,12 +1,15 @@
 import type { ExtendableContext } from 'koa'
 import type { AuthHeaders, AuthedLocals } from './common.js'
+import type {
+  MaybeProperty,
+  Simplify,
+  LastElement,
+  ExtractResponse,
+} from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
 
 export type HTTPMethods = 'get' | 'post' | 'patch' | 'delete'
-
-/** [doc](https://github.com/sindresorhus/type-fest/blob/main/source/simplify.d.ts) */
-export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 interface RawPayload {
   body?: unknown
@@ -14,7 +17,7 @@ interface RawPayload {
   query?: unknown
 }
 
-interface ExtendedRouteHandler<
+interface OpenHandler<
   T extends RawPayload = EmptyObj,
   Tresponse = unknown,
   Theaders = null,
@@ -22,10 +25,11 @@ interface ExtendedRouteHandler<
 > {
   (
     ctx: ExtendableContext & {
-      request: Pick<T, 'body' | 'params' | 'query'> & {
-        headers: Theaders extends null ? {} : Theaders
-      }
-    } & { body: Tresponse } & { state: Tlocals },
+      request: Pick<T, 'body' | 'params' | 'query'> &
+        MaybeProperty<Theaders, 'headers'>
+    } & { body: ExtractResponse<Tresponse> } & {
+      state: Tlocals
+    },
     next: () => Promise<any>,
   ): void
 }
@@ -34,30 +38,17 @@ export type AuthedHandler<
   T extends RawPayload = EmptyObj,
   Response = unknown,
   Headers extends AuthHeaders = AuthHeaders,
-> = ExtendedRouteHandler<T, Response, Headers, AuthedLocals>
+> = OpenHandler<T, Response, Headers, AuthedLocals>
 
-export type OpenHandler<
-  T extends RawPayload = EmptyObj,
-  Response = unknown,
-  Headers = null,
-> = ExtendedRouteHandler<T, Response, Headers>
-
-type LastElement<T> = T extends ReadonlyArray<unknown>
-  ? T extends readonly [...unknown[], infer U]
-    ? U
-    : T
-  : T
-
-type OmitEmpty<P, T extends string> = P extends null ? {} : { [K in T]: P }
-
-type a = OmitEmpty<AuthHeaders, 'x'>
-export type ExtractApiType<T> = LastElement<T> extends ExtendedRouteHandler<
+export type ExtractApiType<T> = LastElement<T> extends OpenHandler<
   infer Payload,
   infer Response,
   infer Headers,
-  infer _X
+  infer _Locals
 >
-  ? Simplify<Payload & { response: Response } & OmitEmpty<Headers, 'headers'>>
+  ? Simplify<
+      Payload & { response: Response } & MaybeProperty<Headers, 'headers'>
+    >
   : never
 
 export type ResolveApiType<

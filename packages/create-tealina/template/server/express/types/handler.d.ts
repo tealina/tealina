@@ -1,10 +1,13 @@
 import type { NextFunction, Request, Response } from 'express'
 import type { AuthHeaders, AuthedLocals } from './common.js'
+import type {
+  MaybeProperty,
+  Simplify,
+  LastElement,
+  ExtractResponse,
+} from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
-
-/** [doc](https://github.com/sindresorhus/type-fest/blob/main/source/simplify.d.ts) */
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 // ------Types for generate doc -------
 
@@ -14,21 +17,15 @@ interface RawPayload {
   query?: unknown
 }
 
-type LastElement<T> = T extends ReadonlyArray<unknown>
-  ? T extends readonly [...unknown[], infer U]
-    ? U
-    : T
-  : T
-
-type OmitEmpty<P, T extends string> = P extends null ? {} : { [K in T]: P }
-
 type ExtractApiType<T> = LastElement<T> extends OpenHandler<
   infer Payload,
   infer Response,
   infer Headers,
   infer _Locals
 >
-  ? Simplify<Payload & { response: Response } & OmitEmpty<Headers, 'headers'>>
+  ? Simplify<
+      Payload & { response: Response } & MaybeProperty<Headers, 'headers'>
+    >
   : never
 
 /**
@@ -51,11 +48,12 @@ export interface OpenHandler<
   Tresponse = null,
   Theaders = null,
   Tlocals extends EmptyObj = EmptyObj,
+  TResBody = ExtractResponse<Tresponse>,
 > {
   (
-    req: Request<T['params'], Tresponse, T['body'], T['query']> &
-      OmitEmpty<Theaders, 'headers'>,
-    res: Response<Tresponse, Tlocals>,
+    req: Request<T['params'], TResBody, T['body'], T['query']> &
+      MaybeProperty<Theaders, 'headers'>,
+    res: Response<TResBody, Tlocals>,
     next: NextFunction,
   ): unknown
 }

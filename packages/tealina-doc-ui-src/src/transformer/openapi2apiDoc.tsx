@@ -1,6 +1,7 @@
 import type { ApiDoc, DocItem, DocNode, Entity } from '@tealina/doc-types'
-import { DocKind, kStatusCodeKey, kStatusResKey } from '@tealina/doc-types'
+import { DocKind } from '@tealina/doc-types'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+import { kResKey, kStatusCodeKey } from '../constans/configKeys'
 
 const kApplicationJson = 'application/json'
 const kTextPlain = 'text/plain'
@@ -100,10 +101,10 @@ export function openApi2apiDoc(
           uniNode.props.push({
             kind: DocKind.StringLiteral,
             value: node.comment ?? '',
-            name: kStatusResKey,
+            name: kResKey,
           })
         } else {
-          uniNode.props.push({ ...node, name: kStatusResKey })
+          uniNode.props.push({ ...node, name: kResKey })
         }
         nodes.push(uniNode)
         continue
@@ -117,7 +118,7 @@ export function openApi2apiDoc(
             refs,
           )
           node.comment = node.comment ?? res.description
-          uniNode.props.push({ ...node, name: kStatusResKey })
+          uniNode.props.push({ ...node, name: kResKey })
           nodes.push(uniNode)
           continue
         }
@@ -126,7 +127,7 @@ export function openApi2apiDoc(
             kind: DocKind.Primitive,
             type: 'string',
             comment: 'text/plain',
-            name: kStatusResKey,
+            name: kResKey,
           })
           nodes.push(uniNode)
           continue
@@ -135,7 +136,7 @@ export function openApi2apiDoc(
       uniNode.props.push({
         kind: DocKind.StringLiteral,
         value: res.description,
-        name: kStatusResKey,
+        name: kResKey,
       })
       nodes.push(uniNode)
     }
