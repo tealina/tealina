@@ -17,7 +17,7 @@ interface RawPayload {
   query?: unknown
 }
 
-interface OpenHandler<
+export interface OpenHandler<
   T extends RawPayload = EmptyObj,
   Tresponse = unknown,
   Theaders = null,
