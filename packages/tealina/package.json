@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@tealina/doc-types": "workspace:*",
+    "@tealina/utility-types": "workspace:*",
     "cac": "^6.7.14",
     "chalk": "^5.2.0",
     "consola": "^3.2.3",

@@ -6,8 +6,10 @@ import type {
   Entity,
   EnumEntity,
   TupleEntity,
+  StringLiteral,
 } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
+import { WithStatus, WithHeaders } from '@tealina/utility-types'
 import { pickFn } from 'fp-lite'
 import type { OpenAPIV3_1 } from 'openapi-types'
 export type BasicOpenApiJson = Pick<
@@ -18,6 +20,10 @@ export type BasicOpenApiJson = Pick<
 // ref: https://spec.openapis.org/oas/latest.html
 
 const kContentTypePattern = /content-type/i
+
+const kHeadersKey: keyof WithHeaders<{}, {}> = '~headers'
+const kStatusCodeKey: keyof WithStatus<number> = '~status'
+const kResKey: keyof WithStatus<number> = 'response'
 
 const kTextPlan = {
   'text/plain': {
@@ -89,12 +95,105 @@ export function convertToOpenApiJson(
     }
   }
 
-  function getResponseContent({ response }: DocItem) {
-    if (response == null) return kTextPlan
-    if (isUnknown(response)) return kTextPlan
+  function convertRichResponse(
+    responseNode: DocNode | undefined,
+  ): OpenAPIV3_1.ResponsesObject {
+    if (responseNode == null || isUnknown(responseNode)) {
+      return { '200': { description: '', content: kTextPlan } }
+    }
+    switch (responseNode.kind) {
+      case DocKind.EntityRef: {
+        const entity = apiDoc.entityRefs[responseNode.id]
+        const headersProp = entity.props.find(p => p.name === kHeadersKey)
+        const { contentType = kApplicationJson, headers } =
+          convertResHeaders(headersProp)
+        const result = convertResStatus(entity, headers, contentType)
+        return result
+      }
+      case DocKind.Union: {
+        const list = responseNode.types.map(convertRichResponse)
+        const multipleRes = Object.assign({}, ...list)
+        return multipleRes
+      }
+      default: {
+        return {
+          '200': {
+            description: 'Ok',
+            content: {
+              [kApplicationJson]: {
+                schema: convertDocNodeToSchema(responseNode),
+              },
+            },
+          },
+        }
+      }
+    }
+  }
+
+  function convertResHeaders(headersProp: PropType | undefined) {
+    if (headersProp == null) return {}
+    let contentType = kApplicationJson
+    let headers = {}
+    if (headersProp.kind !== DocKind.LiteralObject) {
+      console.warn("Headers detected, but it's not a literal object, skiped")
+      return {}
+    }
+    const contentTypeProp = headersProp.props.find(
+      v => v.name === 'Content-Type',
+    )
+    if (contentTypeProp != null) {
+      if (contentTypeProp.kind === DocKind.StringLiteral) {
+        contentType = contentTypeProp.value
+      } else {
+        console.warn(
+          "Headers['Content-Type'] detected, but it's not a literal string, skiped",
+        )
+      }
+    }
+    const restHeaderProps = headersProp.props.filter(
+      p => p.name !== 'Content-Type',
+    )
+    headers = convertDocNodeToSchema({
+      ...headersProp,
+      props: restHeaderProps,
+    })
+    return { headers, contentType }
+  }
+
+  function convertResStatus(
+    entity: Entity,
+    headers: Record<string, any> | undefined,
+    contentType: string,
+  ): OpenAPIV3_1.ResponsesObject {
+    const statusProp = entity.props.find(v => v.name === kStatusCodeKey)
+    let status = '200'
+    if (statusProp && statusProp.kind === DocKind.NumberLiteral) {
+      status = String(statusProp.value)
+    }
+    const response = entity.props.find(v => v.name === kResKey)
+    if (response == null || response.kind === DocKind.Primitive) {
+      return {
+        [status]: {
+          description: '',
+          headers,
+          content: kTextPlan,
+        },
+      }
+    }
+    if (response.kind === DocKind.StringLiteral) {
+      return {
+        [status]: { description: response.value, content: kTextPlan, headers },
+      }
+    }
     return {
-      'application/json': {
-        schema: convertDocNodeToSchema(response),
+      [status]: {
+        headers,
+        description: response.comment ?? '',
+        content: {
+          [contentType]: {
+            schema: convertDocNodeToSchema(response),
+          },
+        },
       },
     }
   }
@@ -102,12 +201,7 @@ export function convertToOpenApiJson(
   function convertDocItemToPathItem(docItem: DocItem): any {
     const headEntity = getHeadEntity(docItem, apiDoc.entityRefs)
     const pathItem: OpenAPIV3_1.OperationObject = {
-      responses: {
-        '200': {
-          description: 'OK',
-          content: getResponseContent(docItem),
-        },
-      },
+      responses: convertRichResponse(docItem.response),
     }
     if (docItem.body) {
       const getRequestContentType = (props: PropType[]) => {

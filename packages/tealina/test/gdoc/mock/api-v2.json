@@ -1,0 +1,139 @@
+{
+  "apis": {
+    "get": {
+      "/health": {
+        "response": {
+          "kind": 4,
+          "id": 275
+        },
+        "comment": "Check server is ok"
+      },
+      "/status": {
+        "response": {
+          "kind": 3,
+          "types": [
+            {
+              "kind": 4,
+              "id": 679
+            },
+            {
+              "kind": 4,
+              "id": 684
+            }
+          ]
+        },
+        "headers": {
+          "kind": 4,
+          "id": 686
+        },
+        "comment": "Get server status. Login required."
+      }
+    },
+    "post": {
+      "/login": {
+        "body": {
+          "kind": 4,
+          "id": 817
+        },
+        "response": {
+          "kind": 4,
+          "id": 798
+        }
+      }
+    }
+  },
+  "entityRefs": {
+    "275": {
+      "name": "{ isOk: boolean; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "boolean",
+          "name": "isOk"
+        }
+      ]
+    },
+    "678": {
+      "name": "{ status: \"Fine\"; }",
+      "props": [
+        {
+          "kind": 7,
+          "value": "Fine",
+          "name": "status"
+        }
+      ]
+    },
+    "679": {
+      "name": "WithStatus<200, { status: \"Fine\"; }>",
+      "props": [
+        {
+          "kind": 8,
+          "value": 200,
+          "name": "~status"
+        },
+        {
+          "kind": 4,
+          "id": 678,
+          "name": "response"
+        }
+      ],
+      "comment": "For declare response with http status code"
+    },
+    "684": {
+      "name": "WithStatus<500, \"Down\">",
+      "props": [
+        {
+          "kind": 8,
+          "value": 500,
+          "name": "~status"
+        },
+        {
+          "kind": 7,
+          "value": "Down",
+          "name": "response"
+        }
+      ],
+      "comment": "For declare response with http status code"
+    },
+    "686": {
+      "name": "AuthHeaders",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "Authorization"
+        }
+      ]
+    },
+    "798": {
+      "name": "{ token: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "token"
+        }
+      ]
+    },
+    "817": {
+      "name": "LoginPayload",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "account"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "password",
+          "comment": "This JSDoc comment will appear in the documentation"
+        }
+      ],
+      "comment": "Use the 'interface' keyword to declare types\nto ensure the type name is preserved in the API documentation."
+    }
+  },
+  "enumRefs": {},
+  "tupleRefs": {},
+  "docTypeVersion": 1
+}
