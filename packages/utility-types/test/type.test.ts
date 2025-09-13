@@ -1,14 +1,17 @@
 import { expectTypeOf, test } from 'vitest'
-import { Extract2xxResponse, WithStatus } from '../index.js'
+import { Extract2xxResponse, WithExtra, WithStatusCode } from '../index.js'
 
 test('test types', () => {
   type TestCases =
-    | WithStatus<200, 'OK'>
-    | WithStatus<201, 'Created'>
-    | WithStatus<404, 'Not Found'>
-    | WithStatus<500, 'Internal Error'>
-    | WithStatus<299, 'Custom Success'>
+    | WithStatusCode<200, 'OK'>
+    | WithStatusCode<201, 'Created'>
+    | WithStatusCode<404, 'Not Found'>
+    | WithStatusCode<500, 'Internal Error'>
+    | WithStatusCode<299, 'Custom Success'>
+    | WithExtra<{ statusCode: 200; response: 'Oh Ho' }>
   type SuccessResponses = Extract2xxResponse<TestCases>
   let result = '' as SuccessResponses
-  expectTypeOf(result).toMatchTypeOf<'OK' | 'Created' | 'Custom Success'>()
+  expectTypeOf(result).toMatchTypeOf<
+    'OK' | 'Created' | 'Custom Success' | 'Oh Ho'
+  >()
 })

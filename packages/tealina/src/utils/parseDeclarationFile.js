@@ -11,6 +11,8 @@ import ts from 'typescript'
  * @typedef {import('@tealina/doc-types').Kind} Kind
  * @typedef {import('@tealina/doc-types').DocItem } DocItem
  * @typedef {import('@tealina/doc-types').EnumEntity } EnumEntity
+ * @typedef {import('@tealina/doc-types').ResponseEntity} ResponseEntity
+ * @typedef {import('@tealina/doc-types').RefType} RefType
  */
 
 /**@type {Record<number,Entity>} */
@@ -35,6 +37,15 @@ const ParsingEntityIds = []
 const memoObj = {}
 /**@type {ts.TypeChecker} */
 let checker
+
+
+const kReponseFlagPattern = /__@ResponseFlagSymbol/
+
+
+/**
+ * @param {string} name 
+ */
+const isResponseWithExtra = (name) => kReponseFlagPattern.test(name)
 
 /**
  * @param {number} a
@@ -116,6 +127,47 @@ const parseFirstLevel = s => {
 }
 
 /**
+ * 
+ * @param {RefType} ref 
+ * @returns  {ResponseEntity|RefType}
+ */
+const entityRef2resEntity = (ref) => {
+  const { id } = ref
+  const { props } = Refs[id]
+  const i = props.findIndex(p => isResponseWithExtra(p.name))
+  if (i === -1) return ref;
+  /** @type {Record<string,any>} */
+  const obj = Object.fromEntries(props.map(p => {
+    const { name, ...rest } = p
+    return [name, rest]
+  }))
+  delete Refs[id]
+  /** @type {import('@tealina/doc-types').NumberLiteral|undefined} */
+  const numLitrial = obj.statusCode
+  return {
+    kind: DocKind.ResponseEntity,
+    headers: obj.headers,
+    statusCode: numLitrial?.value ?? 200,
+    response: obj.response,
+  }
+}
+
+/**
+ * @param {DocNode} response 
+ */
+const handleResponse = (response) => {
+  switch (response.kind) {
+    case DocKind.EntityRef: {
+      return entityRef2resEntity(response)
+    }
+    case DocKind.Union: {
+      response.types = response.types.map(handleResponse)
+      return response
+    }
+  }
+  return response
+}
+/**
  * @param {ts.Symbol} s
  * @returns {Record<string,DocItem>}
  */
@@ -149,6 +201,7 @@ const parseApi = s => {
     parseType(checker.getTypeOfSymbol(p)),
   ])
   const payload = Object.fromEntries(keyValues)
+  payload.response = handleResponse(payload.response)
   return { ...payload, comment, jsDoc }
 }
 
@@ -613,6 +666,6 @@ export const parseDeclarationFile = ({ entries, tsconfigPath }) => {
     entityRefs: Refs,
     enumRefs: EnumRefs,
     tupleRefs: TupleRefs,
-    docTypeVersion: 1.0,
+    docTypeVersion: 1.1,
   }
 }

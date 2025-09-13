@@ -33,7 +33,6 @@ import {
   type PayloadKeys,
   type SegmentTabKeys,
 } from './useDetailState'
-import { kResKey, kStatusCodeKey } from '../../constans/configKeys'
 
 const Playground = lazy(() => import('../features/playground/Playground'))
 
@@ -221,29 +220,16 @@ function PlayloadPanel({
           : `${label} [ ]`
         return item
       }
-      case DocKind.LiteralObject: {
-        const statusCodeProp = v.props.find(p => p.name === kStatusCodeKey)
-        if (statusCodeProp == null) {
-          const key = Math.random().toString(16)
-          return {
-            key,
-            tabKey: key,
-            label: '{...}',
-            children: renderContent(v),
-          }
+      case DocKind.ResponseEntity: {
+        const statusCode = String(v.statusCode ?? 200)
+        if (v.response == null) {
+          return { key: statusCode, label: statusCode, children: <p></p> }
         }
-        const statusCode = `${(statusCodeProp as NumberLiteral).value}`
-        const resProp = v.props.find(
-          v => v.name === kResKey,
-        ) as DocNode | null
-        if (resProp != null) {
-          return {
-            key: statusCode,
-            label: statusCode,
-            children: renderContent(resProp),
-          }
+        return {
+          key: statusCode,
+          label: statusCode,
+          children: renderContent(v.response),
         }
-        return { key: statusCode, label: statusCode, children: <p></p> }
       }
       default: {
         //  return type2text(v,doc)
@@ -251,7 +237,7 @@ function PlayloadPanel({
         return {
           key,
           tabKey: key,
-          label: curTab,
+          label: v.kind === DocKind.Primitive ? v.type : curTab,
           children: type2cell(v, doc),
           // label: 'PARSER_ERROR',
           // children: (<p className='text-red'>
@@ -272,7 +258,7 @@ function PlayloadPanel({
     targetNode.kind === DocKind.Union
       ? targetNode.types.map(node2tabItem)
       : [node2tabItem(targetNode)]
-
+  //TODO: only show tabs when has status code
   return (
     <div className="flex flex-col gap-3 pb-10">
       {/* {renderEntities()} */}

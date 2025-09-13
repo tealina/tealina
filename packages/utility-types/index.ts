@@ -1,27 +1,42 @@
-/**
- * For declare response with http status code
- */
-export interface WithStatus<Code extends number, Response = string> {
-  '~status': Code
-  response: Response
+type RichResponse = {
+  statusCode?: number
+  headers?: Record<string, any>
+  response: any
 }
 
+export const ResponseFlagSymbol = Symbol('responseFlag')
+
 /**
- * For declare response headers
+ * Declare response type with optional status code and response headers
  */
-export interface WithHeaders<Headers extends {}, Response> {
-  '~headers': Headers
-  response: Response
+export type WithExtra<T extends RichResponse> = T & {
+  [ResponseFlagSymbol]: true
 }
 
-export type ExtractResponse<T> = T extends WithStatus<number, infer R> ? R : T
+export type WithStatusCode<
+  StatusCode extends number,
+  Response = string,
+> = WithExtra<{
+  statusCode: StatusCode
+  response: Response
+}>
 
-export type Extract2xxResponse<T extends WithStatus<number, any> | unknown> =
-  T extends WithStatus<infer Code, infer Response>
-    ? `${Code}` extends `2${number}${number}`
-      ? Response
-      : never
-    : T
+export type WithHeaders<
+  Headers extends Record<string, any>,
+  Response,
+> = WithExtra<{ headers: Headers; response: Response }>
+
+export type ExtractResponse<T> = T extends WithStatusCode<number, infer R>
+  ? R
+  : T
+
+export type Extract2xxResponse<
+  T extends WithStatusCode<number, any> | unknown,
+> = T extends WithStatusCode<infer Code, infer Response>
+  ? `${Code}` extends `2${number}${number}`
+    ? Response
+    : never
+  : T
 
 declare const emptyObjectSymbol: unique symbol
 export type EmptyObject = { [emptyObjectSymbol]?: never }

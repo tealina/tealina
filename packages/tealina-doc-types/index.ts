@@ -16,6 +16,7 @@ export const DocKind = {
   RecursionTuple: 12,
   RecursionEntity: 13,
   LiteralObject: 14,
+  ResponseEntity: 15,
 } as const
 
 export type DocKind = typeof DocKind
@@ -121,8 +122,19 @@ export type DocNode =
   | RecursionTuple
   | RecursionEntity
   | LiteralEntity
+  | ResponseEntity
 
 export type PropType = { name: string } & DocNode
+
+/**
+ * Declare response type with optional status code and headers
+ */
+export interface ResponseEntity extends Kind {
+  kind: DocKind['ResponseEntity']
+  statusCode?: number
+  headers?: DocNode
+  response: DocNode
+}
 
 export interface DocItem {
   body?: DocNode

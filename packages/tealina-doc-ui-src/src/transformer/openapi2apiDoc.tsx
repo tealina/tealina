@@ -1,7 +1,6 @@
-import type { ApiDoc, DocItem, DocNode, Entity } from '@tealina/doc-types'
+import type { ApiDoc, DocItem, DocNode, Entity, LiteralEntity, ResponseEntity } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
-import { kResKey, kStatusCodeKey } from '../constans/configKeys'
 
 const kApplicationJson = 'application/json'
 const kTextPlain = 'text/plain'
@@ -82,63 +81,66 @@ export function openApi2apiDoc(
   ): Pick<DocItem, 'response'> => {
     if (response == null) return {}
     const statusList = Object.keys(response)
-    const nodes: DocNode[] = []
+    const nodes: ResponseEntity[] = []
     for (const status of statusList) {
       const res = response[status]
-      const uniNode: DocNode = {
-        kind: DocKind.LiteralObject,
-        props: [
-          {
-            kind: DocKind.NumberLiteral,
-            value: Number(status),
-            name: kStatusCodeKey,
-          },
-        ],
+      const baisc: Pick<ResponseEntity, 'kind' | 'statusCode' | 'headers'> = {
+        kind: DocKind.ResponseEntity,
+        statusCode: Number(status),
       }
+
       if ('$ref' in res) {
         const node = schema2docNode(doc, res, allSchemas, refs)
-        if (node.kind === DocKind.LiteralObject && node.props.length === 0) {
-          uniNode.props.push({
-            kind: DocKind.StringLiteral,
-            value: node.comment ?? '',
-            name: kResKey,
-          })
-        } else {
-          uniNode.props.push({ ...node, name: kResKey })
-        }
-        nodes.push(uniNode)
+        nodes.push({
+          ...baisc,
+          response: node
+        })
         continue
       }
-      if (res.content != null) {
-        if (res.content[kApplicationJson] && kStartsWithPattern.test(status)) {
-          const node = schema2docNode(
-            doc,
-            res.content[kApplicationJson].schema!,
-            allSchemas,
-            refs,
-          )
-          node.comment = node.comment ?? res.description
-          uniNode.props.push({ ...node, name: kResKey })
-          nodes.push(uniNode)
-          continue
-        }
-        if (res.content[kTextPlain]) {
-          uniNode.props.push({
-            kind: DocKind.Primitive,
-            type: 'string',
-            comment: 'text/plain',
-            name: kResKey,
+      if (res.headers) {
+        baisc.headers = {
+          kind: DocKind.LiteralObject,
+          props: Object.entries(res.headers).map(([name, prop]) => {
+            const t = '$ref' in prop ? prop : prop.schema!
+            return {
+              name,
+              ...schema2docNode(
+                doc,
+                t,
+                allSchemas,
+                refs,
+              )
+            }
           })
-          nodes.push(uniNode)
-          continue
         }
       }
-      uniNode.props.push({
-        kind: DocKind.StringLiteral,
-        value: res.description,
-        name: kResKey,
-      })
-      nodes.push(uniNode)
+      if (res.content != null) {
+        const contentNodes = Object.entries(res.content).map(([contentType, obj]) => {
+          if (obj.schema) {
+            return schema2docNode(
+              doc,
+              obj.schema,
+              allSchemas,
+              refs,
+            )
+          }
+          return {
+            kind: DocKind.Primitive,
+            type: 'string',
+            comment: contentType,
+          }
+        })
+        if (contentNodes.length > 1) {
+          return {
+            ...baisc,
+            response: { kind: DocKind.Union, types: contentNodes }
+          }
+        }
+        return {
+          ...baisc,
+          response: contentNodes[0]
+        }
+      }
     }
     if (nodes.length === 1) {
       return { response: nodes[0] }
@@ -417,9 +419,16 @@ function _schema2docNodeCore(
           ...extraMetaInfo(schema),
         }
       }
+      if ('title' in schema) {
+        return {
+          kind: DocKind.NonLiteralObject,
+          type: schema.title ?? '_Unkown_Object',
+          ...extraMetaInfo(schema),
+        }
+      }
       return {
-        kind: DocKind.NonLiteralObject,
-        type: schema.title ?? '_Unkown_Object',
+        kind: DocKind.LiteralObject,
+        props: [],
         ...extraMetaInfo(schema),
       }
 
@@ -450,10 +459,17 @@ function _schema2docNodeCore(
           ),
         } // Union
       } else if (Object.keys(schema).length > 0) {
-        result = {
-          kind: DocKind.LiteralObject,
-          props: [],
-          ...extraMetaInfo(schema),
+        if ('content' in schema) {
+          const nodes = Object.entries(schema.content ?? {}).map(([contentType, obj]) => {
+            return schema2docNode(doc, obj, allSchems, refs, parsingList)
+          })
+          result = nodes.length > 1 ? { kind: DocKind.Union, types: nodes } : nodes[0]
+        } else {
+          result = {
+            kind: DocKind.StringLiteral,
+            value: schema.description ?? '',
+            ...extraMetaInfo(schema),
+          }
         }
       } else {
         result = { kind: DocKind.Never }
@@ -466,36 +482,38 @@ function _schema2docNodeCore(
 
 export function schema2docNode(
   doc: OpenAPIV3_1.Document,
-  schema:
+  docObject:
     | OpenAPIV3.BaseSchemaObject
     | OpenAPIV3_1.SchemaObject
-    | OpenAPIV3_1.ReferenceObject,
+    | OpenAPIV3_1.ReferenceObject
+    | OpenAPIV3_1.HeaderObject,
   allSchems: string[],
   refs: ApiRefs,
   parsingList: OpenAPIV3_1.SchemaObject[] = [],
 ): DocNode {
   let node: DocNode
-  let isNullable = 'nullable' in schema
-  if ('$ref' in schema) {
-    const names = schema.$ref.split('/').slice(2)
+  let isNullable = 'nullable' in docObject
+  if ('$ref' in docObject) {
+    const names = docObject.$ref.split('/').slice(2)
     const target = names.reduce(
       (obj, key) => obj?.[key as keyof {}],
       doc.components ?? {},
     )
     isNullable = 'nullable' in target && (target.nullable as boolean)
   }
+  const actualSchema = ('schema' in docObject ? docObject.schema! : docObject) as Exclude<typeof docObject, OpenAPIV3_1.HeaderObject>
   if (isNullable) {
     node = {
       kind: DocKind.Union,
       types: [
         { kind: DocKind.Primitive, type: 'null' },
-        _schema2docNodeCore(doc, schema, allSchems, refs, parsingList),
+        _schema2docNodeCore(doc, actualSchema, allSchems, refs, parsingList),
       ],
     }
   } else {
-    node = _schema2docNodeCore(doc, schema, allSchems, refs, parsingList)
+    node = _schema2docNodeCore(doc, actualSchema, allSchems, refs, parsingList)
   }
-  if ('deprecated' in schema) {
+  if ('deprecated' in docObject) {
     node.jsDoc = { ...(node.jsDoc ?? {}), deprecated: '' }
   }
   return node
