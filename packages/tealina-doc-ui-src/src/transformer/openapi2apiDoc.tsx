@@ -1,9 +1,9 @@
-import type { ApiDoc, DocItem, DocNode, Entity, LiteralEntity, ResponseEntity } from '@tealina/doc-types'
+import type { ApiDoc, DocItem, DocNode, Entity, PropType, ResponseEntity } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
+import { notNull } from 'fp-lite'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
 const kApplicationJson = 'application/json'
-const kTextPlain = 'text/plain'
 const kMultipartForm = 'multipart/form-data'
 type ApiRefs = Pick<ApiDoc, 'enumRefs' | 'entityRefs' | 'tupleRefs'>
 export function openApi2apiDoc(
@@ -75,7 +75,6 @@ export function openApi2apiDoc(
       ),
     }
   }
-  const kStartsWithPattern = /^2/
   const res2responseNode = (
     response: OpenAPIV3_1.OperationObject['responses'],
   ): Pick<DocItem, 'response'> => {
@@ -140,6 +139,12 @@ export function openApi2apiDoc(
           ...baisc,
           response: contentNodes[0]
         }
+      }
+      if (nodes.length == 0) {
+        nodes.push({
+          ...baisc,
+          response: { kind: DocKind.StringLiteral, value: res.description }
+        })
       }
     }
     if (nodes.length === 1) {
@@ -445,22 +450,56 @@ function _schema2docNodeCore(
           ),
         } // Union
       } else if (allOf != null) {
+        const nodes = allOf.map(v =>
+          schema2docNode(doc, v, allSchems, refs, parsingList),
+        )
+        if (nodes.length == 1) return nodes[0]
+        const names: string[] = []
+        const props: PropType[] = []
+        const getObjType = (n: DocNode) => {
+          if (n.kind == DocKind.LiteralObject) return n
+          if (n.kind === DocKind.EntityRef) {
+            const entity = refs.entityRefs[n.id]
+            return entity
+          }
+        }
+        const allObjects = nodes.map(n => {
+          if (n.kind === DocKind.Union) {
+            return n.types.map(getObjType)
+          }
+          return getObjType(n)
+        }).flat().filter(v => v != null)
+        for (const n of allObjects) {
+          if ('name' in n) {
+            names.push(n.name)
+            props.push(...n.props)
+            continue
+          }
+          const [firstPorp] = n.props
+          names.push(`{ ${firstPorp.name}, ...}`)
+          props.push(...n.props)
+        }
+        const mergedEntity: Entity = {
+          name: names.join(' & '),
+          props,
+          comment: schema.description ?? ''
+        }
+        const nextId = Object.keys(refs.entityRefs).length
+        refs.entityRefs[nextId] = mergedEntity
         result = {
-          kind: DocKind.Tuple,
-          elements: allOf.map(v =>
-            schema2docNode(doc, v, allSchems, refs, parsingList),
-          ),
-        } // Union
+          kind: DocKind.EntityRef,
+          id: nextId,
+        }
       } else if (anyOf != null) {
         result = {
           kind: DocKind.Union,
           types: anyOf.map(v =>
             schema2docNode(doc, v, allSchems, refs, parsingList),
           ),
-        } // Union
+        }
       } else if (Object.keys(schema).length > 0) {
         if ('content' in schema) {
-          const nodes = Object.entries(schema.content ?? {}).map(([contentType, obj]) => {
+          const nodes = Object.entries(schema.content ?? {}).map(([_contentType, obj]) => {
             return schema2docNode(doc, obj, allSchems, refs, parsingList)
           })
           result = nodes.length > 1 ? { kind: DocKind.Union, types: nodes } : nodes[0]

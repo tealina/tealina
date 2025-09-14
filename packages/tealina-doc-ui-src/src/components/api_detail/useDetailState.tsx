@@ -122,8 +122,8 @@ export const nodeNull: DocNode = { kind: DocKind.Primitive, type: 'null' }
 
 export type SegmentTabKeys = PayloadKeys | 'play'
 const kPaloadKeys: PayloadKeys[] = [
-  'headers',
   'response',
+  'headers',
   'body',
   'query',
   'params',

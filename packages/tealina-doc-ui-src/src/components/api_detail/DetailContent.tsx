@@ -5,11 +5,10 @@ import {
   type DocItem,
   type DocNode,
   type Entity,
-  type NumberLiteral,
   type ObjectType,
-  type TupleEntity,
+  type TupleEntity
 } from '@tealina/doc-types'
-import { Button, Card, Segmented, Spin, Tabs, Tag, type TabsProps } from 'antd'
+import { Button, Card, Segmented, Spin, Tabs, Tag, Typography, type TabsProps } from 'antd'
 import { useAtomValue } from 'jotai'
 import { Suspense, lazy } from 'react'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
@@ -198,28 +197,18 @@ function PlayloadPanel({
     })
     return <div className="flex flex-col gap-10">{contents}</div>
   }
+  const renderWithLeader = (d: DocNode) => (
+    <div className="flex flex-col gap-3 pb-10">
+      <Typography.Text className='text-1.8em'>
+        {type2cell(d, doc, false)}
+      </Typography.Text>
+      {renderContent(d)}
+    </div>
+  )
   const node2tabItem = (
     v: DocNode,
   ): NonNullable<TabsProps['items']>[number] => {
     switch (v.kind) {
-      case DocKind.EntityRef: {
-        const entity = doc.entityRefs[v.id]
-        const key = String(v.id)
-        return {
-          key,
-          tabKey: key,
-          label: entity.name,
-          children: renderContent(v),
-        }
-      }
-      case DocKind.Array: {
-        const item = node2tabItem(v.element)
-        const { label } = item
-        item.label = String(label).includes('|')
-          ? `(${label}) [ ]`
-          : `${label} [ ]`
-        return item
-      }
       case DocKind.ResponseEntity: {
         const statusCode = String(v.statusCode ?? 200)
         if (v.response == null) {
@@ -228,41 +217,32 @@ function PlayloadPanel({
         return {
           key: statusCode,
           label: statusCode,
-          children: renderContent(v.response),
+          children: renderWithLeader(v.response),
         }
       }
       default: {
-        //  return type2text(v,doc)
         const key = Math.random().toString(16)
         return {
           key,
           tabKey: key,
-          label: v.kind === DocKind.Primitive ? v.type : curTab,
+          label: '200',
           children: type2cell(v, doc),
-          // label: 'PARSER_ERROR',
-          // children: (<p className='text-red'>
-          //   <span>Unexpect doc node</span>
-          //   {JSON.stringify(v)}</p>)
         }
       }
     }
   }
   if (curTab !== 'response') {
-    return (
-      <div className="flex flex-col gap-3 pb-10">
-        {renderContent(targetNode)}
-      </div>
-    )
+    return renderWithLeader(targetNode)
   }
-  const tabItems =
-    targetNode.kind === DocKind.Union
-      ? targetNode.types.map(node2tabItem)
-      : [node2tabItem(targetNode)]
-  //TODO: only show tabs when has status code
+  const isUnion = targetNode.kind === DocKind.Union
+  const hasResponseEntity = isUnion && targetNode.types.some(t => t.kind === DocKind.ResponseEntity)
+  if (!hasResponseEntity) {
+    return renderWithLeader(targetNode)
+  }
+  const tabItems = isUnion ? targetNode.types : [targetNode]
   return (
     <div className="flex flex-col gap-3 pb-10">
-      {/* {renderEntities()} */}
-      <Tabs items={tabItems} tabPosition="left" />
+      <Tabs items={tabItems.map(node2tabItem)} tabPosition="left" />
     </div>
   )
 }

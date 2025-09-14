@@ -14,13 +14,14 @@ function injectDivider([first, ...rest]: ReactElement[], divider = ' | ') {
 export function type2cell(
   d: DocNode,
   doc: Pick<ApiDoc, 'entityRefs' | 'enumRefs' | 'tupleRefs'>,
+  isExpandLiterialObj = true
 ): ReactElement {
   const { entityRefs, enumRefs } = doc
   switch (d.kind) {
     case DocKind.Array:
       return (
         <>
-          {type2cell(d.element, doc)}
+          {type2cell(d.element, doc, isExpandLiterialObj)}
           <span className="dark:text-white tracking-[3px]">[]</span>
         </>
       )
@@ -43,7 +44,7 @@ export function type2cell(
       const target = enumRefs[d.id]
       const eShowName = target.name
       if (eShowName === '') {
-        const textList = target.members.map(v => type2cell(v.value, doc))
+        const textList = target.members.map(v => type2cell(v.value, doc, isExpandLiterialObj))
         return <>{injectDivider(textList)}</>
       }
       return (
@@ -71,12 +72,12 @@ export function type2cell(
     case DocKind.Record:
       return (
         <RecordTypeText
-          keyPart={type2cell(d.key, doc)}
-          valuePart={type2cell(d.value, doc)}
+          keyPart={type2cell(d.key, doc, isExpandLiterialObj)}
+          valuePart={type2cell(d.value, doc, isExpandLiterialObj)}
         />
       )
     case DocKind.Union:
-      return <>{injectDivider(d.types.map(t => type2cell(t, doc)))}</>
+      return <>{injectDivider(d.types.map(t => type2cell(t, doc, isExpandLiterialObj)))}</>
     case DocKind.Tuple:
       return (
         <span className="inline-flex gap-[3px]">
@@ -84,7 +85,7 @@ export function type2cell(
           {d.elements.length ? (
             <span>
               {injectDivider(
-                d.elements.map(t => type2cell(t, doc)),
+                d.elements.map(t => type2cell(t, doc, isExpandLiterialObj)),
                 ', ',
               )}
             </span>
@@ -115,10 +116,13 @@ export function type2cell(
         </ColorText>
       )
     case DocKind.LiteralObject: {
+      if (!isExpandLiterialObj) {
+        return <span>{`{...}`}</span>
+      }
       const nest = d.props.map(n => (
         <div key={n.name} className="pl-4">
           <ColorText type="prop">{n.name}</ColorText>
-          <span>{n.isOptional ? '?' : ''}</span>: {type2cell(n, doc)}
+          <span>{n.isOptional ? '?' : ''}</span>: {type2cell(n, doc, isExpandLiterialObj)}
           {','}
         </div>
       ))
