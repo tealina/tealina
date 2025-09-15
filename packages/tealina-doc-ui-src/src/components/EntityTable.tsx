@@ -1,6 +1,7 @@
 import type { Entity, PropType } from '@tealina/doc-types'
 import { Card, Table, Tag, type TableProps } from 'antd'
 import { useAtomValue } from 'jotai'
+import { ReactNode } from 'react'
 import { syntaxColorAtom } from '../atoms/themeAtom'
 import { type2cell } from '../transformer/type2cell'
 import { Anchor } from './Anchor'
@@ -44,17 +45,21 @@ export function EntityTable({
       key: 'comment',
       dataIndex: 'comment',
       render: (comment, record) => {
-        const isDeperated = record.jsDoc?.deprecated != null
+        const { jsDoc = {} } = record
         return (
-          <span>
-            {isDeperated ? (
-              <>
-                <Tag>deprecated</Tag>
-                <br />
-              </>
-            ) : null}
+          <div>
+            <div className='flex flex-wrap gap-2 max-w-40vw'>
+              {jsDoc.deprecated ? (
+                <>
+                  <Tag>deprecated</Tag>
+                  <br />
+                </>
+              ) : null}
+              {jsDoc.format ? <LabelTag label='fmt' text={jsDoc.format} /> : null}
+              {jsDoc.example ? <LabelTag label='eg' text={String(jsDoc.example)} /> : null}
+            </div>
             {comment}
-          </span>
+          </div>
         )
       },
     },
@@ -84,5 +89,14 @@ export function EntityTable({
         />
       </div>
     </Card>
+  )
+}
+
+function LabelTag({ label, text }: { label: string, text: ReactNode }) {
+  return (
+    <div className='flex gap-1 outline-blue/20 outline-solid w-max rounded dark:text-white/65 text-black/65'>
+      <div className='pl-1'>{label}:</div>
+      <div className='px-1'>{text}</div>
+    </div>
   )
 }
