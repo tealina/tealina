@@ -1,6 +1,5 @@
 import type { ApiDoc, DocItem, DocNode, Entity, PropType, ResponseEntity } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
-import { notNull } from 'fp-lite'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
 const kApplicationJson = 'application/json'
@@ -257,6 +256,7 @@ function extraMetaInfo(schema: OpenAPIV3_1.SchemaObject) {
     jsDoc: {
       default: schema.default,
       format: schema.format,
+      example: schema.example
     },
   }
 }
@@ -377,33 +377,9 @@ function _schema2docNodeCore(
       return { kind: DocKind.Primitive, type: 'null', ...extraMetaInfo(schema) }
 
     case 'object':
-      if (schema.additionalProperties) {
-        if (schema.additionalProperties === true) {
-          return {
-            kind: DocKind.Record,
-            key: { kind: DocKind.Primitive, type: 'string' },
-            value: { kind: DocKind.Primitive, type: 'unknow' },
-            ...extraMetaInfo(schema),
-          }
-        }
-        parsingList.push(schema)
-        const result = {
-          kind: DocKind.Record,
-          key: { kind: DocKind.Primitive, type: 'string' },
-          value: schema2docNode(
-            doc,
-            schema.additionalProperties,
-            allSchems,
-            refs,
-            parsingList,
-          ),
-          ...extraMetaInfo(schema),
-        }
-        parsingList.pop()
-        return result
-      }
       if (schema.properties) {
         const requiredList = schema.required ?? []
+        //todo: may had additionalProperties
         return {
           kind: DocKind.LiteralObject,
           props: Object.entries(schema.properties).map(
@@ -422,6 +398,32 @@ function _schema2docNodeCore(
             },
           ),
           ...extraMetaInfo(schema),
+        }
+      } else {
+        if (schema.additionalProperties) {
+          if (schema.additionalProperties === true) {
+            return {
+              kind: DocKind.Record,
+              key: { kind: DocKind.Primitive, type: 'string' },
+              value: { kind: DocKind.Primitive, type: 'unknow' },
+              ...extraMetaInfo(schema),
+            }
+          }
+          parsingList.push(schema)
+          const result = {
+            kind: DocKind.Record,
+            key: { kind: DocKind.Primitive, type: 'string' },
+            value: schema2docNode(
+              doc,
+              schema.additionalProperties,
+              allSchems,
+              refs,
+              parsingList,
+            ),
+            ...extraMetaInfo(schema),
+          }
+          parsingList.pop()
+          return result
         }
       }
       if ('title' in schema) {
