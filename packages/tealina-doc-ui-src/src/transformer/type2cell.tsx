@@ -22,7 +22,7 @@ export function type2cell(
       return (
         <>
           {type2cell(d.element, doc, isExpandLiterialObj)}
-          <span className="dark:text-white tracking-[3px]">[]</span>
+          <span className="dark:text-white tracking-[5px]">[]</span>
         </>
       )
     // case local
