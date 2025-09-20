@@ -1,4 +1,4 @@
-import { AuthedHandler } from '../../../../types/handler.js'
+import { AuthedHandler, MakeExamplesType } from '../../../../types/handler.js'
 import { Pure } from '../../../../types/pure.js'
 
 type ApiType = AuthedHandler<
@@ -17,3 +17,19 @@ const handler: ApiType = async (req, res) => {
 }
 
 export default handler
+
+export const examples: MakeExamplesType<ApiType> = {
+  body: [
+    {
+      key: 'default',
+      summary: 'basic create',
+      value: { email: 'neo@tealina.dev', skills: 'Node' },
+    },
+    {
+      key: 'case 2',
+      summary: 'create case 2',
+      value: { email: 'yeo@tealina.dev', skills: 'Typescript' },
+    },
+  ],
+  response: { email: 'neo@tealina.dev', skills: 'Node', id: 1, name: 'Neo' },
+}

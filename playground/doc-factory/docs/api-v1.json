@@ -89,6 +89,32 @@
           "kind": 4,
           "id": 2040
         },
+        "examples": {
+          "body": [
+            {
+              "key": "default",
+              "summary": "basic create",
+              "value": {
+                "email": "neo@tealina.dev",
+                "skills": "Node"
+              }
+            },
+            {
+              "key": "case 2",
+              "summary": "create case 2",
+              "value": {
+                "email": "yeo@tealina.dev",
+                "skills": "Typescript"
+              }
+            }
+          ],
+          "response": {
+            "email": "neo@tealina.dev",
+            "skills": "Node",
+            "id": 1,
+            "name": "Neo"
+          }
+        },
         "comment": "Create a use"
       },
       "/user/update": {
@@ -471,5 +497,5 @@
       ]
     }
   },
-  "docTypeVersion": 1
+  "docTypeVersion": 1.1
 }
