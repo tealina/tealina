@@ -19,13 +19,19 @@ describe('test genereta api documentation api/post/createUser', () => {
     tsconfigPath: configpath,
   })
   const {
-    apis: { post },
+    apis: { post, get },
     entityRefs,
     tupleRefs: {},
     enumRefs,
   } = result
   const [[url, doc]] = Object.entries(post)
 
+  test('examples exists', () => {
+    expect(get.user).not.null
+    const userDoc = get.user
+    expect(userDoc.examples).not.null
+    expect(userDoc.examples).toHaveProperty('query')
+  })
   test('all apperence entities', () => {
     expect(post).not.null
     expect(url).eq('user/create')

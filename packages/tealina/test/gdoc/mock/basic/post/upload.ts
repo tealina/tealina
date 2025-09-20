@@ -1,4 +1,4 @@
-import { FuncAPI } from '../../../apiUtility.js'
+import { FuncAPI } from '../../apiUtility.js'
 
 /**
  * upload handler

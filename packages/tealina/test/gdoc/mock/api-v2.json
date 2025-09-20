@@ -3,8 +3,12 @@
     "get": {
       "/health": {
         "response": {
-          "kind": 4,
-          "id": 275
+          "kind": 15,
+          "statusCode": 200,
+          "response": {
+            "kind": 4,
+            "id": 285
+          }
         },
         "comment": "Check server is ok"
       },
@@ -13,18 +17,34 @@
           "kind": 3,
           "types": [
             {
-              "kind": 4,
-              "id": 679
+              "kind": 15,
+              "statusCode": 200,
+              "response": {
+                "kind": 4,
+                "id": 692
+              }
             },
             {
-              "kind": 4,
-              "id": 684
+              "kind": 15,
+              "statusCode": 201,
+              "response": {
+                "kind": 4,
+                "id": 697
+              }
+            },
+            {
+              "kind": 15,
+              "statusCode": 500,
+              "response": {
+                "kind": 7,
+                "value": "Down"
+              }
             }
           ]
         },
         "headers": {
           "kind": 4,
-          "id": 686
+          "id": 707
         },
         "comment": "Get server status. Login required."
       }
@@ -33,17 +53,44 @@
       "/login": {
         "body": {
           "kind": 4,
-          "id": 817
+          "id": 824
+        },
+        "params": {
+          "kind": 4,
+          "id": 825
         },
         "response": {
           "kind": 4,
-          "id": 798
+          "id": 805
+        },
+        "examples": {
+          "body": [
+            {
+              "key": "baisc",
+              "summary": "default",
+              "value": {
+                "account": "neo.yeo",
+                "password": "your_password"
+              }
+            },
+            {
+              "key": "unbasic",
+              "summary": "",
+              "value": {
+                "account": "x",
+                "password": ""
+              }
+            }
+          ],
+          "params": {
+            "id": ""
+          }
         }
       }
     }
   },
   "entityRefs": {
-    "275": {
+    "285": {
       "name": "{ isOk: boolean; }",
       "props": [
         {
@@ -53,7 +100,7 @@
         }
       ]
     },
-    "678": {
+    "692": {
       "name": "{ status: \"Fine\"; }",
       "props": [
         {
@@ -63,39 +110,17 @@
         }
       ]
     },
-    "679": {
-      "name": "WithStatus<200, { status: \"Fine\"; }>",
+    "697": {
+      "name": "{ ok: \"yes\"; }",
       "props": [
-        {
-          "kind": 8,
-          "value": 200,
-          "name": "~status"
-        },
-        {
-          "kind": 4,
-          "id": 678,
-          "name": "response"
-        }
-      ],
-      "comment": "For declare response with http status code"
-    },
-    "684": {
-      "name": "WithStatus<500, \"Down\">",
-      "props": [
-        {
-          "kind": 8,
-          "value": 500,
-          "name": "~status"
-        },
         {
           "kind": 7,
-          "value": "Down",
-          "name": "response"
+          "value": "yes",
+          "name": "ok"
         }
-      ],
-      "comment": "For declare response with http status code"
+      ]
     },
-    "686": {
+    "707": {
       "name": "AuthHeaders",
       "props": [
         {
@@ -105,7 +130,7 @@
         }
       ]
     },
-    "798": {
+    "805": {
       "name": "{ token: string; }",
       "props": [
         {
@@ -115,7 +140,7 @@
         }
       ]
     },
-    "817": {
+    "824": {
       "name": "LoginPayload",
       "props": [
         {
@@ -131,9 +156,19 @@
         }
       ],
       "comment": "Use the 'interface' keyword to declare types\nto ensure the type name is preserved in the API documentation."
+    },
+    "825": {
+      "name": "{ id: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "id"
+        }
+      ]
     }
   },
   "enumRefs": {},
   "tupleRefs": {},
-  "docTypeVersion": 1
+  "docTypeVersion": 1.1
 }

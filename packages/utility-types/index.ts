@@ -54,3 +54,16 @@ export type LastElement<T> = T extends ReadonlyArray<unknown>
 export type MaybeProperty<P, T extends string> = P extends null
   ? {}
   : { [K in T]: P }
+
+export type DocDataKeys = 'body' | 'response' | 'query' | 'params' | 'headers'
+
+export type ExampleItem<V> = {
+  /** Will be render as tab name in `doc-ui` */
+  key: string
+  summary: string
+  value: V
+}
+
+export type Remap2ExampleType<T> = {
+  [K in keyof T]?: ExampleItem<T[K]>[] | T[K]
+}

@@ -21,8 +21,10 @@ import { EntityTable } from '../EntityTable'
 import { EnumTable } from '../EnumTable'
 import { MarkdownView } from '../Markdown'
 import type { OneApiDoc as OneApiSummary } from './ApiDetail'
+import { ExampleDrawer, ExapmleBtn } from './ExampleDrawer'
 import {
   appearedEntity2doc,
+  capitalize,
   getNestEntity,
   toPropType,
   useDetailState,
@@ -113,6 +115,7 @@ export function DetailContent(summary: OneApiSummary) {
           />
         )}
       </div>
+      <ExampleDrawer />
     </div>
   )
 }
@@ -197,11 +200,15 @@ function PlayloadPanel({
     })
     return <div className="flex flex-col gap-10">{contents}</div>
   }
+
   const renderWithLeader = (d: DocNode) => (
     <div className="flex flex-col gap-3 pb-10">
-      <Typography.Text className='text-1.8em'>
-        {type2cell(d, doc, false)}
-      </Typography.Text>
+      <div className='flex gap-3'>
+        <Typography.Text className='text-1.8em'>
+          {type2cell(d, doc, false)}
+        </Typography.Text>
+        <ExapmleBtn exampleItem={docItem.examples?.[key]} title={`${capitalize(curTab)} Examples`} />
+      </div>
       {renderContent(d)}
     </div>
   )
@@ -326,3 +333,4 @@ function PlaygroundPanel({
     </Suspense>
   )
 }
+

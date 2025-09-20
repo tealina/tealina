@@ -1,3 +1,4 @@
+import { ExampleItem, DocDataKeys } from '@tealina/utility-types'
 export const DocKind = {
   /** eg: string,number */
   Primitive: 0,
@@ -136,13 +137,9 @@ export interface ResponseEntity extends Kind {
   response: DocNode
 }
 
-export interface DocItem {
-  body?: DocNode
-  response?: DocNode
-  query?: DocNode
-  params?: DocNode
-  headers?: DocNode
+export interface DocItem extends Partial<Record<DocDataKeys, DocNode>> {
   comment?: string
+  examples?: Record<DocDataKeys, ExampleItem<{}>[] | Record<string, any>>
 }
 
 export interface Entity {

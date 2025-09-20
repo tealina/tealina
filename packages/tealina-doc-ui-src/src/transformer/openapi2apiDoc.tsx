@@ -39,15 +39,17 @@ export function openApi2apiDoc(
   Object.values(schemas).map(collectEntity)
   Object.values(responses).map(collectEntity)
   const reqbody2bodynode = (
-    requestBody: OpenAPIV3_1.OperationObject['requestBody'],
+    requestBody: OpenAPIV3_1.OperationObject['requestBody'], examples: NonNullable<DocItem['examples']>,
   ): Pick<DocItem, 'body'> => {
     if (requestBody == null) return {}
     if ('content' in requestBody) {
       if (requestBody.content[kApplicationJson]) {
+        const obj = requestBody.content[kApplicationJson]
+        examples.body = collectExamples(obj)
         return {
           body: schema2docNode(
             doc,
-            requestBody.content[kApplicationJson].schema!,
+            obj.schema!,
             allSchemas,
             refs,
           ),
@@ -63,6 +65,7 @@ export function openApi2apiDoc(
           ),
         }
       }
+      //TODO: support more media type
       return {}
     }
     return {
@@ -76,6 +79,7 @@ export function openApi2apiDoc(
   }
   const res2responseNode = (
     response: OpenAPIV3_1.OperationObject['responses'],
+    examplesContainer: NonNullable<DocItem['examples']>
   ): Pick<DocItem, 'response'> => {
     if (response == null) return {}
     const statusList = Object.keys(response)
@@ -96,6 +100,7 @@ export function openApi2apiDoc(
         continue
       }
       if (res.headers) {
+        // examplesContainer.resHeaders = collectExamples(obj)
         baisc.headers = {
           kind: DocKind.LiteralObject,
           props: Object.entries(res.headers).map(([name, prop]) => {
@@ -114,6 +119,7 @@ export function openApi2apiDoc(
       }
       if (res.content != null) {
         const contentNodes = Object.entries(res.content).map(([contentType, obj]) => {
+          examplesContainer.response = collectExamples(obj)
           if (obj.schema) {
             return schema2docNode(
               doc,
@@ -165,22 +171,28 @@ export function openApi2apiDoc(
   }
   const kHeaders: Map<number, Entity> = new Map()
   const prameters2rest = (
-    parameters: OpenAPIV3_1.OperationObject['parameters'],
+    parameters: OpenAPIV3_1.OperationObject['parameters'], examples: NonNullable<DocItem['examples']>,
   ): Pick<DocItem, 'headers' | 'params' | 'query'> => {
     if (parameters == null) return {}
     const query: Entity = { name: 'Query', props: [] }
     const headers: Entity = { name: 'Headers', props: [] }
     const params: Entity = { name: 'Parmas', props: [] }
+    const queryExample: Record<string, any> = {}
+    const paramsExample: Record<string, any> = {}
+    const headersExample: Record<string, any> = {}
     const deepParse = (element: OpenAPIV3_1.ParameterObject) => {
       switch (element.in) {
         case 'query': {
+          queryExample[element.name] = collectExamples(element)
           parmasObj2PorpNode(element, query)
           break
         }
         case 'path':
+          paramsExample[element.name] = collectExamples(element)
           parmasObj2PorpNode(element, params)
           break
         case 'header':
+          headersExample[element.name] = collectExamples(element)
           parmasObj2PorpNode(element, headers)
           break
       }
@@ -193,6 +205,15 @@ export function openApi2apiDoc(
         continue
       }
       deepParse(element)
+    }
+    if (Object.keys(queryExample).length > 0) {
+      examples.query = queryExample
+    }
+    if (Object.keys(paramsExample).length > 0) {
+      examples.query = paramsExample
+    }
+    if (Object.keys(headersExample).length > 0) {
+      examples.query = headersExample
     }
     let tailId = Object.values(entityRefs).length - 1
     const result: Pick<DocItem, 'headers' | 'params' | 'query'> = {}
@@ -239,15 +260,30 @@ export function openApi2apiDoc(
       if (apis[method][key] == null) {
         apis[method][key] = {}
       }
+      const examples = {} as NonNullable<DocItem['examples']>
       apis[method][key] = {
-        ...res2responseNode(obj.responses),
-        ...reqbody2bodynode(obj.requestBody),
-        ...prameters2rest(obj.parameters),
+        ...res2responseNode(obj.responses, examples),
+        ...reqbody2bodynode(obj.requestBody, examples),
+        ...prameters2rest(obj.parameters, examples),
         comment: obj.description ?? obj.summary,
+        examples,
       }
     })
   })
   return { apis, docTypeVersion: 1.0, ...refs }
+  function collectExamples(obj: OpenAPIV3_1.MediaTypeObject) {
+    const list = []
+    if (obj.example) {
+      if (obj.examples == null) return obj.example
+      list.push({ key: 'default', value: getAcutalExample(obj.example, doc) })
+    }
+    if (obj.examples) {
+      const examples = Object.entries(obj.examples).map(([key, value]) => ({ key, ...getAcutalExample(value, doc) }))
+      list.push(...examples)
+    }
+    if (list.length <= 0) return
+    return list
+  }
 }
 
 function extraMetaInfo(schema: OpenAPIV3_1.SchemaObject) {
@@ -519,6 +555,7 @@ function _schema2docNodeCore(
       return { ...result, ...extraMetaInfo(schema) }
     }
   }
+
 }
 
 export function schema2docNode(
@@ -558,4 +595,23 @@ export function schema2docNode(
     node.jsDoc = { ...(node.jsDoc ?? {}), deprecated: '' }
   }
   return node
+}
+
+
+
+function getAcutalExample(obj: OpenAPIV3_1.ReferenceObject | OpenAPIV3_1.ExampleObject,
+  doc: OpenAPIV3_1.Document) {
+  if ('$ref' in obj) {
+    return getEntityFromRef(obj.$ref, doc)
+  }
+  return obj
+}
+
+function getEntityFromRef(ref: string, doc: OpenAPIV3_1.Document) {
+  const keys = ref.split('/').slice(1)
+  const entity = keys.reduce(
+    (acc, cur) => acc[cur as keyof typeof acc] as any,
+    doc,
+  ) as OpenAPIV3_1.SchemaObject
+  return entity
 }

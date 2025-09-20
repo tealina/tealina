@@ -8,6 +8,7 @@ import type {
   TupleEntity,
 } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
+import { DocDataKeys } from '@tealina/utility-types'
 import { pickFn } from 'fp-lite'
 import type { OpenAPIV3_1 } from 'openapi-types'
 import { ResponseEntity } from './parseDeclarationFile'
@@ -190,12 +191,36 @@ export function convertToOpenApiJson(
       },
     }
   }
+  type ExampleValueType = NonNullable<DocItem['examples']>[DocDataKeys]
+  function formatExamples(exampleItems?: ExampleValueType) {
+    if (exampleItems == null) return {}
+    if (!Array.isArray(exampleItems)) {
+      return { example: exampleItems }
+    }
+    const kvs = exampleItems.map(({ key, summary, value }) => [
+      [key],
+      { summary, value },
+    ])
+    return { examples: Object.fromEntries(kvs) }
+  }
+
+  function formatExampleByKey(key: string, exampleItems?: ExampleValueType) {
+    if (exampleItems == null) return {}
+    if (Array.isArray(exampleItems)) {
+      return formatExamples(exampleItems)
+    }
+    if (exampleItems[key]) {
+      return { example: exampleItems[key] }
+    }
+    return {}
+  }
 
   function convertDocItemToPathItem(docItem: DocItem): any {
     const headEntity = getHeadEntity(docItem, apiDoc.entityRefs)
     const pathItem: OpenAPIV3_1.OperationObject = {
       responses: convertRichResponse(docItem.response),
     }
+    const { examples } = docItem
     if (docItem.body) {
       const getRequestContentType = (props: PropType[]) => {
         const prop = props.find(v => kContentTypePattern.test(v.name))
@@ -203,11 +228,13 @@ export function convertToOpenApiJson(
         if (prop.kind !== DocKind.StringLiteral) return kApplicationJson
         return prop.value
       }
+      const bodyExamples = formatExamples(examples?.body)
       pathItem.requestBody = {
         ...getExtraInfo(docItem.body),
         content: {
           [getRequestContentType(headEntity.props)]: {
             schema: convertDocNodeToSchema(docItem.body),
+            ...bodyExamples,
           },
         },
       }
@@ -216,20 +243,32 @@ export function convertToOpenApiJson(
     if (docItem.query) {
       pathItem.parameters = pathItem.parameters ?? []
       pathItem.parameters.push(
-        ...convertDocNodeToFlatProps(docItem.query, { in: 'query' }),
+        ...convertDocNodeToFlatProps(
+          docItem.query,
+          { in: 'query' },
+          examples?.query,
+        ),
       )
     }
 
     if (docItem.params) {
       pathItem.parameters = pathItem.parameters ?? []
       pathItem.parameters.push(
-        ...convertDocNodeToFlatProps(docItem.params, { in: 'path' }),
+        ...convertDocNodeToFlatProps(
+          docItem.params,
+          { in: 'path' },
+          examples?.params,
+        ),
       )
     }
     if (docItem.headers) {
       pathItem.parameters = pathItem.parameters ?? []
       pathItem.parameters.push(
-        ...convertDocNodeToFlatProps(docItem.headers, { in: 'header' }),
+        ...convertDocNodeToFlatProps(
+          docItem.headers,
+          { in: 'header' },
+          examples?.headers,
+        ),
       )
     }
 
@@ -336,6 +375,7 @@ export function convertToOpenApiJson(
   function convertDocNodeToFlatProps(
     docNode: DocNode,
     extra: Record<string, string>,
+    exampleItems?: ExampleValueType,
   ): any {
     switch (docNode.kind) {
       case DocKind.EntityRef: {
@@ -345,6 +385,7 @@ export function convertToOpenApiJson(
           ...getExtraInfo(p),
           name: p.name,
           schema: convertDocNodeToSchema(p),
+          ...formatExampleByKey(p.name, exampleItems),
         }))
       }
       default:

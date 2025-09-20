@@ -1,4 +1,4 @@
-import { ApiHandler } from '../../apiUtility.js'
+import { ApiHandler, MakeExampleType } from '../../apiUtility.js'
 
 interface RestfulInputType {
   /**
@@ -9,6 +9,11 @@ interface RestfulInputType {
   }
 }
 
-const handler: ApiHandler<RestfulInputType> = (req, res, next) => {}
+type ApiType = ApiHandler<RestfulInputType>
+const handler: ApiType = (req, res, next) => {}
 
 export default handler
+
+export const examples: MakeExampleType<ApiType> = {
+  query: { page: 1 },
+}

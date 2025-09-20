@@ -10,6 +10,7 @@ import type {
   Simplify,
   LastElement,
   ExtractResponse,
+  Remap2ExampleType,
 } from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
@@ -73,3 +74,7 @@ export type ResolveApiType<
 export type CustomHandlerType =
   | AuthedHandler<any, any, any>
   | OpenHandler<any, any, any>
+
+export type TakePayload<T> = T extends OpenHandler<infer P, any, any>
+  ? Remap2ExampleType<P>
+  : never

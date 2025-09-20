@@ -167,6 +167,52 @@ const handleResponse = (response) => {
   }
   return response
 }
+
+/**
+ * @param {ts.Declaration|ts.Node} node // the examples symbol
+ * @returns {Record<string,any>|string|number|boolean}
+ */
+const extractValueFromExpression = (node) => {
+  if (ts.isObjectLiteralExpression(node)) {
+    const result = {};
+    node.properties.forEach(property => {
+      if (ts.isPropertyAssignment(property)) {
+        const key = property.name.getText();
+        // @ts-ignore
+        result[key] = extractValueFromExpression(property.initializer);
+      }
+    });
+    return result;
+  }
+  if (ts.isStringLiteral(node)) {
+    return node.text;
+  }
+  if (ts.isNumericLiteral(node)) {
+    return Number(node.text);
+  }
+  if (node.kind === ts.SyntaxKind.TrueKeyword) {
+    return true;
+  }
+  if (node.kind === ts.SyntaxKind.FalseKeyword) {
+    return false;
+  }
+  if (ts.isIdentifier(node)) {
+    // @ts-ignore
+    const actualNode = node.flowNode.node ?? node
+    return extractValueFromExpression(actualNode.initializer)
+  }
+  // if (ts.isCallExpression(node)) {
+  //   const [firstArgument] = node.arguments
+  //   return extractValueFromExpression(firstArgument)
+  // }
+  if (ts.isArrayLiteralExpression(node)) {
+    return node.elements.map(extractValueFromExpression)
+  }
+  const k = ts.SyntaxKind[node.kind]
+  console.warn('unhandled syntax kind: ', k)
+  return node.getText();
+}
+
 /**
  * @param {ts.Symbol} s
  * @returns {Record<string,DocItem>}
@@ -193,6 +239,11 @@ const parseApi = s => {
     )
   }
   const exportSymbol = target.members.get('default')
+  const exampleNode = target.members.get('examples');
+  let examples;
+  if (exampleNode != null) {
+    examples = extractValueFromExpression(exampleNode.valueDeclaration.initializer)
+  }
   const handlerSymbol = getHandlerSymbol(exportSymbol.declarations[0])
   const comment = getCommentFromSymbol(handlerSymbol)
   const jsDoc = getJsDoc(handlerSymbol)
@@ -202,8 +253,9 @@ const parseApi = s => {
   ])
   const payload = Object.fromEntries(keyValues)
   payload.response = handleResponse(payload.response)
-  return { ...payload, comment, jsDoc }
+  return { ...payload, examples, comment, jsDoc }
 }
+
 
 const makeEnumValueParser =
   (pre = 0) =>

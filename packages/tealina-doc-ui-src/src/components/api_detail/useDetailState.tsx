@@ -11,7 +11,9 @@ import type {
 } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 import type { SegmentedValue } from 'antd/es/segmented'
+import { useAtom, useSetAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { exampleAtom, exampleTitleAtom } from './ExampleDrawer'
 export type PayloadKeys = keyof Pick<
   DocItem,
   'headers' | 'body' | 'response' | 'query' | 'params'
@@ -129,7 +131,7 @@ const kPaloadKeys: PayloadKeys[] = [
   'params',
 ]
 
-const capitalize = <T extends string>(x: T): Capitalize<T> =>
+export const capitalize = <T extends string>(x: T): Capitalize<T> =>
   [x[0].toUpperCase(), x.slice(1)].join('') as Capitalize<T>
 
 export function genEmptyApiDoc(): OneApiScopeEntitie {
@@ -176,10 +178,18 @@ export function useDetailState(_doc: ApiDoc, docItem: DocItem) {
   const appearedKeys = useMemo<PayloadKeys[]>(extraNotNull(docItem), [docItem])
   const tabOptions = useMemo(() => keys2tabOptions(appearedKeys), [docItem])
   const [curTab, setCurTab] = useState<SegmentTabKeys>(appearedKeys[0])
+  const setExample = useSetAtom(exampleAtom)
+  const [drawerTitle, setDrawerTitle] = useAtom(exampleTitleAtom)
 
   const memoMap = useRef(new Map<PayloadKeys, AppearedEntity[]>())
   const handleTabChange = (v: SegmentedValue) => {
-    setCurTab(v as SegmentTabKeys)
+    const kind = v as SegmentTabKeys
+    setCurTab(kind)
+    if (kind === 'play') return
+    if (drawerTitle) {
+      setExample(docItem.examples?.[kind])
+      setDrawerTitle(`${capitalize(kind)} Examples`)
+    }
   }
   useEffect(() => {
     memoMap.current.clear()
