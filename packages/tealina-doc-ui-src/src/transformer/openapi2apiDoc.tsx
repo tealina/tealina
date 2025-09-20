@@ -1,4 +1,4 @@
-import type { ApiDoc, DocItem, DocNode, Entity, PropType, ResponseEntity } from '@tealina/doc-types'
+import type { ApiDoc, DocItem, DocNode, Entity, LiteralEntity, PropType, ResponseEntity } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
@@ -9,35 +9,30 @@ export function openApi2apiDoc(
   doc: OpenAPIV3_1.Document,
   baseURL: string,
 ): ApiDoc {
-  const { schemas = {}, responses = {} } = doc.components ?? {}
-  const allSchemas = [
-    ...Object.keys(schemas).map(k => `#/components/schemas/${k}`),
-    ...Object.keys(responses).map(k => `#/components/responses/${k}`),
-  ]
+  const refIdMap: Map<string, number> = new Map()
   const refs: ApiRefs = {
     entityRefs: {},
     enumRefs: {},
     tupleRefs: {},
   }
   const { entityRefs } = refs
-  let i = 0
-  const collectEntity = (schema: OpenAPIV3_1.SchemaObject): void => {
-    const name = allSchemas[i].split('/').pop() ?? '{ }'
-    const properties = schema.properties ?? {}
-    entityRefs[i] = {
-      name,
-      props: Object.entries(properties).map(([name, schema]) => {
-        return {
-          name,
-          ...schema2docNode(doc, schema, allSchemas, refs),
-        }
-      }),
-      comment: schema.description,
+  const collectEntity = (): void => {
+    for (const [ref, id] of refIdMap) {
+      const name = ref.split('/').pop() ?? '{ }'
+      const schema = getEntityFromRef(ref, doc)
+      const properties = schema.properties ?? {}
+      entityRefs[id] = {
+        name,
+        props: Object.entries(properties).map(([name, schema]) => {
+          return {
+            name,
+            ...schema2docNode(doc, schema, refIdMap, refs),
+          }
+        }),
+        comment: schema.description,
+      }
     }
-    i++
   }
-  Object.values(schemas).map(collectEntity)
-  Object.values(responses).map(collectEntity)
   const reqbody2bodynode = (
     requestBody: OpenAPIV3_1.OperationObject['requestBody'], examples: NonNullable<DocItem['examples']>,
   ): Pick<DocItem, 'body'> => {
@@ -50,7 +45,7 @@ export function openApi2apiDoc(
           body: schema2docNode(
             doc,
             obj.schema!,
-            allSchemas,
+            refIdMap,
             refs,
           ),
         }
@@ -60,7 +55,7 @@ export function openApi2apiDoc(
           body: schema2docNode(
             doc,
             requestBody.content[kMultipartForm].schema!,
-            allSchemas,
+            refIdMap,
             refs,
           ),
         }
@@ -72,7 +67,7 @@ export function openApi2apiDoc(
       body: schema2docNode(
         doc,
         requestBody as unknown as OpenAPIV3_1.ReferenceObject,
-        allSchemas,
+        refIdMap,
         refs,
       ),
     }
@@ -92,7 +87,7 @@ export function openApi2apiDoc(
       }
 
       if ('$ref' in res) {
-        const node = schema2docNode(doc, res, allSchemas, refs)
+        const node = schema2docNode(doc, res, refIdMap, refs)
         nodes.push({
           ...baisc,
           response: node
@@ -110,7 +105,7 @@ export function openApi2apiDoc(
               ...schema2docNode(
                 doc,
                 t,
-                allSchemas,
+                refIdMap,
                 refs,
               )
             }
@@ -124,7 +119,7 @@ export function openApi2apiDoc(
             return schema2docNode(
               doc,
               obj.schema,
-              allSchemas,
+              refIdMap,
               refs,
             )
           }
@@ -160,23 +155,22 @@ export function openApi2apiDoc(
 
   const parmasObj2PorpNode = (
     param: OpenAPIV3_1.ParameterObject,
-    entiry: Entity,
-  ) => {
-    const node = schema2docNode(doc, param.schema!, allSchemas, refs)
-    entiry.props.push({
+  ): PropType => {
+    const node = schema2docNode(doc, param.schema!, refIdMap, refs)
+    return ({
       ...node,
       name: param.name,
       ...(param.required ? {} : { isOptional: true }),
+      comment: node.comment ?? param.description
     })
   }
-  const kHeaders: Map<number, Entity> = new Map()
   const prameters2rest = (
     parameters: OpenAPIV3_1.OperationObject['parameters'], examples: NonNullable<DocItem['examples']>,
   ): Pick<DocItem, 'headers' | 'params' | 'query'> => {
     if (parameters == null) return {}
-    const query: Entity = { name: 'Query', props: [] }
-    const headers: Entity = { name: 'Headers', props: [] }
-    const params: Entity = { name: 'Parmas', props: [] }
+    const queryProps: PropType[] = []
+    const headersProps: PropType[] = []
+    const paramsProps: PropType[] = []
     const queryExample: Record<string, any> = {}
     const paramsExample: Record<string, any> = {}
     const headersExample: Record<string, any> = {}
@@ -184,16 +178,16 @@ export function openApi2apiDoc(
       switch (element.in) {
         case 'query': {
           queryExample[element.name] = collectExamples(element)
-          parmasObj2PorpNode(element, query)
+          queryProps.push(parmasObj2PorpNode(element))
           break
         }
         case 'path':
           paramsExample[element.name] = collectExamples(element)
-          parmasObj2PorpNode(element, params)
+          paramsProps.push(parmasObj2PorpNode(element))
           break
         case 'header':
           headersExample[element.name] = collectExamples(element)
-          parmasObj2PorpNode(element, headers)
+          headersProps.push(parmasObj2PorpNode(element))
           break
       }
     }
@@ -215,36 +209,15 @@ export function openApi2apiDoc(
     if (Object.keys(headersExample).length > 0) {
       examples.query = headersExample
     }
-    let tailId = Object.values(entityRefs).length - 1
     const result: Pick<DocItem, 'headers' | 'params' | 'query'> = {}
-    if (headers.props.length > 0) {
-      const existsingHeaders = [...kHeaders.values()]
-      const sameOne = existsingHeaders.find(e => {
-        const hProps = headers.props
-        if (e.props.length !== hProps.length) return false
-        for (const prop of e.props) {
-          const sameName = hProps.find(h => h.name === prop.name)
-          if (sameName == null) return false
-          if (sameName.isOptional !== prop.isOptional) return false
-        }
-        return true
-      })
-      if (sameOne == null) {
-        tailId += 1
-        entityRefs[tailId] = headers
-        kHeaders.set(tailId, headers)
-        result.headers = { kind: DocKind.EntityRef, id: tailId }
-      }
+    if (headersProps.length > 0) {
+      result.headers = { kind: DocKind.LiteralObject, props: headersProps }
     }
-    if (query.props.length > 0) {
-      tailId += 1
-      entityRefs[tailId] = query
-      result.query = { kind: DocKind.EntityRef, id: tailId }
+    if (queryProps.length > 0) {
+      result.query = { kind: DocKind.LiteralObject, props: queryProps }
     }
-    if (params.props.length > 0) {
-      tailId += 1
-      entityRefs[tailId] = params
-      result.params = { kind: DocKind.EntityRef, id: tailId }
+    if (paramsProps.length > 0) {
+      result.params = { kind: DocKind.LiteralObject, props: paramsProps }
     }
     return result
   }
@@ -270,6 +243,7 @@ export function openApi2apiDoc(
       }
     })
   })
+  collectEntity()
   return { apis, docTypeVersion: 1.0, ...refs }
   function collectExamples(obj: OpenAPIV3_1.MediaTypeObject) {
     const list = []
@@ -297,15 +271,24 @@ function extraMetaInfo(schema: OpenAPIV3_1.SchemaObject) {
   }
 }
 
+function getRefId(refIdMap: Map<string, number>, ref: string) {
+  let id = refIdMap.get(ref)
+  if (id == null) {
+    id = refIdMap.size + 1
+    refIdMap.set(ref, id)
+  }
+  return id
+}
+
 function _schema2docNodeCore(
   doc: OpenAPIV3_1.Document,
   schema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject,
-  allSchems: string[],
+  refIdMap: Map<string, number>,
   refs: ApiRefs,
   parsingList: OpenAPIV3_1.SchemaObject[] = [],
 ): DocNode {
   if ('$ref' in schema) {
-    const id = allSchems.indexOf(schema.$ref)
+    const id = getRefId(refIdMap, schema.$ref)
     if (id === -1) {
       return { kind: DocKind.Never }
     }
@@ -313,13 +296,9 @@ function _schema2docNodeCore(
     if (parsingList.includes(schema)) {
       return { kind: DocKind.RecursionEntity, id, ...extraMetaInfo(schema) }
     }
-    const keys = schema.$ref.split('/').slice(1)
-    const entity = keys.reduce(
-      (acc, cur) => acc[cur as keyof typeof acc] as any,
-      doc,
-    ) as OpenAPIV3_1.SchemaObject
+    const entity = getEntityFromRef(schema.$ref, doc)
     if (entity.type !== 'object') {
-      return schema2docNode(doc, entity, allSchems, refs, parsingList)
+      return schema2docNode(doc, entity, refIdMap, refs, parsingList)
     }
     return { id: id, kind: DocKind.EntityRef, ...extraMetaInfo(schema) }
   }
@@ -333,7 +312,7 @@ function _schema2docNodeCore(
           element: {
             kind: DocKind.Tuple,
             elements: schema.oneOf!.map(v =>
-              schema2docNode(doc, v, allSchems, refs, parsingList),
+              schema2docNode(doc, v, refIdMap, refs, parsingList),
             ),
           },
           ...extraMetaInfo(schema),
@@ -344,7 +323,7 @@ function _schema2docNodeCore(
           kind: DocKind.Array,
           element: isUnknowType
             ? { kind: DocKind.Primitive, type: 'unknow' }
-            : schema2docNode(doc, schema.items, allSchems, refs, parsingList),
+            : schema2docNode(doc, schema.items, refIdMap, refs, parsingList),
           ...extraMetaInfo(schema),
         }
       }
@@ -425,7 +404,7 @@ function _schema2docNodeCore(
                 ...schema2docNode(
                   doc,
                   _nestSchema,
-                  allSchems,
+                  refIdMap,
                   refs,
                   parsingList,
                 ),
@@ -452,7 +431,7 @@ function _schema2docNodeCore(
             value: schema2docNode(
               doc,
               schema.additionalProperties,
-              allSchems,
+              refIdMap,
               refs,
               parsingList,
             ),
@@ -484,12 +463,12 @@ function _schema2docNodeCore(
         result = {
           kind: DocKind.Union,
           types: oneOf.map(v =>
-            schema2docNode(doc, v, allSchems, refs, parsingList),
+            schema2docNode(doc, v, refIdMap, refs, parsingList),
           ),
         } // Union
       } else if (allOf != null) {
         const nodes = allOf.map(v =>
-          schema2docNode(doc, v, allSchems, refs, parsingList),
+          schema2docNode(doc, v, refIdMap, refs, parsingList),
         )
         if (nodes.length == 1) return nodes[0]
         const names: string[] = []
@@ -508,7 +487,7 @@ function _schema2docNodeCore(
           return getObjType(n)
         }).flat().filter(v => v != null)
         for (const n of allObjects) {
-          if ('name' in n) {
+          if (n.name != null) {
             names.push(n.name)
             props.push(...n.props)
             continue
@@ -522,23 +501,23 @@ function _schema2docNodeCore(
           props,
           comment: schema.description ?? ''
         }
-        const nextId = Object.keys(refs.entityRefs).length
-        refs.entityRefs[nextId] = mergedEntity
+        // const nextId = refIdMap.size + 1
+        // refs.entityRefs[nextId] = mergedEntity
         result = {
-          kind: DocKind.EntityRef,
-          id: nextId,
+          kind: DocKind.LiteralObject,
+          ...mergedEntity,
         }
       } else if (anyOf != null) {
         result = {
           kind: DocKind.Union,
           types: anyOf.map(v =>
-            schema2docNode(doc, v, allSchems, refs, parsingList),
+            schema2docNode(doc, v, refIdMap, refs, parsingList),
           ),
         }
       } else if (Object.keys(schema).length > 0) {
         if ('content' in schema) {
           const nodes = Object.entries(schema.content ?? {}).map(([_contentType, obj]) => {
-            return schema2docNode(doc, obj, allSchems, refs, parsingList)
+            return schema2docNode(doc, obj, refIdMap, refs, parsingList)
           })
           result = nodes.length > 1 ? { kind: DocKind.Union, types: nodes } : nodes[0]
         } else {
@@ -565,7 +544,7 @@ export function schema2docNode(
     | OpenAPIV3_1.SchemaObject
     | OpenAPIV3_1.ReferenceObject
     | OpenAPIV3_1.HeaderObject,
-  allSchems: string[],
+  refIdMap: Map<string, number>,
   refs: ApiRefs,
   parsingList: OpenAPIV3_1.SchemaObject[] = [],
 ): DocNode {
@@ -585,11 +564,11 @@ export function schema2docNode(
       kind: DocKind.Union,
       types: [
         { kind: DocKind.Primitive, type: 'null' },
-        _schema2docNodeCore(doc, actualSchema, allSchems, refs, parsingList),
+        _schema2docNodeCore(doc, actualSchema, refIdMap, refs, parsingList),
       ],
     }
   } else {
-    node = _schema2docNodeCore(doc, actualSchema, allSchems, refs, parsingList)
+    node = _schema2docNodeCore(doc, actualSchema, refIdMap, refs, parsingList)
   }
   if ('deprecated' in docObject) {
     node.jsDoc = { ...(node.jsDoc ?? {}), deprecated: '' }
