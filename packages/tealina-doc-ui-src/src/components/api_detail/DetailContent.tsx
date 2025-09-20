@@ -189,7 +189,7 @@ function PlayloadPanel({
           const key = Math.random().toString(16)
           return (
             <EntityTable
-              entity={{ ...k.value, name: '{...}' }}
+              entity={k.value}
               key={key}
               id={key}
               doc={parsedDoc}

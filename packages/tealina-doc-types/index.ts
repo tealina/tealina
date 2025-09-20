@@ -102,6 +102,7 @@ export interface RecursionEntity extends Kind {
 }
 
 export interface LiteralEntity extends Kind {
+  name?: string
   kind: DocKind['LiteralObject']
   props: PropType[]
   comment?: string
