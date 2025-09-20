@@ -8,6 +8,7 @@ import { Anchor } from './Anchor'
 import { ColorText } from './ColorText'
 import { CommentSummary } from './CommentSummary'
 import type { EntityOnlyDoc } from './api_detail/useDetailState'
+import { MarkdownView } from './Markdown'
 
 export function EntityTable({
   entity,
@@ -15,7 +16,7 @@ export function EntityTable({
   id,
 }: {
   id: string
-  entity: Entity
+  entity: Omit<Entity, 'name'> & { name?: string }
   doc: EntityOnlyDoc
 }) {
   const TypeColors = useAtomValue(syntaxColorAtom)
@@ -58,7 +59,9 @@ export function EntityTable({
               {jsDoc.format ? <LabelTag label='fmt' text={jsDoc.format} /> : null}
               {jsDoc.example ? <LabelTag label='eg' text={String(jsDoc.example)} /> : null}
             </div>
-            {comment}
+            <div className='-my-4'>
+              <MarkdownView>{comment}</MarkdownView>
+            </div>
           </div>
         )
       },
@@ -75,7 +78,8 @@ export function EntityTable({
     <Card bodyStyle={{ padding: 10 }}>
       <div className="text-lg">
         <div>
-          {entity.comment && <CommentSummary comment={entity.comment} />}
+
+          {entity.comment && <div className='-my-4'><MarkdownView>{entity.comment}</MarkdownView></div>}
           <Anchor id={id} style={{ color: TypeColors.any }}>
             {entity.name}
           </Anchor>
