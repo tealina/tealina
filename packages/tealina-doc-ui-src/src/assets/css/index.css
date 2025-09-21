@@ -5,3 +5,28 @@ body > #root {
   overflow: hidden;
   margin: 0;
 }
+
+.dark ::-webkit-scrollbar-track {
+  background: #2a3846;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #4b307c,#775884);;
+  /* border: ; */
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #54768d;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #d3dcf0, #8995b7);
+  border-radius: 8px;
+  /* border: 2px solid #f1f1f1; */
+}
