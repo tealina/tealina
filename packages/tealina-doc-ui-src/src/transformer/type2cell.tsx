@@ -117,7 +117,12 @@ export function type2cell(
       )
     case DocKind.LiteralObject: {
       if (!isExpandLiterialObj) {
-        return <span>{d.name}</span>
+        let name = d.name
+        if (name == null) {
+          const [firstProp] = d.props
+          name = `{ ${firstProp.name} ... }`
+        }
+        return <ColorText type="object">{name}</ColorText>
       }
       const nest = d.props.map(n => (
         <div key={n.name} className="pl-4">
