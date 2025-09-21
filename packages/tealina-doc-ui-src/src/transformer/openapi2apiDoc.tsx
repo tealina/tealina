@@ -1,4 +1,4 @@
-import type { ApiDoc, DocItem, DocNode, Entity, LiteralEntity, PropType, ResponseEntity } from '@tealina/doc-types'
+import type { ApiDoc, DocItem, DocNode, Entity, PropType, ResponseEntity } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
@@ -81,12 +81,20 @@ export function openApi2apiDoc(
     const nodes: ResponseEntity[] = []
     for (const status of statusList) {
       const res = response[status]
-      const baisc: Pick<ResponseEntity, 'kind' | 'statusCode' | 'headers'> = {
+      const baisc: Pick<ResponseEntity, 'kind' | 'statusCode' | 'headers' | 'comment'> = {
         kind: DocKind.ResponseEntity,
         statusCode: Number(status),
+        comment: res.description
       }
-
       if ('$ref' in res) {
+        const entity = getEntityFromRef(res.$ref, doc)
+        if (entity.$schema == null) {
+          nodes.push({
+            ...baisc,
+            comment: entity.description
+          })
+          continue
+        }
         const node = schema2docNode(doc, res, refIdMap, refs)
         nodes.push({
           ...baisc,
@@ -129,22 +137,13 @@ export function openApi2apiDoc(
             comment: contentType,
           }
         })
-        if (contentNodes.length > 1) {
-          return {
-            ...baisc,
-            response: { kind: DocKind.Union, types: contentNodes }
-          }
-        }
-        return {
-          ...baisc,
-          response: contentNodes[0]
-        }
-      }
-      if (nodes.length == 0) {
         nodes.push({
           ...baisc,
-          response: { kind: DocKind.StringLiteral, value: res.description }
+          response: contentNodes.length > 1 ? { kind: DocKind.Union, types: contentNodes } : contentNodes[0]
         })
+      }
+      if (nodes.length == 0) {
+        nodes.push(baisc)
       }
     }
     if (nodes.length === 1) {
@@ -394,24 +393,27 @@ function _schema2docNodeCore(
     case 'object':
       if (schema.properties) {
         const requiredList = schema.required ?? []
+        const propNodes: PropType[] = Object.entries(schema.properties).map(
+          ([name, _nestSchema]) => {
+            return {
+              name,
+              ...schema2docNode(
+                doc,
+                _nestSchema,
+                refIdMap,
+                refs,
+                parsingList
+              ),
+              ...(requiredList.includes(name) ? {} : { isOptional: true }),
+            }
+          }
+        )
+        // const [firstProp] = propNodes
         //todo: may had additionalProperties
         return {
+          // name: firstProp ? `{${firstProp.name}...}` : '{ }',
           kind: DocKind.LiteralObject,
-          props: Object.entries(schema.properties).map(
-            ([name, _nestSchema]) => {
-              return {
-                name,
-                ...schema2docNode(
-                  doc,
-                  _nestSchema,
-                  refIdMap,
-                  refs,
-                  parsingList,
-                ),
-                ...(requiredList.includes(name) ? {} : { isOptional: true }),
-              }
-            },
-          ),
+          props: propNodes,
           ...extraMetaInfo(schema),
         }
       } else {

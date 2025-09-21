@@ -187,6 +187,9 @@ function PlayloadPanel({
         }
         case 'literal': {
           const key = Math.random().toString(16)
+          if (k.value.props.length <= 0) {
+            return <ColorText type='object'>{`{ }`}</ColorText>
+          }
           return (
             <EntityTable
               entity={k.value}
@@ -219,12 +222,15 @@ function PlayloadPanel({
       case DocKind.ResponseEntity: {
         const statusCode = String(v.statusCode ?? 200)
         if (v.response == null) {
-          return { key: statusCode, label: statusCode, children: <p></p> }
+          return { key: statusCode, label: statusCode, children: <p>{v.comment}</p> }
         }
         return {
           key: statusCode,
           label: statusCode,
-          children: renderWithLeader(v.response),
+          children: <div>
+            {v.comment && <p>{v.comment}</p>}
+            {renderWithLeader(v.response)}
+          </div>
         }
       }
       default: {
@@ -242,10 +248,13 @@ function PlayloadPanel({
     return renderWithLeader(targetNode)
   }
   const isUnion = targetNode.kind === DocKind.Union
-  const hasResponseEntity = isUnion && targetNode.types.some(t => t.kind === DocKind.ResponseEntity)
-  if (!hasResponseEntity) {
-    return renderWithLeader(targetNode)
+  if (isUnion) {
+    const hasResponseEntity = targetNode.types.some(t => t.kind === DocKind.ResponseEntity)
+    if (!hasResponseEntity) {
+      return renderWithLeader(targetNode)
+    }
   }
+
   const tabItems = isUnion ? targetNode.types : [targetNode]
   return (
     <div className="flex flex-col gap-3 pb-10">
