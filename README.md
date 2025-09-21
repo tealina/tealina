@@ -10,7 +10,7 @@ The Full-Stack Automation Kit: Code Gen CLI, Interactive Docs & Type-Safe Client
 <p align="center">
 No Framework Left Behind: Seamless E2E Types for Express, Fastify, and Koa with Minimal Changes.
 </p>
-<p> 💫 Full Feature Set Coming in V2 – Even More Powerful. 💫 </p>
+<p align="center"> 💫 Full Feature Set Coming in V2 – Even More Powerful. 💫 </p>
 
 <p align="center">
 <a href="https://github.com/tealina/tealina/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a> 
