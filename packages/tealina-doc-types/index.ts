@@ -135,7 +135,8 @@ export interface ResponseEntity extends Kind {
   kind: DocKind['ResponseEntity']
   statusCode?: number
   headers?: DocNode
-  response: DocNode
+  response?: DocNode
+  comment?: string
 }
 
 export interface DocItem extends Partial<Record<DocDataKeys, DocNode>> {
