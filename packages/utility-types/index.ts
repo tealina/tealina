@@ -73,6 +73,6 @@ export type ExampleItem<V> = {
   value: V
 }
 
-export type Remap2ExampleType<T> = {
+export type RemapToExampleType<T> = {
   [K in keyof T]?: ExampleItem<T[K]>[] | T[K]
 }

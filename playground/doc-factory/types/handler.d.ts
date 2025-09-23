@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 import type { AuthHeaders, AuthedLocals } from './common.js'
-import { Remap2ExampleType } from '@tealina/utility-types'
+import { RemapToExampleType } from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
 
@@ -85,5 +85,5 @@ export type MakeExamplesType<T> = T extends OpenHandler<
   any,
   any
 >
-  ? Remap2ExampleType<P & { response: R }>
+  ? RemapToExampleType<P & { response: R }>
   : never

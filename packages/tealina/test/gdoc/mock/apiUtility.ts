@@ -1,4 +1,4 @@
-import type { DocDataKeys, Remap2ExampleType } from '@tealina/utility-types'
+import type { DocDataKeys, RemapToExampleType } from '@tealina/utility-types'
 export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 export type ModelId = {
@@ -81,7 +81,7 @@ export type MakeExampleType<T> = T extends ApiHandler<
   any,
   any
 >
-  ? Remap2ExampleType<P & { response: R }>
+  ? RemapToExampleType<P & { response: R }>
   : never
 
 type A = MakeExampleType<FuncAPI<{ query: { page: number } }>>
