@@ -1,55 +1,49 @@
+import type {
+  ExtractResponse,
+  LastElement,
+  RemapToExampleType,
+  Simplify,
+} from '@tealina/utility-types'
 import type { ExtendableContext } from 'koa'
 import type { AuthHeaders, AuthedLocals } from './common.js'
-import type {
-  MaybeProperty,
-  Simplify,
-  LastElement,
-  ExtractResponse,
-  Remap2ExampleType,
-} from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
 
 export type HTTPMethods = 'get' | 'post' | 'patch' | 'delete'
 
-interface RawPayload {
+export interface RawPayload {
   body?: unknown
   params?: unknown
   query?: unknown
+  headers?: unknown
 }
 
 export interface OpenHandler<
-  T extends RawPayload = EmptyObj,
-  Tresponse = unknown,
-  Theaders = null,
-  Tlocals extends EmptyObj = EmptyObj,
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = unknown,
+  TLocals extends EmptyObj = EmptyObj,
 > {
   (
     ctx: ExtendableContext & {
-      request: Pick<T, 'body' | 'params' | 'query'> &
-        MaybeProperty<Theaders, 'headers'>
-    } & { body: ExtractResponse<Tresponse> } & {
-      state: Tlocals
+      request: TPayload
+    } & { body: ExtractResponse<TResponse> } & {
+      state: TLocals
     },
     next: () => Promise<any>,
   ): void
 }
 
 export type AuthedHandler<
-  T extends RawPayload = EmptyObj,
-  Response = unknown,
-  Headers extends AuthHeaders = AuthHeaders,
-> = OpenHandler<T, Response, Headers, AuthedLocals>
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = unknown,
+> = OpenHandler<TPayload & { headers: AuthHeaders }, TResponse, AuthedLocals>
 
 export type ExtractApiType<T> = LastElement<T> extends OpenHandler<
   infer Payload,
   infer Response,
-  infer Headers,
   infer _Locals
 >
-  ? Simplify<
-      Payload & { response: Response } & MaybeProperty<Headers, 'headers'>
-    >
+  ? Simplify<Payload & { response: Response }>
   : never
 
 export type ResolveApiType<
@@ -58,11 +52,11 @@ export type ResolveApiType<
   [K in keyof T]: ExtractApiType<Awaited<T[K]>['default']>
 }
 
-// Use `any` to maximize type matching
 export type CustomHandlerType =
-  | AuthedHandler<any, any, any>
+  | AuthedHandler<any, any> // Use `any` to maximize type matching
   | OpenHandler<any, any, any>
 
+/** Takes an Handler's payload type and transforms it for example declarations. */
 export type TakePayload<T> = T extends OpenHandler<infer P, any, any>
-  ? Remap2ExampleType<P>
+  ? RemapToExampleType<P>
   : never

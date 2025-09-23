@@ -5,7 +5,7 @@ import type {
   Simplify,
   LastElement,
   ExtractResponse,
-  Remap2ExampleType,
+  RemapToExampleType,
 } from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
@@ -16,12 +16,12 @@ interface RawPayload {
   body?: unknown
   params?: unknown
   query?: unknown
+  headers?: unknown
 }
 
 type ExtractApiType<T> = LastElement<T> extends OpenHandler<
   infer Payload,
   infer Response,
-  infer Headers,
   infer _Locals
 >
   ? Simplify<
@@ -29,31 +29,20 @@ type ExtractApiType<T> = LastElement<T> extends OpenHandler<
     >
   : never
 
-/**
- * ### Attention
- *  values in `params` and `query` object are always string type by default,\
- *  if you have non string type, handle it by youself:
- * @example
- * ```ts
- * type Id = { id: number | string }
- * type ApiType = ApiHandler<{ params: Id  }>
- *
- * const handler:ApiType = (req,res,next)=>{
- *   consolog.log(typeof req.params.id) //'string'
- *   const numId = Number(req.params.id)
- * }
- * ```
- */
 export interface OpenHandler<
-  T extends RawPayload = EmptyObj,
-  Tresponse = null,
-  Theaders = null,
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = null,
   Tlocals extends EmptyObj = EmptyObj,
-  TResBody = ExtractResponse<Tresponse>,
+  TResBody = ExtractResponse<TResponse>,
 > {
   (
-    req: Request<T['params'], TResBody, T['body'], T['query']> &
-      MaybeProperty<Theaders, 'headers'>,
+    req: Request<
+      TPayload['params'],
+      TResBody,
+      TPayload['body'],
+      TPayload['query']
+    > &
+      MaybeProperty<TPayload['headers'], 'headers'>,
     res: Response<TResBody, Tlocals>,
     next: NextFunction,
   ): unknown
@@ -61,11 +50,10 @@ export interface OpenHandler<
 
 /** no headers and locals preseted */
 export type AuthedHandler<
-  T extends RawPayload = EmptyObj,
-  Tresponse = null,
-  Theaders = AuthHeaders,
-  Tlocals extends EmptyObj = AuthedLocals,
-> = OpenHandler<T, Tresponse, Theaders, Tlocals>
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = null,
+  TLocals extends EmptyObj = AuthedLocals,
+> = OpenHandler<TPayload & { headers: AuthHeaders }, TResponse, TLocals>
 
 export type ResolveApiType<
   T extends Record<string, Promise<{ default: unknown }>>,
@@ -74,9 +62,10 @@ export type ResolveApiType<
 }
 
 export type CustomHandlerType =
-  | AuthedHandler<any, any, any, any>
+  | AuthedHandler<any, any, any>
   | OpenHandler<any, any, any, any>
 
+/** Takes an Handler's payload type and transforms it for example declarations. */
 export type TakePayload<T> = T extends OpenHandler<infer P, any, any>
-  ? Remap2ExampleType<P>
+  ? RemapToExampleType<P>
   : never

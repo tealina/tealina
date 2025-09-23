@@ -10,7 +10,7 @@ import type {
   Simplify,
   LastElement,
   ExtractResponse,
-  Remap2ExampleType,
+  RemapToExampleType,
 } from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
@@ -19,49 +19,48 @@ interface RawPayload {
   body?: unknown
   params?: unknown
   query?: unknown
+  headers?: unknown
 }
 
 interface ExtendedRouteHandler<
-  T extends RawPayload = EmptyObj,
-  Tresponse = unknown,
-  Theaders = null,
-  Tlocals = null,
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = unknown,
+  TLocals = null,
   RouteGeneric extends RouteGenericInterface = {
-    Body: T['body']
-    Headers: Theaders
-    Params: T['params']
-    Querystring: T['query']
-    Reply: ExtractResponse<Tresponse>
+    Body: TPayload['body']
+    Headers: TPayload['headers']
+    Params: TPayload['params']
+    Querystring: TPayload['query']
+    Reply: ExtractResponse<TResponse>
   },
 > {
   (
     this: FastifyInstance,
-    request: FastifyRequest<RouteGeneric> & MaybeProperty<Tlocals, 'locals'>, // extend `locals` prop
+    request: FastifyRequest<RouteGeneric> & MaybeProperty<TLocals, 'locals'>, // extend `locals` prop
     reply: FastifyReply<RouteGeneric>,
   ): RouteGeneric['Reply'] | void | Promise<RouteGeneric['Reply'] | void>
 }
 
 export type AuthedHandler<
-  T extends RawPayload = EmptyObj,
-  Response = unknown,
-  Headers extends AuthHeaders = AuthHeaders,
-  Tlocals = AuthedLocals,
-> = ExtendedRouteHandler<T, Response, Headers, Tlocals>
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = unknown,
+  TLocals = AuthedLocals,
+> = ExtendedRouteHandler<
+  TPayload & { headers: AuthHeaders },
+  TResponse,
+  TLocals
+>
 
 export type OpenHandler<
-  T extends RawPayload = EmptyObj,
-  Response = unknown,
-  Headers = null,
-> = ExtendedRouteHandler<T, Response, Headers>
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = unknown,
+> = ExtendedRouteHandler<TPayload, TResponse>
 
 export type ExtractApiType<T> = LastElement<T> extends ExtendedRouteHandler<
   infer Payload,
-  infer Response,
-  infer Headers
+  infer Response
 >
-  ? Simplify<
-      Payload & { response: Response } & MaybeProperty<Headers, 'headers'>
-    >
+  ? Simplify<Payload & { response: Response }>
   : never
 
 export type ResolveApiType<
@@ -73,8 +72,9 @@ export type ResolveApiType<
 // Use `any` to maximize type matching
 export type CustomHandlerType =
   | AuthedHandler<any, any, any>
-  | OpenHandler<any, any, any>
+  | OpenHandler<any, any>
 
-export type TakePayload<T> = T extends OpenHandler<infer P, any, any>
-  ? Remap2ExampleType<P>
+/** Takes an Handler's payload type and transforms it for example declarations. */
+export type TakePayload<T> = T extends OpenHandler<infer P, any>
+  ? RemapToExampleType<P>
   : never
