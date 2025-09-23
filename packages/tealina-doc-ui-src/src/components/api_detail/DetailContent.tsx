@@ -206,7 +206,7 @@ function PlayloadPanel({
 
   const renderWithLeader = (d: DocNode) => (
     <div className="flex flex-col gap-3 pb-10">
-      <div className='flex gap-3'>
+      <div className='flex gap-3 items-center'>
         <Typography.Text className='text-1.8em'>
           {type2cell(d, doc, false)}
         </Typography.Text>
@@ -239,7 +239,7 @@ function PlayloadPanel({
           key,
           tabKey: key,
           label: '200',
-          children: type2cell(v, doc),
+          children: renderContent(v),
         }
       }
     }
