@@ -149,6 +149,7 @@ const entityRef2resEntity = (ref) => {
     headers: obj.headers,
     statusCode: numLitrial?.value ?? 200,
     response: obj.response,
+    comment: obj.comment?.value
   }
 }
 
@@ -164,6 +165,7 @@ const handleResponse = (response) => {
       response.types = response.types.map(handleResponse)
       return response
     }
+
   }
   return response
 }
