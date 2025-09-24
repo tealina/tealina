@@ -14,14 +14,16 @@
     "@tealina/doc-ui": "workspace:*",
     "@tealina/server": "workspace:*",
     "express": "^5.1.0",
+    "express-session": "^1.18.2",
     "fp-lite": "^2.0.0",
     "server": "link:",
     "zod": "^4.1.1"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3",
-    "@types/node": "^20.19.4",
     "@tealina/utility-types": "workspace:*",
+    "@types/express": "^5.0.3",
+    "@types/express-session": "^1.18.2",
+    "@types/node": "^20.19.4",
     "dotenv-cli": "7.2.1",
     "tealina": "workspace:*",
     "tsx": "^4.20.5"

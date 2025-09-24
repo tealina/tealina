@@ -5,9 +5,15 @@ import {
   getAssetsPath,
   assembleHTML,
 } from '@tealina/doc-ui'
-
+import session from 'express-session'
 const VDOC_BASENAME = '/api-doc'
+
 const vDocCofig: TealinaVdocWebConfig = {
+  security: {
+    authenticationWay: 'headers',
+    loginURL: '/api-doc/validate',
+    logoutURL: '/api-doc/logout',
+  },
   sources: [
     {
       baseURL: '/api/v1',
@@ -34,7 +40,17 @@ const vDocCofig: TealinaVdocWebConfig = {
   },
 }
 
+const sessionMiddleware = session({
+  secret: 'the-secret-key', // Required: used to sign the session ID cookie
+  resave: false, // Prevents saving the session back to the store if not modified
+  saveUninitialized: true, // Saves uninitialized sessions to the store
+  cookie: {
+    maxAge: 3600000,
+  },
+})
+
 const docRouter = Router({ caseSensitive: true })
+  .use(sessionMiddleware)
   .get('/use-fetch.js', (req, res) => {
     res.send(`
              window.TEALINA_VDOC_CUSTOM_REQUESTS=[
@@ -54,11 +70,38 @@ const docRouter = Router({ caseSensitive: true })
     assembleHTML(vDocCofig).then(html => res.send(html))
   })
   .get('/v1.json', (req, res, next) => {
-    res.sendFile(path.resolve('docs/api-v1.json'))
+    if (req.session.isCanAccessApiDoc) {
+      res.sendFile(path.resolve('docs/api-v1.json'))
+      return
+    }
+    if (req.headers.auth == 'xxxx') {
+      res.sendFile(path.resolve('docs/api-v1.json'))
+      return
+    }
+    res.sendStatus(401)
   })
   .get('/openapi.json', (req, res, next) => {
     res.sendFile(path.resolve('/Users/neo/Downloads/api.github.com.json'))
     // res.sendFile(path.resolve('docs/openapi.json'))
+  })
+  .post('/validate', (req, res, next) => {
+    const { password } = req.body
+    if (password == '123') {
+      req.session.isCanAccessApiDoc = true
+      res.sendStatus(200)
+      return
+    }
+    if (password == 'headers') {
+      res.json({ auth: 'xxxx' })
+      return
+    }
+    res.sendStatus(401)
+  })
+
+  .post('/logout', (req, res) => {
+    console.log('logout')
+    delete req.session.isCanAccessApiDoc
+    res.sendStatus(200)
   })
   .use(express.static(getAssetsPath()))
 
