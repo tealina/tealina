@@ -112,6 +112,37 @@ interface TealinaVdocWebConfig {
       commonFields?: CommonFieldsType
     }
   }
+  /**
+   * Security access control configuration\
+   * Sets up password protection to restrict unauthorized access
+   */
+  security?: {
+    /**
+     * Login authentication API endpoint\
+     * Called when user submits password for initial authentication\
+     * The API should return authentication results based on authenticationWay:\
+     * - 'session': Empty response with status code 200 (session will be managed automatically)
+     * - 'headers': JSON data containing headers to be injected into api.json requests\
+     * fmt: POST application/json { password: 'xx' }
+     */
+    loginURL: string
+
+    /**
+     * Authentication method\
+     * - 'session': Uses session-based authentication, establishes a session upon successful validation
+     * - 'headers': Uses header-based authentication, injects validation results into headers
+     *   when requesting the api.json file (not for every request)
+     */
+    authenticationWay: 'session' | 'headers'
+
+    /**
+     * Logout callback URL (optional)\
+     * Called when user closes the page or logs out to revoke authorization\
+     * Only applicable when authenticationWay is 'session'\
+     * [POST]
+     */
+    logoutURL?: string
+  }
 }
 
 const getAssetsPath = () => {

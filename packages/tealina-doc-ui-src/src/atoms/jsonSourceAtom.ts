@@ -4,6 +4,11 @@ import { atom } from 'jotai'
 import type { OpenAPIV3_1 } from 'openapi-types'
 import { openApi2apiDoc } from '../transformer/openapi2apiDoc'
 
+let kHeadersForAuth = {}
+export function setHeadersForAuth(headers: Record<string, any>) {
+  kHeadersForAuth = headers
+}
+
 function deepFreeze(obj: any) {
   Object.freeze(obj)
   for (const prop of Object.getOwnPropertyNames(obj)) {
@@ -81,9 +86,15 @@ export const apiDocAtom = atom<Promise<ApiDoc>>(async get => {
     console.error('API JSON url not set')
     return { apis: {}, enumRefs: {}, entityRefs: {}, tupleRefs: {} } as ApiDoc
   }
-  const doc = await fetch(curSource.jsonURL).then(
-    r => r.json() as Promise<ApiDoc | OpenAPIV3_1.Document>,
-  )
+  const result = await fetch(curSource.jsonURL, { headers: kHeadersForAuth })
+  if (result.status != 200) {
+    const msg = await result.text().then(
+      x => x ?? result.statusText,
+      () => result.statusText,
+    )
+    throw new Error(msg)
+  }
+  const doc: ApiDoc | OpenAPIV3_1.Document = await result.json()
   if ('openapi' in doc) {
     return openApi2apiDoc(doc, curSource.baseURL)
   }

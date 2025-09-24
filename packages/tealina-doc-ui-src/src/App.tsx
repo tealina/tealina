@@ -1,17 +1,15 @@
-import { App, ConfigProvider, Layout, theme } from 'antd'
+import { App, ConfigProvider, theme } from 'antd'
 import { useAtomValue } from 'jotai'
-import { themeAtom } from './atoms/themeAtom'
-import { ApiMenus } from './components/menus/ApiMenus'
-import { ApiDetail } from './components/api_detail/ApiDetail'
-import { HeaderAction } from './components/HeaderAction'
 import { ErrorBoundary } from 'react-error-boundary'
-import { Await } from './components/Await'
-import { DocSearchProvider } from './components/Search'
+import { authAtom } from './atoms/authAtom'
+import { themeAtom } from './atoms/themeAtom'
+import { HomePage } from './Home'
+import { LandingPage } from './Landing'
 
-const { Sider, Content } = Layout
 
 function MyApp() {
   const themeMode = useAtomValue(themeAtom)
+  const authCtx = useAtomValue(authAtom)
   return (
     <ErrorBoundary
       fallbackRender={err => (
@@ -27,23 +25,7 @@ function MyApp() {
         }}
       >
         <App>
-          <Layout className="max-h-screen dark:bg-[rgb(24,24,24)]">
-            <Sider className="h-screen" width="min(20em, 30%)">
-              <ApiMenus />
-            </Sider>
-            <Layout className="max-h-screen overflow-y-auto text-lg">
-              <Await>
-                <DocSearchProvider>
-                  <HeaderAction />
-                </DocSearchProvider>
-              </Await>
-              <Content className="h-screen">
-                <Await>
-                  <ApiDetail />
-                </Await>
-              </Content>
-            </Layout>
-          </Layout>
+          {authCtx.isNeedPwd && !authCtx.isValidated ? <LandingPage /> : <HomePage />}
         </App>
       </ConfigProvider>
     </ErrorBoundary>
