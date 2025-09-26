@@ -1,3 +1,4 @@
+import { VariousResponseType } from '@tealina/doc-ui'
 import type { FormInstance } from 'antd'
 import { atom, useAtom, useAtomValue } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
@@ -5,16 +6,12 @@ import { commonInitialValueAtom } from '../../../atoms/jsonSourceAtom'
 
 export interface MemoState {
   formValues: Record<string, unknown>
-  states: {
-    isError: boolean
-    statusCode?: number
-    result: string
-  }
+  states: VariousResponseType
 }
 
 const DefaultCache: MemoState = {
   formValues: {},
-  states: { isError: false, result: '' },
+  states: { type: 'json', status: 200, result: '' },
 }
 
 const memoAtom = atom(new Map<string, MemoState>())

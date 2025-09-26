@@ -1,32 +1,20 @@
+import { VariousResponseType } from '@tealina/doc-ui'
+
 const kDownloadPattern = /application\/.*download/
 const kMediaTypePattern = /^(image|video|audio)/
 const kJSON_Type = /json/
 const kDisposition = 'content-disposition'
 const kSimpleJSON = 'application/json'
-const kStreamTypes = [
-  'text/event-stream',
-  'application/x-ndjson',
-  'application/octet-stream',
-  'application/jsonl',
-]
+const kOctetStream = 'application/octet-stream'
+const kStreamTypes = ['text/event-stream', kOctetStream]
 const kPDF_Type = 'application/pdf'
 const kZipType = 'application/zip'
-const kBinaryTypes = ['application/octet-stream', kZipType, kPDF_Type]
-
-type Res<T> = {
-  status: number
-  contentType?: string
-} & T
+const kBinaryTypes = [kOctetStream, kZipType, kPDF_Type]
 
 export async function smartFetch(
   url: string,
-  options = {},
-): Promise<
-  | Res<{ type: 'error'; msg: string }>
-  | Res<{ type: 'binary'; blob: Blob; filename: string }>
-  | Res<{ type: 'stream' | 'json-stream'; portion: AsyncGenerator<string> }>
-  | Res<{ type: 'text' | 'json'; text: string }>
-> {
+  options: RequestInit = {},
+): Promise<VariousResponseType> {
   const response = await fetch(url, options)
   const contentType = response.headers.get('content-type') || ''
 
@@ -37,44 +25,56 @@ export async function smartFetch(
       status,
       contentType,
       type: 'error',
-      msg: msg ?? response.statusText,
+      result: msg ?? response.statusText,
     }
   }
-  if (contentType === kSimpleJSON) {
-    const text = await response.text()
+  const isChunked = checkIsChunked(response.headers)
+  if (!isChunked && contentType.includes(kSimpleJSON)) {
+    const result = await response.text()
     return {
       status,
       contentType,
       type: 'json',
-      text,
-    }
-  }
-  if (isStream(contentType)) {
-    return {
-      status,
-      contentType,
-      type: isSorfOfJSON(contentType) ? 'json-stream' : 'stream',
-      portion: createTextStream(response),
+      result,
     }
   }
   if (isAttachment(response.headers) || isBinary(contentType)) {
-    const blob = await response.blob()
+    const reader = response.body!.getReader()
+    const chunks = []
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) {
+        break
+      }
+      chunks.push(value)
+    }
+    const blob = new Blob(chunks, { type: contentType })
     const contentDisposition = response.headers.get(kDisposition)!
     const filename = getFilenameFromHeaders(contentType, contentDisposition)
     return {
       status,
       contentType,
       type: 'binary',
-      blob,
-      filename,
+      result: {
+        blob,
+        filename,
+      },
     }
   }
-  const text = await response.text()
+  if (isChunked) {
+    return {
+      status,
+      contentType,
+      type: isSorfOfJSON(contentType) ? 'json-stream' : 'stream',
+      result: createTextStream(response),
+    }
+  }
+  const result = await response.text()
   return {
     status,
     contentType,
     type: isSorfOfJSON(contentType) ? 'json' : 'text',
-    text,
+    result,
   }
 }
 
@@ -110,7 +110,7 @@ async function* createTextStream(response: Response) {
   }
 }
 
-export function saveFile(blob: Blob, filename: string) {
+export function saveFile({ blob, filename }: { blob: Blob; filename: string }) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -150,4 +150,9 @@ function isAttachment(headers: Response['headers']) {
   return (
     disposition.startsWith('attachment') || disposition.includes('filename=')
   )
+}
+
+function checkIsChunked(headers: Response['headers']) {
+  const encoding = headers.get('Transfer-Encoding') ?? ''
+  return encoding.includes('chunked')
 }

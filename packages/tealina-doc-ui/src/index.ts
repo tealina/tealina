@@ -20,6 +20,24 @@ type CommonFieldsType = Partial<
     >
   >
 >
+type Res<TKind, TResult> = {
+  type: TKind
+  status: number
+  contentType?: string
+  result: TResult
+}
+
+export type VariousResponseType =
+  | Res<'error', string>
+  | Res<
+      'binary',
+      {
+        blob: Blob
+        filename: string
+      }
+    >
+  | Res<'stream' | 'json-stream', AsyncGenerator<string>>
+  | Res<'text' | 'json', string>
 
 type RequestConfig = {
   method: string
@@ -28,14 +46,7 @@ type RequestConfig = {
 
 type CustomRequestHandler = (
   requestConfig: RequestConfig,
-  setResult: (result: {
-    statusCode: number
-    /** The json or text result*/
-    result: string
-    /** When it's true, the result will be render in red color */
-    isError: boolean
-  }) => void,
-) => Promise<unknown>
+) => Promise<VariousResponseType>
 
 type CustomRequestItem = {
   match: (config: RequestConfig) => boolean

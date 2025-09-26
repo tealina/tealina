@@ -1,6 +1,6 @@
 import { PlayCircleFilled } from '@ant-design/icons'
 import type { ApiDoc, DocItem, Entity } from '@tealina/doc-types'
-import { Form } from 'antd'
+import { Form, Typography } from 'antd'
 import { useMemo } from 'react'
 import { prop2item } from '../../../transformer/prop2item'
 import { JsonView } from '../../monaco/JsonView'
@@ -16,14 +16,15 @@ const Playground = (props: {
   cacheKey: string
 }) => {
   const { entity, doc } = props
-  const { states, form, handleSubmit } = useSumit(props)
+  const { states, preview, form, handleSubmit } = useSumit(props)
   const formItems = useMemo(() => {
     return entity.props.length > 0 ? (
       entity.props.map(p => prop2item(doc, p))
     ) : (
-      <div className="text-white">No payload required</div>
+      <Typography className='text-center mt-20'>No payload required</Typography>
     )
   }, [])
+  console.log(states.contentType?.includes('json') ? 'json' : void 0)
   return (
     <div className="flex gap-3 h-full">
       <div className="flex-1">
@@ -40,18 +41,21 @@ const Playground = (props: {
       <div className="flex-1">
         <div>
           <span>Status Code: </span>
-          {states.statusCode}
+          {states.status}
         </div>
-        {states.isError ? (
-          <p className="h-full p-3 whitespace-pre-wrap dark:bg-[rgb(30,30,30)] text-red-500 bg-white">
-            {states.result}
-          </p>
-        ) : (
-          <JsonView value={states.result} language="json" className="h-full" />
-        )}
+        <div className='max-w-50vw h-full'>
+          {states.type === 'error' ? (
+            <p className="h-full p-3 whitespace-pre-wrap dark:bg-[rgb(30,30,30)] text-red-500 bg-white">
+              {states.result}
+            </p>
+          ) : (
+            <JsonView value={preview} language={states.contentType?.includes('json') ? 'json' : void 0} className="h-full w-full" />
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
 export default Playground
+

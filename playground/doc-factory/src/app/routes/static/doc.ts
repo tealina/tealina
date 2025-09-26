@@ -10,7 +10,7 @@ const VDOC_BASENAME = '/api-doc'
 
 const vDocCofig: TealinaVdocWebConfig = {
   security: {
-    authenticationWay: 'headers',
+    authenticationWay: 'session',
     loginURL: '/api-doc/validate',
     logoutURL: '/api-doc/logout',
   },
