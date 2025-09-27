@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 import type { AuthHeaders, AuthedLocals } from './common.js'
-import { RemapToExampleType } from '@tealina/utility-types'
+import { ExtractResponse, RemapToExampleType } from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
 
@@ -56,7 +56,7 @@ export interface OpenHandler<
   (
     req: Request<T['params'], Tresponse, T['body'], T['query']> &
       OmitEmpty<Theaders, 'headers'>,
-    res: Response<Tresponse, Tlocals>,
+    res: Response<ExtractResponse<Tresponse>, Tlocals>,
     next: NextFunction,
   ): unknown
 }

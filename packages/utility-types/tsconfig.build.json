@@ -10,4 +10,7 @@
     "declaration": true,
     "outDir": "dist"
   },
+  "exclude": [
+    "test"
+  ]
 }

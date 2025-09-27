@@ -1,7 +1,10 @@
 import { setTimeout } from 'node:timers/promises'
 import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
 
-type ApiType = OpenHandler<EmptyObj, {}>
+type ApiType = OpenHandler<
+  EmptyObj,
+  AsyncGenerator<{ id: number; name: string; email: string; role: string }>
+>
 
 const handler: ApiType = async (req, res) => {
   res.writeHead(200, {

@@ -5,7 +5,7 @@ type RichResponse = {
   comment?: string
 }
 
-export const ResponseFlagSymbol = Symbol('responseFlag')
+declare const ResponseFlagSymbol: unique symbol
 
 /**
  * Augments a response type with extra metadata (status code, headers, etc.)
@@ -75,4 +75,37 @@ export type ExampleItem<V> = {
 
 export type RemapToExampleType<T> = {
   [K in keyof T]?: ExampleItem<T[K]>[] | T[K]
+}
+
+declare const MultiTargetSymbol: unique symbol
+/**
+ * Defines a multi-target type that encapsulates type definitions for different contexts.
+ *
+ * This type allows specifying separate type for:
+ * - `server`: Pass to request handler
+ * - `client`: Client-side consumption
+ * - `doc`: Documentation generation
+ *
+ * @example
+ * ```typescript
+ * type IdInQuery={ query: { id: number } }
+ * type DiffrentRequestPayload = MultiTarget<{
+ *   server: IdInQuery &  { query: { msgFromMidaware: string } };
+ *   client: IdInQuery;
+ *   doc: IdInQuery;
+ * }>;
+ *
+ * type LogInfo={ type: string; conetent: string; }
+ * type StreamResponse = MultiTarget<{
+ *   server: AsyncGenerator<LogInfo>;
+ *   client: AsyncGenerator<LogInfo>;
+ *   doc: WithHeaders<{ 'Content-Type':'application/ndjson', 'Transfer-Encodeing': 'chunked' }, LoginInfo>;
+ * }>;
+ * ```
+ * @note Must be used at top level - nested usage is not supported.
+ */
+export type MultiTarget<
+  T extends Record<'server' | 'client' | 'doc', unknown>,
+> = T & {
+  [MultiTargetSymbol]: true
 }
