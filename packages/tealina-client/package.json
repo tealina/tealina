@@ -36,8 +36,10 @@
   ],
   "author": "Neo Yeo",
   "license": "MIT",
-  "devDependencies": {
-    "axios": "^1.7.7",
+  "dependencies": {
     "@tealina/utility-types": "workspace:*"
+  },
+  "devDependencies": {
+    "axios": "^1.7.7"
   }
 }
