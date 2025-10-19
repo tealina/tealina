@@ -126,10 +126,11 @@ importers:
         version: 11.0.2
 
   packages/tealina-client:
-    devDependencies:
+    dependencies:
       '@tealina/utility-types':
         specifier: workspace:*
         version: link:../utility-types
+    devDependencies:
       axios:
         specifier: ^1.7.7
         version: 1.7.7

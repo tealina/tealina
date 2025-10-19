@@ -1,11 +1,17 @@
 import type { NextFunction, Request, Response } from 'express'
 import type { AuthHeaders, AuthedLocals } from './common.js'
-import { ExtractResponse, RemapToExampleType } from '@tealina/utility-types'
+import {
+  ExtractResponse,
+  MultiTarget,
+  PickTarget,
+  RemapToExampleType,
+  TargetKeys,
+  LastElement,
+  MaybeProperty,
+  Simplify,
+} from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
-
-/** [doc](https://github.com/sindresorhus/type-fest/blob/main/source/simplify.d.ts) */
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 // ------Types for generate doc -------
 
@@ -13,66 +19,58 @@ interface RawPayload {
   body?: unknown
   params?: unknown
   query?: unknown
+  headers?: unknown
 }
 
-type LastElement<T> = T extends ReadonlyArray<unknown>
-  ? T extends readonly [...unknown[], infer U]
-    ? U
-    : T
-  : T
-
-type OmitEmpty<P, T extends string> = P extends null ? {} : { [K in T]: P }
-
-type ExtractApiType<T> = LastElement<T> extends OpenHandler<
+type ExtractApiType<
+  T,
+  K extends TargetKeys,
+> = LastElement<T> extends OpenHandler<
   infer Payload,
   infer Response,
-  infer Headers,
   infer _Locals
 >
-  ? Simplify<Payload & { response: Response } & OmitEmpty<Headers, 'headers'>>
+  ? Simplify<PickTarget<Payload, K> & { response: PickTarget<Response, K> }>
   : never
 
-/**
- * ### Attention
- *  values in `params` and `query` object are always string type by default,\
- *  if you have non string type, handle it by youself:
- * @example
- * ```ts
- * type Id = { id: number | string }
- * type ApiType = ApiHandler<{ params: Id  }>
- *
- * const handler:ApiType = (req,res,next)=>{
- *   consolog.log(typeof req.params.id) //'string'
- *   const numId = Number(req.params.id)
- * }
- * ```
- */
-export interface OpenHandler<
-  T extends RawPayload = EmptyObj,
-  Tresponse = null,
-  Theaders = null,
-  Tlocals extends EmptyObj = EmptyObj,
+interface HandlerAlias<
+  TPayload,
+  TResponse,
+  Tlocals,
+  T = PickTarget<TPayload, 'server'>,
+  R = ExtractResponse<PickTarget<TResponse, 'server'>>,
 > {
   (
-    req: Request<T['params'], Tresponse, T['body'], T['query']> &
-      OmitEmpty<Theaders, 'headers'>,
-    res: Response<ExtractResponse<Tresponse>, Tlocals>,
+    req: Request<T['params'], R, T['body'], T['query']> &
+      MaybeProperty<T['headers'], 'headers'>,
+    res: Response<R, Tlocals>,
     next: NextFunction,
   ): unknown
 }
 
 /** no headers and locals preseted */
+export type OpenHandler<
+  T extends RawPayload = EmptyObj,
+  Tresponse = null,
+  Tlocals extends EmptyObj = EmptyObj,
+> = HandlerAlias<T, Tresponse, Tlocals>
+
 export type AuthedHandler<
   T extends RawPayload = EmptyObj,
   Tresponse = null,
-  Theaders = AuthHeaders,
   Tlocals extends EmptyObj = AuthedLocals,
-> = OpenHandler<T, Tresponse, Theaders, Tlocals>
+> = OpenHandler<T & { headers: AuthHeaders }, Tresponse, Tlocals>
 
-export type ResolveApiType<
+export type ResolveApiTypeForDoc<
   T extends Record<string, Promise<{ default: unknown }>>,
 > = {
-  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default']>
+  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'doc'>
+}
+
+export type ResolveApiTypeForClient<
+  T extends Record<string, Promise<{ default: unknown }>>,
+> = {
+  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'client'>
 }
 
 export type CustomHandlerType =

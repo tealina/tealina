@@ -1,9 +1,27 @@
 import { setTimeout } from 'node:timers/promises'
 import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
+import { MultiTarget, WithExtra, WithHeaders } from '@tealina/utility-types'
+
+type UserSummary = {
+  id: number
+  name: string
+  email: string
+  role: string
+}
 
 type ApiType = OpenHandler<
-  EmptyObj,
-  AsyncGenerator<{ id: number; name: string; email: string; role: string }>
+  { headers: { authorization: string } },
+  MultiTarget<{
+    client: AsyncGenerator<UserSummary>
+    doc: WithHeaders<
+      {
+        'Content-Type': 'application/json'
+        'Transfer-Encoding': 'chunked'
+      },
+      UserSummary
+    >
+    server: void
+  }>
 >
 
 const handler: ApiType = async (req, res) => {

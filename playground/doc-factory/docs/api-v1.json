@@ -3,14 +3,18 @@
     "get": {
       "/health": {
         "response": {
-          "kind": 4,
-          "id": 287
+          "kind": 15,
+          "statusCode": 200,
+          "response": {
+            "kind": 4,
+            "id": 303
+          }
         }
       },
       "/stream/fileDownload": {
         "query": {
           "kind": 4,
-          "id": 2005
+          "id": 2054
         },
         "response": {
           "kind": 4,
@@ -18,9 +22,21 @@
         }
       },
       "/stream/json": {
-        "response": {
+        "headers": {
           "kind": 4,
-          "id": 40
+          "id": 2119
+        },
+        "response": {
+          "kind": 15,
+          "headers": {
+            "kind": 4,
+            "id": 2096
+          },
+          "statusCode": 200,
+          "response": {
+            "kind": 4,
+            "id": 2097
+          }
         }
       },
       "/stream/logs": {
@@ -40,29 +56,29 @@
       "/case/primitive": {
         "body": {
           "kind": 4,
-          "id": 2180
-        },
-        "response": {
-          "kind": 4,
-          "id": 2180
+          "id": 2275
         },
         "headers": {
           "kind": 4,
-          "id": 2181
+          "id": 2277
+        },
+        "response": {
+          "kind": 4,
+          "id": 2275
         }
       },
       "/case/recursive": {
         "body": {
           "kind": 4,
-          "id": 2219
-        },
-        "response": {
-          "kind": 4,
-          "id": 2219
+          "id": 2316
         },
         "headers": {
           "kind": 4,
-          "id": 2181
+          "id": 2277
+        },
+        "response": {
+          "kind": 4,
+          "id": 2316
         }
       },
       "/user/checkin": {
@@ -71,51 +87,51 @@
           "types": [
             {
               "kind": 4,
-              "id": 2271
+              "id": 2373
             },
             {
               "kind": 11,
               "element": {
                 "kind": 4,
-                "id": 2272
+                "id": 2374
               }
             }
           ]
+        },
+        "headers": {
+          "kind": 4,
+          "id": 2277
         },
         "response": {
           "kind": 3,
           "types": [
             {
               "kind": 4,
-              "id": 2271
+              "id": 2373
             },
             {
               "kind": 11,
               "element": {
                 "kind": 4,
-                "id": 2272
+                "id": 2374
               }
             }
           ]
-        },
-        "headers": {
-          "kind": 4,
-          "id": 2181
         },
         "comment": "test tuple type's initialvalue while switching"
       },
       "/user/create": {
         "body": {
           "kind": 4,
-          "id": 2318
-        },
-        "response": {
-          "kind": 4,
-          "id": 2315
+          "id": 2452
         },
         "headers": {
           "kind": 4,
-          "id": 2181
+          "id": 2277
+        },
+        "response": {
+          "kind": 4,
+          "id": 2444
         },
         "examples": {
           "body": [
@@ -148,15 +164,15 @@
       "/user/update": {
         "body": {
           "kind": 4,
-          "id": 2360
-        },
-        "response": {
-          "kind": 4,
-          "id": 2315
+          "id": 2496
         },
         "headers": {
           "kind": 4,
-          "id": 2181
+          "id": 2277
+        },
+        "response": {
+          "kind": 4,
+          "id": 2444
         }
       }
     }
@@ -166,7 +182,7 @@
       "name": "{}",
       "props": []
     },
-    "287": {
+    "303": {
       "name": "{ status: string; }",
       "props": [
         {
@@ -176,7 +192,7 @@
         }
       ]
     },
-    "2005": {
+    "2054": {
       "name": "{ lines: string; }",
       "props": [
         {
@@ -186,7 +202,57 @@
         }
       ]
     },
-    "2180": {
+    "2096": {
+      "name": "{ 'Content-Type': \"application/json\"; 'Transfer-Encoding': \"chunked\"; }",
+      "props": [
+        {
+          "kind": 7,
+          "value": "application/json",
+          "name": "Content-Type"
+        },
+        {
+          "kind": 7,
+          "value": "chunked",
+          "name": "Transfer-Encoding"
+        }
+      ]
+    },
+    "2097": {
+      "name": "UserSummary",
+      "props": [
+        {
+          "kind": 0,
+          "type": "number",
+          "name": "id"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "role"
+        }
+      ]
+    },
+    "2119": {
+      "name": "{ authorization: string; }",
+      "props": [
+        {
+          "kind": 0,
+          "type": "string",
+          "name": "authorization"
+        }
+      ]
+    },
+    "2275": {
       "name": "Input",
       "props": [
         {
@@ -204,7 +270,7 @@
         }
       ]
     },
-    "2181": {
+    "2277": {
       "name": "AuthHeaders",
       "props": [
         {
@@ -214,7 +280,7 @@
         }
       ]
     },
-    "2219": {
+    "2316": {
       "name": "UserCreateInput",
       "props": [
         {
@@ -237,7 +303,7 @@
                 },
                 {
                   "kind": 12,
-                  "id": 2232
+                  "id": 2334
                 }
               ]
             }
@@ -249,23 +315,23 @@
           "elements": [
             {
               "kind": 4,
-              "id": 2239
+              "id": 2341
             },
             {
               "kind": 4,
-              "id": 2240
+              "id": 2342
             }
           ],
           "name": "deepRecusiveTuple"
         },
         {
           "kind": 4,
-          "id": 2241,
+          "id": 2343,
           "name": "recursiveEntity"
         }
       ]
     },
-    "2239": {
+    "2341": {
       "name": "One",
       "props": [
         {
@@ -275,12 +341,12 @@
         },
         {
           "kind": 12,
-          "id": 2238,
+          "id": 2340,
           "name": "t"
         }
       ]
     },
-    "2240": {
+    "2342": {
       "name": "Two",
       "props": [
         {
@@ -290,7 +356,7 @@
         }
       ]
     },
-    "2241": {
+    "2343": {
       "name": "NestOption",
       "props": [
         {
@@ -307,13 +373,13 @@
           "kind": 11,
           "element": {
             "kind": 13,
-            "id": 2241
+            "id": 2343
           },
           "name": "children"
         }
       ]
     },
-    "2271": {
+    "2373": {
       "name": "CheckAhead",
       "props": [
         {
@@ -328,7 +394,7 @@
         }
       ]
     },
-    "2272": {
+    "2374": {
       "name": "CheckInTime",
       "props": [
         {
@@ -343,7 +409,7 @@
         }
       ]
     },
-    "2315": {
+    "2444": {
       "name": "User",
       "props": [
         {
@@ -395,7 +461,7 @@
         }
       ]
     },
-    "2318": {
+    "2452": {
       "name": "UserCreateInput",
       "props": [
         {
@@ -440,7 +506,7 @@
         }
       ]
     },
-    "2360": {
+    "2496": {
       "name": "UserUpdateInput",
       "props": [
         {
@@ -499,7 +565,7 @@
   },
   "enumRefs": {},
   "tupleRefs": {
-    "2232": {
+    "2334": {
       "name": "RecursiveTuple",
       "elements": [
         {
@@ -519,22 +585,22 @@
             },
             {
               "kind": 12,
-              "id": 2232
+              "id": 2334
             }
           ]
         }
       ]
     },
-    "2238": {
+    "2340": {
       "name": "DeepRecursiveTuple",
       "elements": [
         {
           "kind": 4,
-          "id": 2239
+          "id": 2341
         },
         {
           "kind": 4,
-          "id": 2240
+          "id": 2342
         }
       ]
     }
