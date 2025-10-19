@@ -78,8 +78,11 @@ export type RemapToExampleType<T> = {
 }
 
 declare const MultiTargetSymbol: unique symbol
+
+export type TargetKeys = 'server' | 'client' | 'doc'
+
 /**
- * Defines a multi-target type that encapsulates type definitions for different contexts.
+ * Defines a multi-target type for different contexts.
  *
  * This type allows specifying separate type for:
  * - `server`: Pass to request handler
@@ -104,8 +107,10 @@ declare const MultiTargetSymbol: unique symbol
  * ```
  * @note Must be used at top level - nested usage is not supported.
  */
-export type MultiTarget<
-  T extends Record<'server' | 'client' | 'doc', unknown>,
-> = T & {
+export type MultiTarget<T extends Record<TargetKeys, unknown>> = T & {
   [MultiTargetSymbol]: true
 }
+
+export type PickTarget<T, K extends TargetKeys> = T extends MultiTarget<infer M>
+  ? M[K]
+  : T

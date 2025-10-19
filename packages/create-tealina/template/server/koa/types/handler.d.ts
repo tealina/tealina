@@ -1,8 +1,10 @@
 import type {
   ExtractResponse,
   LastElement,
+  PickTarget,
   RemapToExampleType,
   Simplify,
+  TargetKeys,
 } from '@tealina/utility-types'
 import type { ExtendableContext } from 'koa'
 import type { AuthHeaders, AuthedLocals } from './common.js'
@@ -18,45 +20,61 @@ export interface RawPayload {
   headers?: unknown
 }
 
-export interface OpenHandler<
+interface HandlerAlias<
   TPayload extends RawPayload = EmptyObj,
   TResponse = unknown,
   TLocals extends EmptyObj = EmptyObj,
+  T = PickTarget<TPayload, 'server'>,
+  R = ExtractResponse<PickTarget<TResponse, 'server'>>,
 > {
   (
     ctx: ExtendableContext & {
-      request: TPayload
-    } & { body: ExtractResponse<TResponse> } & {
+      request: T
+    } & { body: ExtractResponse<R> } & {
       state: TLocals
     },
     next: () => Promise<any>,
   ): void
 }
 
+export type OpenHandler<
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = unknown,
+  TLocals extends EmptyObj = EmptyObj,
+> = HandlerAlias<TPayload, TResponse, TLocals>
+
 export type AuthedHandler<
   TPayload extends RawPayload = EmptyObj,
   TResponse = unknown,
-> = OpenHandler<TPayload & { headers: AuthHeaders }, TResponse, AuthedLocals>
-
-export type ExtractApiType<T> = LastElement<T> extends OpenHandler<
-  infer Payload,
-  infer Response,
-  infer _Locals
+  TLocals extends EmptyObj = EmptyObj,
+> = HandlerAlias<
+  TPayload & { headers: AuthHeaders },
+  TResponse,
+  TLocals & AuthedLocals
 >
-  ? Simplify<Payload & { response: Response }>
+
+type ExtractApiType<
+  T,
+  K extends TargetKeys,
+> = LastElement<T> extends HandlerAlias<infer Payload, infer Response, any>
+  ? Simplify<PickTarget<Payload, K> & { response: PickTarget<Response, K> }>
   : never
 
-export type ResolveApiType<
+export type ResolveApiTypeForDoc<
   T extends Record<string, Promise<{ default: unknown }>>,
 > = {
-  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default']>
+  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'doc'>
 }
 
-export type CustomHandlerType =
-  | AuthedHandler<any, any> // Use `any` to maximize type matching
-  | OpenHandler<any, any, any>
+export type ResolveApiTypeForClient<
+  T extends Record<string, Promise<{ default: unknown }>>,
+> = {
+  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'client'>
+}
+
+export type CustomHandlerType = HandlerAlias<any, any, any>
 
 /** Takes an Handler's payload type and transforms it for example declarations. */
-export type TakePayload<T> = T extends OpenHandler<infer P, any, any>
-  ? RemapToExampleType<P>
+export type MakeExamplesType<T> = T extends HandlerAlias<infer P, infer R, any>
+  ? RemapToExampleType<P & { response: R }>
   : never

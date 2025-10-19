@@ -1,12 +1,14 @@
+import {
+  ExtractResponse,
+  LastElement,
+  MaybeProperty,
+  PickTarget,
+  RemapToExampleType,
+  Simplify,
+  TargetKeys,
+} from '@tealina/utility-types'
 import type { NextFunction, Request, Response } from 'express'
 import type { AuthHeaders, AuthedLocals } from './common.js'
-import type {
-  MaybeProperty,
-  Simplify,
-  LastElement,
-  ExtractResponse,
-  RemapToExampleType,
-} from '@tealina/utility-types'
 
 export type EmptyObj = Record<string, unknown>
 
@@ -19,53 +21,59 @@ interface RawPayload {
   headers?: unknown
 }
 
-type ExtractApiType<T> = LastElement<T> extends OpenHandler<
-  infer Payload,
-  infer Response,
-  infer _Locals
->
-  ? Simplify<
-      Payload & { response: Response } & MaybeProperty<Headers, 'headers'>
-    >
-  : never
-
-export interface OpenHandler<
+/** no headers and locals preseted */
+export type OpenHandler<
   TPayload extends RawPayload = EmptyObj,
   TResponse = null,
-  Tlocals extends EmptyObj = EmptyObj,
-  TResBody = ExtractResponse<TResponse>,
+  TLocals extends EmptyObj = EmptyObj,
+> = HandlerAlias<TPayload, TResponse, TLocals>
+
+export type AuthedHandler<
+  TPayload extends RawPayload = EmptyObj,
+  TResponse = null,
+  TLocals extends EmptyObj = EmptyObj,
+> = HandlerAlias<
+  TPayload & { headers: AuthHeaders },
+  TResponse,
+  TLocals & AuthedLocals
+>
+
+interface HandlerAlias<
+  TPayload,
+  TResponse,
+  TLocals,
+  T = PickTarget<TPayload, 'server'>,
+  R = ExtractResponse<PickTarget<TResponse, 'server'>>,
 > {
   (
-    req: Request<
-      TPayload['params'],
-      TResBody,
-      TPayload['body'],
-      TPayload['query']
-    > &
-      MaybeProperty<TPayload['headers'], 'headers'>,
-    res: Response<TResBody, Tlocals>,
+    req: Request<T['params'], R, T['body'], T['query']> &
+      MaybeProperty<T['headers'], 'headers'>,
+    res: Response<R, TLocals>,
     next: NextFunction,
   ): unknown
 }
 
-/** no headers and locals preseted */
-export type AuthedHandler<
-  TPayload extends RawPayload = EmptyObj,
-  TResponse = null,
-  TLocals extends EmptyObj = AuthedLocals,
-> = OpenHandler<TPayload & { headers: AuthHeaders }, TResponse, TLocals>
+type ExtractApiType<
+  T,
+  K extends TargetKeys,
+> = LastElement<T> extends HandlerAlias<infer Payload, infer Response, any>
+  ? Simplify<PickTarget<Payload, K> & { response: PickTarget<Response, K> }>
+  : never
 
-export type ResolveApiType<
+export type ResolveApiTypeForDoc<
   T extends Record<string, Promise<{ default: unknown }>>,
 > = {
-  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default']>
+  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'doc'>
 }
 
-export type CustomHandlerType =
-  | AuthedHandler<any, any, any>
-  | OpenHandler<any, any, any, any>
+export type ResolveApiTypeForClient<
+  T extends Record<string, Promise<{ default: unknown }>>,
+> = {
+  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'client'>
+}
 
-/** Takes an Handler's payload type and transforms it for example declarations. */
-export type TakePayload<T> = T extends OpenHandler<infer P, any, any>
-  ? RemapToExampleType<P>
+export type CustomHandlerType = HandlerAlias<any, any, any>
+
+export type MakeExamplesType<T> = T extends HandlerAlias<infer P, infer R, any>
+  ? RemapToExampleType<P & { response: R }>
   : never

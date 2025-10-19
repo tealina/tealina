@@ -1,17 +1,14 @@
 import type {
-  FastifyInstance,
-  FastifyReply,
-  FastifyRequest,
-  RouteGenericInterface,
-} from 'fastify'
-import type { AuthedLocals, AuthHeaders } from './common.js'
-import type {
-  MaybeProperty,
-  Simplify,
-  LastElement,
   ExtractResponse,
+  LastElement,
+  MaybeProperty,
+  PickTarget,
   RemapToExampleType,
+  Simplify,
+  TargetKeys,
 } from '@tealina/utility-types'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import type { AuthedLocals, AuthHeaders } from './common.js'
 
 export type EmptyObj = Record<string, unknown>
 
@@ -22,59 +19,64 @@ interface RawPayload {
   headers?: unknown
 }
 
-interface ExtendedRouteHandler<
+interface HandlerAlias<
   TPayload extends RawPayload = EmptyObj,
   TResponse = unknown,
   TLocals = null,
-  RouteGeneric extends RouteGenericInterface = {
-    Body: TPayload['body']
-    Headers: TPayload['headers']
-    Params: TPayload['params']
-    Querystring: TPayload['query']
-    Reply: ExtractResponse<TResponse>
+  T = PickTarget<TPayload, 'server'>,
+  R = ExtractResponse<PickTarget<TResponse, 'server'>>,
+  RouteGeneric = {
+    Body: T['body']
+    Headers: T['headers']
+    Params: T['params']
+    Querystring: T['query']
+    Reply: R
   },
 > {
   (
     this: FastifyInstance,
     request: FastifyRequest<RouteGeneric> & MaybeProperty<TLocals, 'locals'>, // extend `locals` prop
     reply: FastifyReply<RouteGeneric>,
-  ): RouteGeneric['Reply'] | void | Promise<RouteGeneric['Reply'] | void>
+  ): R | void | Promise<R | void>
 }
 
 export type AuthedHandler<
   TPayload extends RawPayload = EmptyObj,
   TResponse = unknown,
-  TLocals = AuthedLocals,
-> = ExtendedRouteHandler<
+  TLocals extends EmptyObj = EmptyObj,
+> = HandlerAlias<
   TPayload & { headers: AuthHeaders },
   TResponse,
-  TLocals
+  TLocals & AuthedLocals
 >
 
 export type OpenHandler<
   TPayload extends RawPayload = EmptyObj,
   TResponse = unknown,
-> = ExtendedRouteHandler<TPayload, TResponse>
+> = HandlerAlias<TPayload, TResponse>
 
-export type ExtractApiType<T> = LastElement<T> extends ExtendedRouteHandler<
-  infer Payload,
-  infer Response
->
-  ? Simplify<Payload & { response: Response }>
+type ExtractApiType<
+  T,
+  K extends TargetKeys,
+> = LastElement<T> extends HandlerAlias<infer Payload, infer Response, any>
+  ? Simplify<PickTarget<Payload, K> & { response: PickTarget<Response, K> }>
   : never
 
-export type ResolveApiType<
+export type ResolveApiTypeForDoc<
   T extends Record<string, Promise<{ default: unknown }>>,
 > = {
-  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default']>
+  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'doc'>
 }
 
-// Use `any` to maximize type matching
-export type CustomHandlerType =
-  | AuthedHandler<any, any, any>
-  | OpenHandler<any, any>
+export type ResolveApiTypeForClient<
+  T extends Record<string, Promise<{ default: unknown }>>,
+> = {
+  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'client'>
+}
+
+export type CustomHandlerType = HandlerAlias<any, any, any>
 
 /** Takes an Handler's payload type and transforms it for example declarations. */
-export type TakePayload<T> = T extends OpenHandler<infer P, any>
-  ? RemapToExampleType<P>
+export type MakeExamplesType<T> = T extends HandlerAlias<infer P, infer R, any>
+  ? RemapToExampleType<P & { response: R }>
   : never
