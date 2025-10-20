@@ -1,7 +1,7 @@
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
+import { Simplify } from '@tealina/utility-types'
 import { Router } from 'express'
 import type { CustomHandlerType } from '../../../../types/handler.js'
-import type { Simplify } from '../../../../types/handler.js'
 import apisV1 from '../../../api-v1/index.js'
 import { verifyToken } from '../../middlewares/verifyToken.js'
 

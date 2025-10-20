@@ -1,9 +1,9 @@
 import Router from '@koa/router'
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
+import { Simplify } from '@tealina/utility-types'
 import type {
   CustomHandlerType,
   HTTPMethods,
-  Simplify,
 } from '../../../../types/handler.js'
 import apisV1 from '../../../api-v1/index.js'
 import { verifyToken } from '../../middlewares/verifyToken.js'

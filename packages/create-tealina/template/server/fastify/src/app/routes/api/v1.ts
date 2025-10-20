@@ -1,7 +1,8 @@
-import type { FastifyPluginAsync, HTTPMethods } from 'fastify'
-import apisV1 from '../../../api-v1/index.js'
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
-import type { CustomHandlerType, Simplify } from '../../../../types/handler.js'
+import { Simplify } from '@tealina/utility-types'
+import type { FastifyPluginAsync, HTTPMethods } from 'fastify'
+import type { CustomHandlerType } from '../../../../types/handler.js'
+import apisV1 from '../../../api-v1/index.js'
 import { verifyToken } from '../../preHandlers/verifyToken.js'
 
 export type TakeMethodAndPathRecord<T extends Record<string, any>> = Simplify<{
