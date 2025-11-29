@@ -50,9 +50,10 @@ export type MakeParameters<
   T extends BaseShape,
   Config,
   Payload = Omit<T, 'headers' | 'response'>,
+  MixedConfig = Config & Simplify<Pick<T, 'headers'>>,
 > = Payload extends EmptyObject
-  ? [config?: Config]
-  : [payload: Simplify<Payload>, config?: Config & Simplify<Pick<T, 'headers'>>]
+  ? [config?: MixedConfig]
+  : [payload: Simplify<Payload>, config?: MixedConfig]
 
 export type RequestFn<T extends EndpointType, C> = <K extends keyof T>(
   url: K,

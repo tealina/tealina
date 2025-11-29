@@ -1,5 +1,6 @@
 import type {
   LastElement,
+  MultiTarget,
   PickTarget,
   RemapToExampleType,
   Simplify,
@@ -19,6 +20,7 @@ export type FullInfo = RawPayload & { response: unknown }
 
 type EmptyLocals = {}
 type EmptyObj = {}
+type VariantPayload = RawPayload | MultiTarget<RawPayload>
 
 export type HTTPMethods = 'get' | 'post' | 'patch' | 'delete'
 
@@ -28,13 +30,13 @@ interface HandlerAlias<
 > extends HandlerAliasCore<Omit<T, 'response'>, T['response'], TLocals> {}
 
 export type OpenHandler<
-  TPayload extends RawPayload = EmptyObj,
+  TPayload extends VariantPayload = EmptyObj,
   TResponse = unknown,
   TLocals extends EmptyObj = EmptyLocals,
 > = HandlerAlias<Simplify<TPayload & { response: TResponse }>, TLocals>
 
 export type AuthedHandler<
-  TPayload extends RawPayload = {},
+  TPayload extends VariantPayload = {},
   TResponse = unknown,
   TLocals extends EmptyObj = EmptyLocals,
 > = HandlerAlias<
@@ -65,7 +67,11 @@ export type ResolveApiTypeForClient<
 
 export type CustomHandlerType = HandlerAlias<any, any>
 
+type DocTargetFirst<T> = T extends MultiTarget<RawPayload>
+  ? Simplify<Omit<T, TargetKeys> & T['doc']>
+  : T
+
 /** Takes an Handler's payload type and transforms it for example declarations. */
 export type MakeExamplesType<T> = T extends HandlerAlias<infer P, any>
-  ? RemapToExampleType<P>
+  ? RemapToExampleType<DocTargetFirst<P>>
   : never
