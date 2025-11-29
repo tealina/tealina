@@ -1,6 +1,6 @@
 {
   "name": "@tealina/server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Includes core runtime utility functions for API files to routes.",
   "main": "./dist/index.js",
   "scripts": {
