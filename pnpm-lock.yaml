@@ -229,8 +229,8 @@ importers:
         specifier: ^4.3.3
         version: 4.3.3(vite@5.4.10)
       '@vitest/web-worker':
-        specifier: ^0.34.6
-        version: 0.34.6(vitest@4.0.14)
+        specifier: ^4.0.1
+        version: 4.0.14(vitest@4.0.14)
       jsdom:
         specifier: ^22.1.0
         version: 22.1.0
@@ -3294,15 +3294,13 @@ packages:
       tinyrainbow: 3.0.3
     dev: true
 
-  /@vitest/web-worker@0.34.6(vitest@4.0.14):
-    resolution: {integrity: sha512-bSVreTLHgDuwICHvKxl0oi4KfD12ZUX9XYoV+5cyVLB4JWTch0BE2okUr+Z1r2ESpBLrUb2ck8kT7JSEWbCmMg==}
+  /@vitest/web-worker@4.0.14(vitest@4.0.14):
+    resolution: {integrity: sha512-aF7LmA1v6GTNcKLlvSBEI7maCd2AfQj//k9xJSo5wMsTA9SV/2UpgGKgkjyi79rms87WaB/fn1ui/nEtDab8ig==}
     peerDependencies:
-      vitest: '>=0.34.0'
+      vitest: 4.0.14
     dependencies:
-      debug: 4.3.4
+      obug: 2.1.1
       vitest: 4.0.14(@types/node@18.19.64)(tsx@4.19.2)
-    transitivePeerDependencies:
-      - supports-color
     dev: true
 
   /@vue/compiler-core@3.5.12:
