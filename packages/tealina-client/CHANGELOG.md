@@ -1,5 +1,17 @@
 # @tealina/client
 
+## 1.0.0
+
+### Major Changes
+
+- ddeef50: Release first version
+
+### Patch Changes
+
+- 71eab6f: Update README
+- Updated dependencies [7f385ca]
+  - @tealina/utility-types@1.1.0
+
 ## 1.0.0-beta.1
 
 ### Patch Changes

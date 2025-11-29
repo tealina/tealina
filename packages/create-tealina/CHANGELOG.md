@@ -1,5 +1,37 @@
 # create-tealina
 
+## 2.0.0
+
+### Major Changes
+
+- 3eb862b: #### BREACKING_CHANGE
+
+  - The default project structure has been updated to use a **monorepo** approach.
+
+  #### Features
+
+  - New Koa template
+
+  #### Other change
+
+  - Remove dev-templates.
+  - Rename `init-dev.mjs` to `init-demo.mjs`.
+  - All dependencies upgraded to the latest version.
+  - Clearer file structure
+
+### Minor Changes
+
+- 7f385ca: Support API examples
+
+### Patch Changes
+
+- 28bb3fd: Fix template types
+- c00c855: Fix version and runtime script
+- dbf7947: Fix run in Bun
+- ae3c05f: Fix working in Bun
+- f7c4695: Fix build server error
+- 71eab6f: Update README
+
 ## 2.0.0-beta.5
 
 ### Patch Changes
