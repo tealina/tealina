@@ -1,5 +1,12 @@
 # @tealina/server
 
+## 1.0.1
+
+### Patch Changes
+
+- 6577ffb: update patch version
+
+
 ## 1.0.0-beta.1
 
 ### Patch Changes
