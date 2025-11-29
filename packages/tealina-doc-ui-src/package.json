@@ -13,7 +13,6 @@
   "dependencies": {
     "@ant-design/icons": "5.5.1",
     "@tealina/doc-types": "workspace:*",
-    "@tealina/doc-ui-src": "link:",
     "antd": "^5.9.1",
     "axios": "^1.7.7",
     "fp-lite": "^2.0.0",

@@ -16,7 +16,6 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "fp-lite": "^2.0.0",
-    "server": "link:",
     "zod": "^4.1.1"
   },
   "devDependencies": {
