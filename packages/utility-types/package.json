@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
-    "test": "vites --run"
+    "test": "vitest --run"
   },
   "keywords": [
     "tealina",
