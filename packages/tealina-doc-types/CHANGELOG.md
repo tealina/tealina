@@ -1,5 +1,13 @@
 # @tealina/doc-types
 
+## 1.1.0
+
+### Minor Changes
+
+- 7f385ca: Support API examples
+- 3eb862b: #### Features
+  - New LiteralObject kind
+
 ## 1.1.0-beta.0
 
 ### Minor Changes

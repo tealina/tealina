@@ -1,5 +1,31 @@
 # @tealina/doc-ui
 
+## 2.0.0
+
+### Major Changes
+
+- 89da024: #### Features
+
+  - Support specify any custom basename.
+  - Support render Open API
+  - Support render markdown format comment
+  - Support custom request handler
+
+  ### Refactors
+
+  - Use react-syntax-highlighter and react-simple-code-editor instead monaco-editor, reduced 60% build output.
+
+### Minor Changes
+
+- 7f385ca: Support API examples
+
+### Patch Changes
+
+- 71eab6f: Update README
+- Updated dependencies [7f385ca]
+- Updated dependencies [3eb862b]
+  - @tealina/doc-types@1.1.0
+
 ## 2.0.0-beta.1
 
 ### Patch Changes

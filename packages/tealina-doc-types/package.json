@@ -1,6 +1,6 @@
 {
   "name": "@tealina/doc-types",
-  "version": "1.1.0-beta.0",
+  "version": "1.1.0",
   "description": "API document type designed for transformation tools",
   "type": "module",
   "main": "./dist/index.js",
