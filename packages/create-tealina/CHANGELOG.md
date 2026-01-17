@@ -1,5 +1,11 @@
 # create-tealina
 
+## 2.2.3
+
+### Patch Changes
+
+- 871a62e: Fix init-demo command
+
 ## 2.2.2
 
 ### Patch Changes
