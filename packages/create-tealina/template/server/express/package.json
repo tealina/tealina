@@ -14,10 +14,10 @@
     "build": "tsc --project tsconfig.build.json",
     "v1": "tealina src/api-v1",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "init-demo": "node init-demo.mjs"
+    "init-demo": "dotenv -c -- node init-demo.mjs"
   },
   "dependencies": {
-    "@prisma/client": "^6.14.0",
+    "@prisma/client": "^7.2.0",
     "@tealina/doc-ui": "^2.0.0",
     "@tealina/server": "^1.0.0",
     "axios": "^1.7.7",
@@ -30,7 +30,7 @@
     "@tealina/utility-types": "^1.0.0",
     "@types/express": "^5.0.3",
     "@types/node": "^20.19.4",
-    "prisma": "^6.14.0",
+    "prisma": "^7.2.0",
     "tealina": "^2.0.0",
     "tsx": "^4.20.5",
     "typescript": "~5.8.3"
