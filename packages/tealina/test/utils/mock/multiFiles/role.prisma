@@ -1,0 +1,9 @@
+model PostV2 {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean  @default(false)
+  title     String   @db.VarChar(255)
+  author    UserV2?  @relation(fields: [authorId], references: [id])
+  authorId  Int?
+}
