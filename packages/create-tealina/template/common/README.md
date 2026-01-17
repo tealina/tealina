@@ -1,13 +1,16 @@
 
-### File Structure
+### Project Structure
 
 ```
 ├── packages/                    
 │   ├── server/             # Backend
-│   │   ├── dev-templates/  # Code templates for tealina CLI
 │   │   ├── docs/           
 │   │   │   ├── api-v1.json # Generate by command `gdoc`
 │   │   │   └── ...
+│   │   ├── src/
+│   │   │   ├── api-v1/  #api folder group by version
+│   │   │   │   ├── get/  # endpoint group by http method 
+│   │   └── ...
 │   │   ├── types/          # Utility types
 │   │   └── ...
 │   ├── shared-types/        
@@ -19,6 +22,41 @@
 │   └── ...
 └── ...
 ```
+
+### Conventions 
+1. One file per endpoint\
+   Example: `POST /api/v1/user/login` -> `api-v1/post/user/login.ts`
+
+2. Declare handler function types using `AuthedHandler` or `OpenHandler`
+   ```ts
+   interface LoginPayload {
+     account: string
+     password: string
+   }
+   type ApiType = AuthedHandler<{body:LoginPayload}, { token: string }>
+
+   const handler: ApiType = async (_req, res) => {
+     res.send({ token: 'mock token' })
+   }
+   ```
+3. Always `export default` a handler funciton or a array of handler functions
+   ```ts 
+   export default handler
+   ```
+
+4. Keep index files in sync (api-v1/index.ts, api-v1/[method]/index.ts)
+It is recommended to use `npx v1 -a` to automatically sync them.
+   ```ts 
+     export default { // api-v1/index.ts
+       'post': import('./post/index.js'),
+     } 
+   ```
+   ```ts 
+     export default { //  api-v1/post/index.ts
+       '/login': import('./login.js'),
+     }
+   ```
+
 
 ### Document Resources
 

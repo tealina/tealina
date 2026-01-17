@@ -13,7 +13,7 @@ import {
   pickFn,
   pipe,
 } from 'fp-lite'
-import { writeFile } from 'node:fs/promises'
+import { readdir, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { GtypeConfig } from '..'
 import type {
@@ -396,6 +396,36 @@ const workflow = (input: string, config: GtypeConfig) =>
     pipe(config, prepareMainTransformer, makeTypeCodes),
   )
 
+const loopParse = async (dir: string, config: GtypeConfig) => {
+  const inputInfo = await stat(dir)
+  let lines: string[] = []
+  if (inputInfo.isFile()) {
+    if (path.extname(dir) !== '.prisma') {
+      return lines
+    }
+    return workflow(dir, config)
+  }
+  if (!inputInfo.isDirectory()) {
+    return lines
+  }
+  const subs = await readdir(dir)
+  for (const sub of subs) {
+    const fullSub = path.join(dir, sub)
+    const fileOrDir = await stat(fullSub)
+    if (fileOrDir.isDirectory()) {
+      const subFileLines = await loopParse(fullSub, config)
+      lines.push(...subFileLines)
+      continue
+    }
+    if (fileOrDir.isFile()) {
+      const subFileLines = await workflow(fullSub, config)
+      lines.push(...subFileLines)
+      continue
+    }
+  }
+  return lines
+}
+
 type GtypeOption = Required<
   Pick<FullOptions, 'gtype' | 'output' | 'input' | 'namespace'>
 >
@@ -406,7 +436,7 @@ const pickOption4gtype = (full: FullOptions): GtypeOption => {
   return { ...x, output, gtype }
 }
 const generatePureTypes = async (option: GtypeOption) => {
-  const lines = await workflow(option.input, option.gtype)
+  const lines = await loopParse(option.input, option.gtype)
   return pipe(
     lines,
     wrapperWith(option),
@@ -415,5 +445,5 @@ const generatePureTypes = async (option: GtypeOption) => {
     consola.success,
   )
 }
-export { generatePureTypes, pickOption4gtype, workflow }
+export { generatePureTypes, pickOption4gtype, workflow, loopParse }
 export type { GtypeConfig as PurifyConfig }

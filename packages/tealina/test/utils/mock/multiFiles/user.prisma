@@ -1,0 +1,9 @@
+// private comment
+/// public comment
+model UserV2 {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  email     String   @unique /// inline public comment
+  name      String?
+  posts     PostV2[]
+}
