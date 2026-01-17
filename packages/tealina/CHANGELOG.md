@@ -1,5 +1,13 @@
 # tealina
 
+## 2.2.1
+
+### Patch Changes
+
+- a8929b3: Fix woriking with prisma v7
+- Updated dependencies [a8929b3]
+  - tealina@2.2.1
+
 ## 2.2.0
 
 ### Minor Changes
