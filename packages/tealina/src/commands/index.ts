@@ -6,6 +6,7 @@ import { deleteApis } from './dapi'
 import { pickOption4gdoc, startGenerateDoc } from './gdoc'
 import { generatePureTypes, pickOption4gtype } from './gtype'
 import { pickOption4align, syncApiByFile } from './sapi'
+import { existsSync } from 'fs-extra'
 
 export interface RawOptions {
   apiDir: string
@@ -22,6 +23,7 @@ export interface RawOptions {
   deleteApi: boolean
 }
 
+const kDefaultGtypeInput = './prisma/schema.prisma'
 const distribuite = async (...rawArgs: unknown[]) => {
   const options = rawArgs.pop() as Omit<RawOptions, 'apiDir' | 'route'>
   const args = rawArgs as ReadonlyArray<string>
@@ -37,6 +39,16 @@ const distribuite = async (...rawArgs: unknown[]) => {
     return startGenerateDoc(pickOption4gdoc(config))
   }
   if (route === 'gtype') {
+    const prismaConfigPath = './prisma.config.ts'
+    const { input } = config
+    if (input == null) {
+      let final = kDefaultGtypeInput
+      if (existsSync(prismaConfigPath)) {
+        const configFromFile = await loadConfigFromPath(prismaConfigPath)
+        final = configFromFile.schema ?? kDefaultGtypeInput
+      }
+      config.input = final
+    }
     return generatePureTypes(pickOption4gtype(config))
   }
   if (options.deleteApi) {
@@ -51,7 +63,7 @@ cli.command('<api-dir> gdoc [options]', 'Generate API document (json format)')
 
 cli.command(
   '<api-dir> gtype [options]',
-  'Generate purified types based on schema.prisma',
+  'Generate purified types based on *.prisma',
 )
 cli.command('gtype [options]', 'Generate purified types based on schema.prisma')
 
@@ -62,9 +74,10 @@ cli
     'Align APIs, update all related files according to files in --api-dir',
   )
   .option('-d,--delete-api', 'Delete APIs')
-  .option('-i,--input <path>', 'Prisma schema path', {
-    default: './prisma/schema.prisma',
-  })
+  .option(
+    '-i,--input <path>',
+    'Prisma schema path, default:  ./prisma/schema.prisma',
+  )
   .option('-n,--namespace <name>', 'Namespace of purified types', {
     default: 'Pure',
   })
