@@ -1,5 +1,12 @@
 # @tealina/client
 
+## 1.0.3
+
+### Patch Changes
+
+- 548b91d: Align changeset record
+- fcb8bcc: Align with npm registry version
+
 ## 1.0.2
 
 ### Patch Changes
