@@ -1,12 +1,12 @@
 {
   "name": "tealina-monorepo",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build": "pnpm recursive exec -- npm run build",
-    "release": "pnpm changeset pre exit && pnpm changeset version && pnpm up-temp-versions && pnpm build && pnpm changeset publish --tag latest",
+    "release": "pnpm changeset pre exit && pnpm changeset version && pnpm up-temp-versions && pnpm build && pnpm changeset publish",
     "test": "pnpm recursive exec -- npm run test",
     "preinstall": "npx only-allow pnpm",
     "dev:ui": "concurrently 'pnpm -C playground/doc-factory dev' 'pnpm -F @tealina/doc-ui-src dev'",
