@@ -38,7 +38,7 @@ const updateServerPackageJson = (serverDestDir: string, runtime: string) => {
   const pkgPath = join(serverDestDir, 'package.json')
   let pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
   pkg.name = path.basename(serverDestDir)
-  pkg.scripts['init-demo'] = `${runtime} ${kInitDemo}`
+  pkg.scripts['init-demo'] = `dotenv -c -- ${runtime} ${kInitDemo}`
   const { server } = versionMap
   Object.assign(pkg.dependencies, server.dependencies)
   Object.assign(pkg.devDependencies, server.devDependencies)
