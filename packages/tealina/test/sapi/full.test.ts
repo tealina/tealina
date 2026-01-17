@@ -88,7 +88,7 @@ describe('test sapi in mock dir', function () {
 
 function ensureWrite(dest: string, content: string) {
   const dir = path.dirname(dest)
-  if (pathExistsSync(dir)) {
+  if (!pathExistsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
   }
   fs.writeFileSync(dest, content)
