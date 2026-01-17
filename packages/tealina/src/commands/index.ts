@@ -6,7 +6,7 @@ import { deleteApis } from './dapi'
 import { pickOption4gdoc, startGenerateDoc } from './gdoc'
 import { generatePureTypes, pickOption4gtype } from './gtype'
 import { pickOption4align, syncApiByFile } from './sapi'
-import { existsSync } from 'fs-extra'
+import { existsSync } from 'node:fs'
 
 export interface RawOptions {
   apiDir: string

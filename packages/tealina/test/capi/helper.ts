@@ -1,9 +1,10 @@
 import { notNull } from 'fp-lite'
-import fs from 'fs-extra'
+import fs from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll } from 'vitest'
 import { cli } from '../../src/commands/index.js'
 import { DirInfo } from '../../src/utils/withTypeFile.js'
+import { ensureDirSync } from '../../src/utils/fs-extra.js'
 
 export const cleanDir = (root: string) => {
   beforeAll(() => {
@@ -27,9 +28,9 @@ export function tempDirFactory(root: string) {
     const apiDir = path.join(root, name)
     const typesDir = path.join(root, 'types')
     const testDir = path.join(root, 'test')
-    fs.ensureDirSync(apiDir)
-    fs.ensureDirSync(typesDir)
-    fs.ensureDirSync(testDir)
+    ensureDirSync(apiDir)
+    ensureDirSync(typesDir)
+    ensureDirSync(testDir)
     return { apiDir, typesDir, testDir }
   }
 }

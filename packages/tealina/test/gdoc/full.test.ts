@@ -1,4 +1,4 @@
-import { existsSync, rmSync } from 'fs-extra'
+import { existsSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll, test } from 'vitest'
 import { cli } from '../../src/commands/index.js'

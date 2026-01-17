@@ -13,7 +13,6 @@ import {
   unique,
   waitAll,
 } from 'fp-lite'
-import { pathExists } from 'fs-extra'
 import { basename, join } from 'pathe'
 import type { RawOptions } from '.'
 import type {
@@ -38,6 +37,7 @@ import {
   calcTypeFileSnapshot,
   collectTypeFileInfo,
 } from '../utils/withTypeFile'
+import { pathExists } from '../utils/fs-extra'
 
 interface Seeds {
   kind: string

@@ -14,7 +14,7 @@ export default defineBuildConfig({
   clean: true,
   rollup: {
     esbuild: {
-      target: 'node18',
+      target: 'node20',
       minify: true,
     },
   },

@@ -1,24 +1,45 @@
 import { unique } from 'fp-lite'
-import fs from 'fs-extra'
+import fs from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { AlignOption, syncApiByFile } from '../../src/commands/sapi.js'
 import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
 
+export function emptyDirSync(dir: string) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true })
+    return
+  }
+
+  for (const entry of fs.readdirSync(dir)) {
+    const fullPath = path.join(dir, entry)
+    fs.rmSync(fullPath, {
+      recursive: true,
+      force: true,
+    })
+  }
+}
+
+export function pathExistsSync(p: string) {
+  try {
+    fs.accessSync(p)
+    return true
+  } catch {
+    return false
+  }
+}
 describe('test sapi in mock dir', function () {
   const tempDir = 'temp/sapi/full'
   const apiDir = path.join(tempDir, '/api')
   const apiTypesDir = path.join(tempDir, '/types')
-  const apiTestDir = path.join(tempDir, '/test')
   const ctx: AlignOption = {
     apiDir,
-    testDir: apiTestDir,
     typesDir: apiTypesDir,
     suffix: '.js',
   }
 
   beforeAll(() => {
-    fs.emptyDirSync(tempDir)
+    emptyDirSync(tempDir)
     fs.mkdirSync(apiTypesDir, { recursive: true })
   })
 
@@ -67,7 +88,7 @@ describe('test sapi in mock dir', function () {
 
 function ensureWrite(dest: string, content: string) {
   const dir = path.dirname(dest)
-  if (!fs.pathExistsSync(dir)) {
+  if (pathExistsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
   }
   fs.writeFileSync(dest, content)

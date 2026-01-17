@@ -1,5 +1,5 @@
 import { map, pipe, unique } from 'fp-lite'
-import fs from 'fs-extra'
+import fs from 'node:fs'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
