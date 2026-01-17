@@ -38,7 +38,7 @@ const updateServerPackageJson = (serverDestDir: string, runtime: string) => {
   const pkgPath = join(serverDestDir, 'package.json')
   let pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
   pkg.name = path.basename(serverDestDir)
-  pkg.scripts['init-demo'] = `dotenv -c -- ${runtime} ${kInitDemo}`
+  pkg.scripts['init-demo'] = `${runtime} ${kInitDemo}`
   const { server } = versionMap
   Object.assign(pkg.dependencies, server.dependencies)
   Object.assign(pkg.devDependencies, server.devDependencies)
@@ -65,9 +65,9 @@ const setupLines = [
 ]
 const kCommandsForInit = [
   'install',
-  'prisma generate',
+  'dotenv -c -- prisma generate',
   '// Initialize sqlite database',
-  'prisma db push',
+  'dotenv -c -- prisma db push',
   '// Align index.ts exports with the actual file structure',
   'v1 -a',
   '// Generating shareable types from prisma.schema',
