@@ -1,5 +1,11 @@
 # tealina
 
+## 2.0.0
+
+### Minor Changes
+
+- ff0e3f9: Feat: Support Prisma v7
+
 ## 2.0.0-beta.1
 
 ### Patch Changes
