@@ -1,5 +1,11 @@
 # @tealina/client
 
+## 1.0.2
+
+### Patch Changes
+
+- 6577ffb: fix dependance
+
 ## 1.0.1
 
 ### Patch Changes
