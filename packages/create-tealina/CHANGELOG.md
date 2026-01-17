@@ -1,5 +1,11 @@
 # create-tealina
 
+## 2.2.2
+
+### Patch Changes
+
+- 78c5976: Fix: init-demo command missing env
+
 ## 2.2.1
 
 ### Patch Changes
