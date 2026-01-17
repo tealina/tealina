@@ -65,6 +65,7 @@ const setupLines = [
 ]
 const kCommandsForInit = [
   'install',
+  'prisma generate',
   '// Initialize sqlite database',
   'prisma db push',
   '// Align index.ts exports with the actual file structure',
@@ -91,7 +92,7 @@ const getInitCommands = (leader: ContextType['leader']) => {
     return command(` ${e}`)
   })
 
-  return [...setupLines, command(' install'), ...initCommands]
+  return [...setupLines, ...initCommands]
 }
 
 const copyTemplates = (dest: string, webExtraTemplateDir: string) => {
