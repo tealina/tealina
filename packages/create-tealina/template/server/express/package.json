@@ -10,24 +10,26 @@
     }
   },
   "scripts": {
-    "dev": "dotenv -c -- tsx watch src",
+    "dev": "tsx watch src",
     "build": "tsc --project tsconfig.build.json",
     "v1": "tealina src/api-v1",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "init-demo": "dotenv -c -- node init-demo.mjs"
+    "init-demo": "node init-demo.mjs"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@tealina/doc-ui": "^2.0.0",
     "@tealina/server": "^1.0.0",
     "axios": "^1.7.7",
-    "dotenv-cli": "^10.0.0",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "zod": "^4.1.1"
   },
   "devDependencies": {
     "@shared/type": "workspace:*",
     "@tealina/utility-types": "^1.0.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5.0.3",
     "@types/node": "^20.19.4",
     "prisma": "^7.2.0",

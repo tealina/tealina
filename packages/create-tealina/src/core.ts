@@ -65,12 +65,12 @@ const setupLines = [
 ]
 const kCommandsForInit = [
   'install',
-  'dotenv -c -- prisma generate',
+  'prisma generate',
   '// Initialize sqlite database',
-  'dotenv -c -- prisma db push',
+  'prisma db push',
   '// Align index.ts exports with the actual file structure',
   'v1 -a',
-  '// Generating shareable types from prisma.schema',
+  '// Generating shareable types from schema.prisma',
   'v1 gtype',
   '// Generating API document',
   'v1 gdoc',
@@ -219,7 +219,7 @@ const pkgFromUserAgent = (userAgent = '') => {
 
 const updatePkgJsonForBun = (pkgJsonPath: string) => {
   const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath).toString())
-  pkgJson.scripts.dev = 'dotenv -c -- bun --watch src'
+  pkgJson.scripts.dev = 'bun --watch src'
   delete pkgJson.devDependencies.tsx
   fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2))
 }
