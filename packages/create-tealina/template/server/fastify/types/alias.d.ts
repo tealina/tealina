@@ -3,15 +3,20 @@ import type {
   ExtractResponse,
   MaybeProperty,
 } from '@tealina/utility-types'
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import type {
+  FastifyInstance,
+  FastifyRequest,
+  FastifyReply,
+  RouteGenericInterface,
+} from 'fastify'
 
 export interface HandlerAliasCore<
-  TPayload = {},
+  TPayload extends Record<string, any> = {},
   TResponse = unknown,
-  TLocals = null,
-  T = PickTarget<TPayload, 'server'>,
+  TLocals extends Record<string, any> = {},
+  T extends Record<string, any> = PickTarget<TPayload, 'server'>,
   R = ExtractResponse<PickTarget<TResponse, 'server'>>,
-  RouteGeneric = {
+  RouteGeneric extends RouteGenericInterface = {
     Body: T['body']
     Headers: T['headers']
     Params: T['params']

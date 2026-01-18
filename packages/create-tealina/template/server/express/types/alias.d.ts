@@ -1,15 +1,15 @@
 import {
-  PickTarget,
   ExtractResponse,
   MaybeProperty,
+  PickTarget,
 } from '@tealina/utility-types'
-import type { Request, Response, NextFunction } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 
 interface HandlerAliasCore<
-  TPayload = {},
+  TPayload extends Record<string, any> = {},
   TResponse = unknown,
-  TLocals = {},
-  T = PickTarget<TPayload, 'server'>,
+  TLocals extends Record<string, any> = {},
+  T extends Record<string, any> = PickTarget<TPayload, 'server'>,
   R = ExtractResponse<PickTarget<TResponse, 'server'>>,
 > {
   (

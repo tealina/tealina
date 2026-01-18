@@ -6,8 +6,8 @@ import type {
   Simplify,
   TargetKeys,
 } from '@tealina/utility-types'
-import type { AuthHeaders, AuthedLocals } from './common.d.ts'
-import { HandlerAliasCore } from './alias.d.ts'
+import type { AuthHeaders, AuthedLocals } from './common.js'
+import { HandlerAliasCore } from './alias.js'
 
 interface RawPayload {
   body?: unknown
@@ -20,7 +20,8 @@ export type FullInfo = RawPayload & { response: unknown }
 
 type EmptyLocals = {}
 type EmptyObj = {}
-type VariantPayload = RawPayload | MultiTarget<RawPayload>
+type ShapeOfMultiTarget = MultiTarget<Record<TargetKeys, any>>
+type VariantPayload = RawPayload | ShapeOfMultiTarget
 
 export type HTTPMethods = 'get' | 'post' | 'patch' | 'delete'
 
@@ -67,7 +68,7 @@ export type ResolveApiTypeForClient<
 
 export type CustomHandlerType = HandlerAlias<any, any>
 
-type DocTargetFirst<T> = T extends MultiTarget<RawPayload>
+type DocTargetFirst<T> = T extends ShapeOfMultiTarget
   ? Simplify<Omit<T, TargetKeys> & T['doc']>
   : T
 

@@ -1,4 +1,4 @@
-import type { Middleware } from '@koa/router'
+import type { Middleware } from 'koa'
 
 interface KoaError extends Error {
   status?: number

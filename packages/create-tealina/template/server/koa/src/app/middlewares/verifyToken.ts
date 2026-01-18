@@ -1,4 +1,4 @@
-import type { Middleware } from '@koa/router'
+import type { Middleware } from 'koa'
 import { formatErrorResponse } from './errorHandler.js'
 
 const verifyToken: Middleware = async (ctx, next) => {

@@ -1,4 +1,4 @@
-import type { Middleware } from '@koa/router'
+import type { Middleware } from 'koa'
 import type { CustomHandlerType } from '../types/handler.js'
 
 type ConstrainedHandlerType = [...Middleware[], CustomHandlerType]
