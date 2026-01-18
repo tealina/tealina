@@ -17,6 +17,6 @@ test('create Express restful', async () => {
   const serverPkg = JSON.parse(
     readFileSync(path.join(serverDir, 'package.json')).toString(),
   )
-  expect(serverPkg.scripts.dev).eq('dotenv -c -- bun --watch src')
+  expect(serverPkg.scripts.dev).eq('bun --watch src')
   expect(serverPkg.devDependencies.tsx).toBeUndefined()
 })
