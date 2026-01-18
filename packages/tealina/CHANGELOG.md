@@ -1,5 +1,13 @@
 # tealina
 
+## 2.2.2
+
+### Patch Changes
+
+- 4c78177: Fix: read prisma.config.ts error
+- Updated dependencies [4c78177]
+  - tealina@2.2.2
+
 ## 2.2.1
 
 ### Patch Changes

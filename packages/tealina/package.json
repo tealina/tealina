@@ -1,6 +1,6 @@
 {
   "name": "tealina",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "type": "module",
   "main": "dist/index.mjs",
   "description": "A CLI for build end-to-end typesafety APIs, and code, types, document generation",

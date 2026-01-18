@@ -1,5 +1,12 @@
 # create-tealina
 
+## 2.2.4
+
+### Patch Changes
+
+- 4c78177: Changed: replace dotenv-cli with dotenv
+  Fix: server template type error when build
+
 ## 2.2.3
 
 ### Patch Changes
