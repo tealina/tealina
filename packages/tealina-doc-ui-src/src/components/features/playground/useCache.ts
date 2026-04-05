@@ -55,7 +55,7 @@ export function useCacheStates({
   const [getCache, setCache] = useAtom(memoMutateAtom)
   const commonInitialValue = useAtomValue(commonInitialValueAtom)
   const statesRef = useRef<MemoState['states']>()
-  const formValueRef = useRef<Record<string, unknown>>({})
+  const formValueRef = useRef<Record<string, unknown> | null>(null)
   const cache = getCache(cacheKey)
   const [states, setStates] = useState(cache.states)
   statesRef.current = states
@@ -70,7 +70,7 @@ export function useCacheStates({
     form.setFieldsValue(cache.formValues)
     return () => {
       setCache(cacheKey, {
-        formValues: formValueRef.current,
+        formValues: formValueRef.current ?? {},
         states: statesRef.current ?? DefaultCache.states,
       })
     }
