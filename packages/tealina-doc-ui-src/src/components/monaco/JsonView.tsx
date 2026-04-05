@@ -15,6 +15,14 @@ export const JsonView = ({
   ref?: React.ClassAttributes<SyntaxHighlighter>['ref']
 }) => {
   const curTheme = useAtomValue(themeAtom)
+  const formatJson = (jsonString: string): string => {
+    try {
+      const parsed = JSON.parse(jsonString)
+      return JSON.stringify(parsed, null, 2) // 使用 2 个空格缩进
+    } catch {
+      return jsonString
+    }
+  }
   return (
     <SyntaxHighlighter
       style={curTheme === 'dark' ? vscDarkPlus : vs}
@@ -22,7 +30,7 @@ export const JsonView = ({
       className={className}
       ref={ref}
     >
-      {value}
+      {formatJson(value)}
     </SyntaxHighlighter>
   )
 }
