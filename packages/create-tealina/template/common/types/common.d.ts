@@ -20,3 +20,7 @@ export type AuthedLocals = {
 export type AuthHeaders = {
   Authorization: string
 }
+
+export type JsonHeaders = {
+  'Content-Type': 'application/json'
+}

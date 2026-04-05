@@ -6,8 +6,8 @@ import type {
   Simplify,
   TargetKeys,
 } from '@tealina/utility-types'
-import type { AuthHeaders, AuthedLocals } from './common.js'
-import { HandlerAliasCore } from './alias.js'
+import type { AuthHeaders, AuthedLocals, JsonHeaders } from './common.js'
+import type { HandlerAliasCore } from './alias.js'
 
 interface RawPayload {
   body?: unknown
@@ -34,14 +34,19 @@ export type OpenHandler<
   TPayload extends VariantPayload = EmptyObj,
   TResponse = unknown,
   TLocals extends EmptyObj = EmptyLocals,
-> = HandlerAlias<Simplify<TPayload & { response: TResponse }>, TLocals>
+> = HandlerAlias<
+  Simplify<TPayload & { headers: JsonHeaders; response: TResponse }>,
+  TLocals
+>
 
 export type AuthedHandler<
   TPayload extends VariantPayload = {},
   TResponse = unknown,
   TLocals extends EmptyObj = EmptyLocals,
 > = HandlerAlias<
-  Simplify<TPayload & { headers: AuthHeaders; response: TResponse }>,
+  Simplify<
+    TPayload & { headers: AuthHeaders & JsonHeaders; response: TResponse }
+  >,
   AuthedLocals & TLocals
 >
 
