@@ -26,7 +26,7 @@ export function HeaderAction() {
   }))
 
   return (
-    <div className="fixed z-3 flex justify-end gap-3 p-2 top-0 right-0 items-center pt-3">
+    <div className="flex justify-end gap-3 p-2 items-center pt-3">
       <SearchBtn />
       <ThemeToggle />
       <Select
