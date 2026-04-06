@@ -15,3 +15,4 @@ playground/shop-nexa/server/prisma/dev.db
 playground/shop-nexa/server/src/api-v1
 playground/shop-nexa/server/docs/**
 temp-*
+packages/tealina-doc-ui/static
