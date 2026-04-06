@@ -1,5 +1,11 @@
 # create-tealina
 
+## 2.2.5
+
+### Patch Changes
+
+- 23f45fb: Fix: Missing default content type declaration
+
 ## 2.2.4
 
 ### Patch Changes
