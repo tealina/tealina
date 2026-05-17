@@ -234,7 +234,6 @@ const createServerProject = async (ctx: ContextType) => {
   copyDir(templateServerDir, destServerDir)
   createProject(templateServerDir)
   updateServerPackageJson(destServerDir, ctx.runtime)
-  copyDir(join(templateDir, ''), destServerDir)
   //init-demo.mjs
   const initCommands = getInitCommands(ctx.leader)
   fs.writeFileSync(join(destServerDir, kInitDemo), initCommands.join('\n'))
