@@ -1,5 +1,11 @@
 # create-tealina
 
+## 2.2.6
+
+### Patch Changes
+
+- bd89918: Fix: incorrect server template
+
 ## 2.2.5
 
 ### Patch Changes
