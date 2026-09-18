@@ -1,0 +1,19 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tealina/client": "^1.0.3"
+  },
+  "devDependencies": {
+    "server": "workspace:*",
+    "typescript": "~5.8.3",
+    "vite": "^8.3.0"
+  }
+}

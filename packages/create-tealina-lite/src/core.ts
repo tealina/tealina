@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import prompts from 'prompts'
 import versionMap from '../template/versionMaps.json'
+import { type Mode, createFiles, webFiles } from './template-manifest.js'
 
 const { blue, green, reset } = chalk
 const { join } = path
@@ -28,6 +29,11 @@ export const templateRootDir = path.resolve(
 // Copied from packages/create-tealina/src/core.ts. That package ships no `exports`
 // map, so nothing in it can be imported — these have to be duplicated. If you fix a
 // bug in one of them, fix it in both.
+//
+// `mayCopyCommonDir` is the one helper deliberately not carried over: `create` copies
+// from template-manifest.ts now, which names the files instead of walking a directory,
+// so a wholesale `common/` copy no longer exists on this side. It is still used by
+// create-tealina, so it still has to be kept correct there.
 // ---------------------------------------------------------------------------
 
 const copy = (src: string, dest: string) =>
@@ -42,13 +48,6 @@ const copyDir = (srcDir: string, destDir: string) => {
     const srcFile = path.resolve(srcDir, file)
     const destFile = path.resolve(destDir, file)
     copy(srcFile, destFile)
-  }
-}
-
-const mayCopyCommonDir = (templateDir: string, destDir: string) => {
-  const commonDir = join(templateDir, 'common')
-  if (fs.existsSync(commonDir)) {
-    copyDir(commonDir, destDir)
   }
 }
 
@@ -107,6 +106,7 @@ export const isServerTemplate = (v: string): v is ServerTemplate =>
 const collectUserAnswer = async (
   argProjectName: string | undefined,
   presetServer: string | undefined,
+  presetMode: Mode | undefined,
 ) => {
   if (presetServer != null && !isServerTemplate(presetServer)) {
     throw new Error(
@@ -114,7 +114,10 @@ const collectUserAnswer = async (
     )
   }
   // Only ask what the flags did not already answer, so `--template x <name>` is
-  // fully non-interactive (that is what the e2e test relies on).
+  // fully non-interactive (that is what the e2e test relies on). The mode question rides
+  // on the same rule rather than one of its own: a caller who named a template has asked
+  // for a non-interactive run, and stopping to ask about JavaScript would break that
+  // promise. They get TypeScript, and `--js` is how they say otherwise.
   const questions = [
     ...(argProjectName
       ? []
@@ -140,18 +143,40 @@ const collectUserAnswer = async (
             ],
           },
         ]),
+    // Skipped when *either* flag was given: `--template` alone already promises a
+    // non-interactive run, and `--js`/`--ts` alone has answered this very question.
+    ...(presetServer || presetMode
+      ? []
+      : [
+          {
+            message: reset('TypeScript or JavaScript?'),
+            name: 'mode',
+            type: 'select' as const,
+            choices: [
+              { title: 'TypeScript', value: 'ts' },
+              {
+                title: 'JavaScript — ESM, no build; types via .d.ts + JSDoc',
+                value: 'js',
+              },
+            ],
+          },
+        ]),
   ]
   const answers = (await prompts(questions, {
     onCancel: () => {
       throw 'Canceled'
     },
-  })) as { projectName?: string; server?: ServerTemplate }
+  })) as { projectName?: string; server?: ServerTemplate; mode?: Mode }
 
   const rawName = answers.projectName ?? argProjectName
   if (rawName == null) throw 'Canceled'
   const server = answers.server ?? presetServer
   if (server == null || !isServerTemplate(server)) throw 'Canceled'
-  return { projectName: formatDestDir(rawName), server }
+  return {
+    projectName: formatDestDir(rawName),
+    server,
+    mode: answers.mode ?? presetMode ?? 'ts',
+  }
 }
 
 /** npm package names are lowercase and free of leading dots/underscores. */
@@ -187,10 +212,52 @@ const updateServerPackageJson = (serverDestDir: string) => {
 const createServerProject = async (ctx: ContextType) => {
   const destServerDir = join(ctx.dest, 'server')
   await mayOverwrite(destServerDir)
-  const templateDir = join(ctx.projectRootDir, 'template')
-  mayCopyCommonDir(templateDir, destServerDir)
-  copyDir(join(templateDir, 'server', ctx.answer.server), destServerDir)
+  for (const { src, dest } of createFiles(ctx.answer.server, ctx.answer.mode)) {
+    const filePath = join(destServerDir, dest)
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.copyFileSync(join(templateRootDir, src), filePath)
+  }
   updateServerPackageJson(destServerDir)
+}
+
+const updateWebPackageJson = (webDestDir: string) => {
+  const pkgPath = join(webDestDir, 'package.json')
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+  pkg.name = path.basename(webDestDir)
+  // `server: workspace:*` is left as the template wrote it. `create` names that package
+  // `server` and nothing else, so there is no name to substitute here the way `init` has
+  // to — the placeholder and the real thing are the same string.
+  const { web } = versionMap
+  Object.assign(pkg.dependencies, web.dependencies)
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
+}
+
+/**
+ * The root scripts are `pnpm -F server …` because the server is the only workspace there
+ * is. A frontend beside it is the one case where they have to cover both — and the only
+ * file this feature rewrites rather than writes.
+ */
+const spreadRootScripts = (ctx: ContextType) => {
+  const pkgPath = join(ctx.root, 'package.json')
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+  pkg.scripts.dev = 'pnpm -r --parallel dev'
+  pkg.scripts.build = 'pnpm -r build'
+  // `web` has no `start` — it is served by Vite in development and by whatever you deploy
+  // `dist/` to in production. A recursive run skips the packages that lack the script.
+  pkg.scripts.start = 'pnpm -r start'
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
+}
+
+const createWebProject = async (ctx: ContextType) => {
+  const destWebDir = join(ctx.dest, 'web')
+  await mayOverwrite(destWebDir)
+  for (const { src, dest } of webFiles(ctx.answer.mode)) {
+    const filePath = join(destWebDir, dest)
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.copyFileSync(join(templateRootDir, src), filePath)
+  }
+  updateWebPackageJson(destWebDir)
+  spreadRootScripts(ctx)
 }
 
 const hasCommand = (command: string) => {
@@ -237,7 +304,12 @@ const installAndGenerate = async (ctx: ContextType) => {
 }
 
 const showGuide = (ctx: ContextType, ready: boolean) => {
-  const { projectName } = ctx.answer
+  const { projectName, mode } = ctx.answer
+  // Said out loud because `--template express <name>` settles the mode without asking,
+  // and a scaffold that quietly picked one of two languages is worth one line.
+  console.log(
+    `\n${green(`Scaffolded a ${mode === 'js' ? 'JavaScript' : 'TypeScript'} project.`)}`,
+  )
   logGuids([
     {
       title: blue('Done. Now run:'),
@@ -247,7 +319,22 @@ const showGuide = (ctx: ContextType, ready: boolean) => {
         'pnpm dev',
       ],
     },
+    ...(ctx.web
+      ? [
+          {
+            title: blue('The frontend is the Vite dev server:'),
+            items: ['http://localhost:5173'],
+          },
+        ]
+      : []),
   ])
+  // One line, said once, because the alternative to `--web` is a reader concluding there
+  // is no frontend story at all rather than that this one is opt-in.
+  if (!ctx.web) {
+    console.log(
+      `\n${blue('--web')} adds a minimal frontend that reads the API types rather than restating them.`,
+    )
+  }
 }
 
 type ContextType = Awaited<ReturnType<typeof createCtx>>
@@ -257,11 +344,24 @@ const createCtx = async () => {
     template?: string
     install?: boolean
     'no-install'?: boolean
+    js?: boolean
+    ts?: boolean
+    web?: boolean
   }>(process.argv.slice(2), {
     string: ['_', 'template'],
-    boolean: ['no-install'],
+    boolean: ['no-install', 'js', 'ts', 'web'],
   })
-  const answer = await collectUserAnswer(argv._[0], argv.template)
+  // Two flags rather than one `--mode <value>`: this is a binary choice, and `--js` is
+  // the thing someone types. `--ts` exists so a script can say "not JavaScript"
+  // regardless of what the interactive default is.
+  if (argv.js && argv.ts) {
+    throw new Error('--js and --ts contradict each other; pass one.')
+  }
+  const answer = await collectUserAnswer(
+    argv._[0],
+    argv.template,
+    argv.js ? 'js' : argv.ts ? 'ts' : undefined,
+  )
   const root = path.resolve(process.cwd(), answer.projectName)
   const projectRootDir = path.resolve(fileURLToPath(import.meta.url), '../../')
   return {
@@ -272,6 +372,10 @@ const createCtx = async () => {
     pkgManager: pkgFromUserAgent(process.env.npm_config_user_agent),
     // minimist rewrites `--no-install` into `install: false`, so read both spellings.
     skipInstall: argv.install === false || argv['no-install'] === true,
+    // A flag beside `skipInstall` rather than an answer beside `server`: nothing asks
+    // this question. `--web` is the only way to say it, and the answers stay what they
+    // were — which is what keeps the default output byte-for-byte what it is today.
+    web: argv.web === true,
   }
 }
 
@@ -279,6 +383,7 @@ export const createScaffold = async () => {
   const ctx = await createCtx()
   createRoot(ctx)
   await createServerProject(ctx)
+  if (ctx.web) await createWebProject(ctx)
   const ready = await installAndGenerate(ctx)
   showGuide(ctx, ready)
 }

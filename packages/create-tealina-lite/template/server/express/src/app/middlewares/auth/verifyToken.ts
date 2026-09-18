@@ -1,5 +1,4 @@
 import type { RequestHandler } from 'express'
-import { formatErrorResponse } from '../errorHandler.js'
 
 /**
  * Guards every endpoint whose handler chain carries no `openHandler` marker
@@ -8,12 +7,10 @@ import { formatErrorResponse } from '../errorHandler.js'
 const handler: RequestHandler = (req, res, next) => {
   const { authorization } = req.headers
   if (authorization == null) {
-    res.status(401).json(
-      formatErrorResponse({
-        code: 'Unauthorized',
-        message: 'Authorization header is missing.',
-      }),
-    )
+    res.status(401).json({
+      code: 'Unauthorized',
+      message: 'Authorization header is missing.',
+    })
     return
   }
   //TODO: verify token

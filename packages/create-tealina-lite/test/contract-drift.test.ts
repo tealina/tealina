@@ -43,6 +43,44 @@ type Delta = {
 }
 
 /**
+ * The tail of upstream's `handler.d.ts`. The global namespace delta is anchored on it
+ * rather than on the empty string: `expect(upstream.includes(''))` holds no matter what,
+ * so an empty `from` would make the "still needed" check below vacuous.
+ */
+const MAKE_EXAMPLES = [
+  'export type MakeExamplesType<T> = T extends HandlerAlias<infer P, any>',
+  '  ? RemapToExampleType<DocTargetFirst<P>>',
+  '  : never',
+].join('\n')
+
+/**
+ * What this package appends: the type names a JavaScript handler writes instead of a
+ * relative `import(…)` chain. `VariantPayload` is module-private upstream, which is why
+ * the aliases need `extends` here at all — leaving it off compiles under every tsconfig
+ * this package ships (`skipLibCheck: true` everywhere) and fails everywhere else.
+ */
+const GLOBAL_NAMESPACE = [
+  '// delta vs create-tealina: a global namespace for JavaScript handlers, which have no',
+  '// `import type` and would otherwise repeat a relative import chain in every file.',
+  '// `EmptyObj` is declared again here only to make the name reachable without an import;',
+  '// it is the same type as the one this file exports above.',
+  'declare global {',
+  '  type EmptyObj = {}',
+  '',
+  '  namespace Tealina {',
+  '    type Open<',
+  '      TPayload extends VariantPayload = EmptyObj,',
+  '      TResponse = unknown,',
+  '    > = OpenHandler<TPayload, TResponse>',
+  '    type Authed<',
+  '      TPayload extends VariantPayload = EmptyObj,',
+  '      TResponse = unknown,',
+  '    > = AuthedHandler<TPayload, TResponse>',
+  '  }',
+  '}',
+].join('\n')
+
+/**
  * Each `to` carries a `delta vs create-tealina:` comment in the shipped file saying why.
  * When upstream adopts one of these, delete the entry — this test will insist.
  */
@@ -86,6 +124,11 @@ const DELTAS: Delta[] = [
     ].join('\n'),
   },
   {
+    file: 'common/types/handler.d.ts',
+    from: MAKE_EXAMPLES,
+    to: `${MAKE_EXAMPLES}\n\n${GLOBAL_NAMESPACE}`,
+  },
+  {
     file: 'server/express/types/alias.d.ts',
     from: 'interface HandlerAliasCore<',
     to: [
@@ -93,6 +136,126 @@ const DELTAS: Delta[] = [
       '// (koa and fastify both export it) and `handler.d.ts` imports it regardless — which',
       '// only compiles because TypeScript does not check exports of a `.d.ts` module.',
       'export interface HandlerAliasCore<',
+    ].join('\n'),
+  },
+  // The overload every framework's alias carries, so that a JavaScript handler can name its
+  // type in a JSDoc `@type` above the declaration. Upstream's single signature makes that
+  // tag the function's own signature, and `async` is then rejected (TS1065) because the
+  // return type is not the global `Promise` — express's `unknown`, koa's `void` and
+  // fastify's `R | void | Promise<R | void>` all are not. Repeating the signature verbatim
+  // is deliberate: a narrower second signature such as `Promise<void>` would keep `async`
+  // working and start rejecting the sync handlers the contract accepts today.
+  //
+  // `from` here is the whole tail of the interface, closing brace included, because the
+  // overload is appended to the end of it — nothing else pins the insertion point, and a
+  // `from` that stopped at the signature would match the second copy too.
+  {
+    file: 'server/express/types/alias.d.ts',
+    from: [
+      '  (',
+      "    req: Request<T['params'], R, T['body'], T['query']> &",
+      "      MaybeProperty<T['headers'], 'headers'>,",
+      '    res: Response<R, TLocals>,',
+      '    next: NextFunction,',
+      '  ): unknown',
+      '}',
+    ].join('\n'),
+    to: [
+      '  (',
+      "    req: Request<T['params'], R, T['body'], T['query']> &",
+      "      MaybeProperty<T['headers'], 'headers'>,",
+      '    res: Response<R, TLocals>,',
+      '    next: NextFunction,',
+      '  ): unknown',
+      '  // delta vs create-tealina: the same signature, a second time, so that this is',
+      '  // an overload set. A JavaScript handler annotated with a JSDoc `@type` above',
+      '  // its declaration is otherwise checked against the alias as one signature,',
+      "  // which makes that signature the function's own — and an `async` handler is",
+      '  // then rejected outright, because `unknown` is not the global `Promise`',
+      '  // (TS1065). Repeating the signature verbatim is the point: anything narrower,',
+      '  // such as `Promise<void>`, is also one signature of an overload set, and',
+      '  // would reject the sync handlers this contract accepts today.',
+      '  (',
+      "    req: Request<T['params'], R, T['body'], T['query']> &",
+      "      MaybeProperty<T['headers'], 'headers'>,",
+      '    res: Response<R, TLocals>,',
+      '    next: NextFunction,',
+      '  ): unknown',
+      '}',
+    ].join('\n'),
+  },
+  {
+    file: 'server/koa/types/alias.d.ts',
+    from: [
+      '  (',
+      '    ctx: ExtendableContext & {',
+      '      request: T',
+      '    } & { body: ExtractResponse<R> } & {',
+      '      state: TLocals',
+      '    },',
+      '    next: () => Promise<any>,',
+      '  ): void',
+      '}',
+    ].join('\n'),
+    to: [
+      '  (',
+      '    ctx: ExtendableContext & {',
+      '      request: T',
+      '    } & { body: ExtractResponse<R> } & {',
+      '      state: TLocals',
+      '    },',
+      '    next: () => Promise<any>,',
+      '  ): void',
+      '  // delta vs create-tealina: the same signature, a second time, so that this is',
+      '  // an overload set. A JavaScript handler annotated with a JSDoc `@type` above',
+      '  // its declaration is otherwise checked against the alias as one signature,',
+      "  // which makes that signature the function's own — and an `async` handler is",
+      '  // then rejected outright, because `void` is not the global `Promise`',
+      '  // (TS1065). Repeating the signature verbatim is the point: anything narrower,',
+      '  // such as `Promise<void>`, is also one signature of an overload set, and',
+      '  // would reject the sync handlers this contract accepts today.',
+      '  (',
+      '    ctx: ExtendableContext & {',
+      '      request: T',
+      '    } & { body: ExtractResponse<R> } & {',
+      '      state: TLocals',
+      '    },',
+      '    next: () => Promise<any>,',
+      '  ): void',
+      '}',
+    ].join('\n'),
+  },
+  {
+    file: 'server/fastify/types/alias.d.ts',
+    from: [
+      '  (',
+      '    this: FastifyInstance,',
+      "    request: FastifyRequest<RouteGeneric> & MaybeProperty<TLocals, 'locals'>, // extend `locals` prop",
+      '    reply: FastifyReply<RouteGeneric>,',
+      '  ): R | void | Promise<R | void>',
+      '}',
+    ].join('\n'),
+    to: [
+      '  (',
+      '    this: FastifyInstance,',
+      "    request: FastifyRequest<RouteGeneric> & MaybeProperty<TLocals, 'locals'>, // extend `locals` prop",
+      '    reply: FastifyReply<RouteGeneric>,',
+      '  ): R | void | Promise<R | void>',
+      '  // delta vs create-tealina: the same signature, a second time, so that this is',
+      '  // an overload set. A JavaScript handler annotated with a JSDoc `@type` above',
+      '  // its declaration is otherwise checked against the alias as one signature,',
+      "  // which makes that signature the function's own — and an `async` handler is",
+      '  // then rejected outright, because a promise union is not the global `Promise`',
+      '  // (TS1065). Repeating the signature verbatim is the point: anything narrower,',
+      '  // such as `Promise<R | void>`, is also one signature of an overload set, and',
+      '  // would reject a handler that returns its payload instead of awaiting',
+      '  // `reply.send`.',
+      '  (',
+      '    this: FastifyInstance,',
+      "    request: FastifyRequest<RouteGeneric> & MaybeProperty<TLocals, 'locals'>, // extend `locals` prop",
+      '    reply: FastifyReply<RouteGeneric>,',
+      '  ): R | void | Promise<R | void>',
+      '}',
     ].join('\n'),
   },
 ]

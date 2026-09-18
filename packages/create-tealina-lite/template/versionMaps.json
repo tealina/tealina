@@ -8,5 +8,10 @@
       "@tealina/utility-types": "^1.0.0",
       "tealina": "^2.2.2"
     }
+  },
+  "web": {
+    "dependencies": {
+      "@tealina/client": "^1.0.3"
+    }
   }
 }

@@ -5,7 +5,9 @@
       "**",
       "!**/build",
       "!**/dist",
+      "!**/temp",
       "!**/src/api-*/index.ts",
+      "!**/src/api-*/index.js",
       "!**/node_modules/**"
     ]
   },
@@ -36,9 +38,7 @@
   },
   "linter": {
     "enabled": true,
-    "includes": [
-      "!temp-*"
-    ],
+    "includes": ["!temp-*"],
     "rules": {
       "recommended": true,
       "suspicious": {

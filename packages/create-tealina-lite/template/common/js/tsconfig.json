@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    // The two options that make this a JavaScript project rather than an unbuilt
+    // TypeScript one: `.js` files are read, and they are checked rather than ignored.
+    // Without `allowJs` the compiler does not even resolve `./x.js`, so every import in
+    // `types/api-v1.d.ts` silently resolves to `any` and the whole projection collapses.
+    "allowJs": true,
+    "checkJs": true,
+    // Nothing is emitted: node runs these files as they are.
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["types/**/*.d.ts", "src/**/*.js"]
+}

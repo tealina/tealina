@@ -1,5 +1,4 @@
 import type { Middleware } from 'koa'
-import { formatErrorResponse } from '../errorHandler.js'
 
 /**
  * Guards every endpoint whose handler chain carries no `openHandler` marker
@@ -9,10 +8,10 @@ const verifyToken: Middleware = async (ctx, next) => {
   const { authorization } = ctx.headers
   if (authorization == null) {
     ctx.status = 401
-    ctx.body = formatErrorResponse({
+    ctx.body = {
       code: 'Unauthorized',
       message: 'Authorization header is missing.',
-    })
+    }
     return
   }
   //TODO: verify token

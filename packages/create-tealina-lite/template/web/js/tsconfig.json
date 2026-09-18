@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    // `bundler` is what resolves `server/api/v1`: the specifier is not a path, it is a
+    // subpath of a workspace package, and it is found through that package's `exports`
+    // map — the one entry that carries a `types` condition. Node's own resolution would
+    // need an extension and a `dist/` that this scaffold never builds.
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // The two options that make this a JavaScript project rather than an untyped one.
+    // Every type in `src/` comes from a JSDoc comment, and `src/api/client.js` gets the
+    // whole API projection through a `typedef` — none of which is read without these.
+    "allowJs": true,
+    "checkJs": true,
+    // `vite/client` is deliberately not here: it types `import.meta.env`, which this
+    // scaffold does not read. Add it back the day something does.
+    "types": [],
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src", "vite.config.js"]
+}
