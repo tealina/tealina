@@ -68,18 +68,14 @@ const latestDocUI = async () => {
   }
 }
 
-const workflow = async () => {
-  const pkgsDir = 'packages'
-  const packagesNames = await readdir(pkgsDir)
-  const subPkgMaps = new Map()
-  for (const subPkg of packagesNames) {
-    const subDir = join(pkgsDir, subPkg)
-    const sta = await stat(subDir)
-    if (!sta.isDirectory()) continue
-    const pkgJson = await readJsonFile(join(pkgsDir, subPkg, 'package.json'))
-    subPkgMaps.set(pkgJson.name, pkgJson)
-  }
-  const kVersionMapPath = 'packages/create-tealina/template/versionMaps.json'
+// Every scaffold that ships a versionMaps.json must be listed here, otherwise its
+// template versions freeze at whatever was last committed by hand.
+const kVersionMapPaths = [
+  'packages/create-tealina/template/versionMaps.json',
+  'packages/create-tealina-lite/template/versionMaps.json',
+]
+
+const updateVersionMap = async (kVersionMapPath, subPkgMaps) => {
   const versionMaps = await readJsonFile(kVersionMapPath)
   for (const key in versionMaps) {
     const project = versionMaps[key]
@@ -93,10 +89,28 @@ const workflow = async () => {
     }
   }
   writeJson(kVersionMapPath, versionMaps)
+  return versionMaps
+}
+
+const workflow = async () => {
+  const pkgsDir = 'packages'
+  const packagesNames = await readdir(pkgsDir)
+  const subPkgMaps = new Map()
+  for (const subPkg of packagesNames) {
+    const subDir = join(pkgsDir, subPkg)
+    const sta = await stat(subDir)
+    if (!sta.isDirectory()) continue
+    const pkgJson = await readJsonFile(join(pkgsDir, subPkg, 'package.json'))
+    subPkgMaps.set(pkgJson.name, pkgJson)
+  }
+  for (const kVersionMapPath of kVersionMapPaths) {
+    const versionMaps = await updateVersionMap(kVersionMapPath, subPkgMaps)
+    console.log('Template dependancies version updated =>\n', kVersionMapPath)
+    console.log(versionMaps)
+  }
   // console.log('Intent to update version No. in templates:')
   // const updates = await Promise.all([latestTealina(), latestDocUI()])
   // await Promise.all(updateTeamplateDependance(updates))
-  console.log('Template dependancies version updated =>\n', versionMaps)
   // execSync('pnpm test -F create-tealina', { stdio: 'inherit' })
 }
 

@@ -1,0 +1,13 @@
+{
+  "name": "tealina-lite-project",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "pnpm -F server dev",
+    "build": "pnpm -F server build",
+    "start": "pnpm -F server start"
+  }
+}

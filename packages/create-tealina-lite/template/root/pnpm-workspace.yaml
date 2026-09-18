@@ -1,0 +1,8 @@
+packages:
+  - 'packages/*'
+
+# esbuild (pulled in by tsx) needs its postinstall to fetch the platform binary.
+# Without this, pnpm >= 11 writes a placeholder here and fails the install with
+# ERR_PNPM_IGNORED_BUILDS until you answer it. Older pnpm ignores the key.
+allowBuilds:
+  esbuild: true
