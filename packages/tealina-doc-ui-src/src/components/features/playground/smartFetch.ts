@@ -25,7 +25,8 @@ export async function smartFetch(
       status,
       contentType,
       type: 'error',
-      result: msg ?? response.statusText,
+      // `||`, not `??`: an empty body is `''`, so the status text never showed through.
+      result: msg || response.statusText,
     }
   }
   const isChunked = checkIsChunked(response.headers)

@@ -74,6 +74,18 @@ export function useSumit({
       }
     }
   }
+  /**
+   * A rejected request has to land in the panel like any other response. Routing it
+   * through `getPreviewContent` is what puts it there — a `return` from a rejection
+   * handler only settles the promise, and would leave the panel showing nothing.
+   */
+  const showRequestFailure = (e: unknown) =>
+    getPreviewContent({
+      status: -1,
+      type: 'error',
+      result: `Client Side Error:\n ${String(e)}`,
+      contentType: 'text/plain',
+    })
   const handleSubmit = async (payload: any) => {
     setPreview('')
     cacheFormValue(payload)
@@ -94,22 +106,14 @@ export function useSumit({
       }
       const item = customRequests.find(item => item.match(config))
       if (item) {
-        return item.handler(config).then(getPreviewContent)
+        return item.handler(config).then(getPreviewContent, showRequestFailure)
       }
     }
     await smartFetch(toActualURL(url, params, query), {
       method,
       headers,
       body: JSON.stringify(body),
-    }).then(getPreviewContent, (e): VariousResponseType => {
-      console.error(e)
-      return {
-        status: -1,
-        type: 'error',
-        result: `Client Side Error:\n ${String(e)}`,
-        contentType: 'text/plain',
-      }
-    })
+    }).then(getPreviewContent, showRequestFailure)
   }
 
   return { states, form, handleSubmit, preview }
