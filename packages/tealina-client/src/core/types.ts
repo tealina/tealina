@@ -66,6 +66,33 @@ export type ToReq<T extends ApiRecordShape, C> = {
 }
 
 /**
+ * A value that exists only to hold a type.
+ *
+ * The API record carries no runtime data, so in TypeScript it is passed as a type
+ * argument: `createFetchClient<ApiTypesForClient, RequestInit>(requester)`. A
+ * JavaScript call cannot spell that — JSDoc has no type arguments — and with the
+ * shape type parameter left uninferred it falls back to its constraint: the response
+ * becomes `unknown` and every endpoint grows a payload argument it does not have.
+ * Silently — the compiler is happy and the page runs.
+ *
+ * Annotate an `undefined` with this and hand it to the factory, and the parameter is
+ * inferred from it instead.
+ *
+ * The cast is load-bearing. `const apiShape = undefined` infers `undefined` rather
+ * than the annotation: a `const` is narrowed to its initializer and the JSDoc type
+ * goes with it. Asserting the initializer is what keeps the annotation alive.
+ *
+ * @example
+ * ```js
+ * const req = createFetchClient(
+ *   requester,
+ *   /** @type {ShapeWitness<ApiTypesForClient>} *\/ (undefined),
+ * )
+ * ```
+ */
+export type ShapeWitness<T> = T | undefined
+
+/**
  * @ref {@link https://github.com/type-challenges/type-challenges/issues/9770}
  */
 export type UnionToIntersection<U> = (
