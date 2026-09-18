@@ -33,14 +33,21 @@
     "prompts": "^2.4.2"
   },
   "devDependencies": {
+    "@fastify/static": "^8.2.0",
+    "@koa/router": "^15.0.0",
     "@tealina/utility-types": "workspace:*",
     "@types/express": "^5.0.3",
     "@types/koa": "^3.0.0",
+    "@types/koa-mount": "^4.0.5",
+    "@types/koa-static": "^4.0.4",
+    "@types/koa__router": "12.0.4",
     "@types/minimist": "^1.2.4",
     "@types/prompts": "^2.4.2",
     "express": "^5.1.0",
     "fastify": "^5.5.0",
     "koa": "^3.0.1",
+    "koa-mount": "^4.0.0",
+    "koa-static": "^5.0.0",
     "tsx": "3.12.7"
   }
 }

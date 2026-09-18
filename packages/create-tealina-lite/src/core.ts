@@ -10,8 +10,19 @@ import versionMap from '../template/versionMaps.json'
 const { blue, green, reset } = chalk
 const { join } = path
 
-const kServerTemplates = ['express', 'fastify', 'koa'] as const
-type ServerTemplate = (typeof kServerTemplates)[number]
+export const kServerTemplates = ['express', 'fastify', 'koa'] as const
+export type ServerTemplate = (typeof kServerTemplates)[number]
+
+/**
+ * This package's own `template/` directory. Resolved off `import.meta.url` the same way
+ * `createCtx` resolves the project root below — the file sits directly in `src/` when run
+ * through tsx and directly in `dist/` after `unbuild`, so `../..` is the package root in
+ * both. `init` reads from here too, which is why it is a module-level constant now.
+ */
+export const templateRootDir = path.resolve(
+  fileURLToPath(import.meta.url),
+  '../../template',
+)
 
 // ---------------------------------------------------------------------------
 // Copied from packages/create-tealina/src/core.ts. That package ships no `exports`
@@ -64,7 +75,7 @@ const mayOverwrite = async (dest: string) => {
   emptyDir(dest)
 }
 
-const formatDestDir = (dest: string) => dest.trim().replace(/\/+$/g, '')
+export const formatDestDir = (dest: string) => dest.trim().replace(/\/+$/g, '')
 
 const pkgFromUserAgent = (userAgent = '') => {
   const pkgSpec = userAgent.split(' ')[0].split('/')[0]
@@ -90,7 +101,7 @@ const logGuids = (guids: { title?: string; items: string[] }[]) => {
 // Above is shared with create-tealina; below is lite-specific.
 // ---------------------------------------------------------------------------
 
-const isServerTemplate = (v: string): v is ServerTemplate =>
+export const isServerTemplate = (v: string): v is ServerTemplate =>
   (kServerTemplates as readonly string[]).includes(v)
 
 const collectUserAnswer = async (
