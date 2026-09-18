@@ -5,7 +5,7 @@ import fs, { readFileSync } from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { extname, normalize } from 'pathe'
+import { extname, join, normalize } from 'pathe'
 import ts from 'typescript'
 import type { RawOptions } from '../commands'
 import type { TealinaConifg, TemplateContext } from '../index'
@@ -73,6 +73,7 @@ export const mergeInlineOptions = (
     typesDir: normalize(config.typesDir),
     testDir: config.testDir ? normalize(config.testDir) : void 0,
     suffix: config.suffix ?? '.js',
+    sourceExt: config.sourceExt ?? '.ts',
     ...inlineOption,
     apiDir: normalize(inlineOption.apiDir),
     route: inlineOption.route ?? '',
@@ -133,3 +134,35 @@ export const loadConfigFromPath = async (configPath: string) => {
       unlink(jsFilePath, () => {})
     })
 }
+
+/** The spelling tealina has always looked for, and the one `--config-path` defaults to. */
+export const kDefaultConfigPath = './tealina.config.ts'
+
+/**
+ * The three spellings a tealina config is written in. `suffix`/`sourceExt` decide what the
+ * generated files are called, but a project's *own* config is whatever it is — a JavaScript
+ * project writes `tealina.config.js`, and asking it to also carry a `.ts` file would mean a
+ * TypeScript toolchain for one file.
+ */
+const kConfigCandidates = [
+  kDefaultConfigPath,
+  './tealina.config.js',
+  './tealina.config.mjs',
+]
+
+/**
+ * Probed only when the caller did not name a file. An explicit `--config-path` is honoured
+ * exactly as given, even when it does not exist: the failure then names the file they asked
+ * for, which is more useful than quietly reading a different one.
+ *
+ * The candidate is returned unqualified, so `baseDir` decides where to *look* and never what
+ * the config path becomes. It exists so this can be exercised without moving the process's
+ * working directory.
+ * @param configPath the value the CLI option carries
+ * @param baseDir directory the candidates are resolved against
+ */
+export const resolveConfigPath = (configPath: string, baseDir = '.') =>
+  configPath === kDefaultConfigPath
+    ? (kConfigCandidates.find(f => fs.existsSync(join(baseDir, f))) ??
+      configPath)
+    : configPath

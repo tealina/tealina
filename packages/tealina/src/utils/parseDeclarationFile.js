@@ -38,14 +38,12 @@ const memoObj = {}
 /**@type {ts.TypeChecker} */
 let checker
 
-
 const kReponseFlagPattern = /__@ResponseFlagSymbol/
 
-
 /**
- * @param {string} name 
+ * @param {string} name
  */
-const isResponseWithExtra = (name) => kReponseFlagPattern.test(name)
+const isResponseWithExtra = name => kReponseFlagPattern.test(name)
 
 /**
  * @param {number} a
@@ -53,17 +51,17 @@ const isResponseWithExtra = (name) => kReponseFlagPattern.test(name)
  */
 const isCompatible = (a, b) => (a | b) === Math.max(a, b)
 
+/** @param {ts.Symbol} symbol */
+const isOptionalSymbol = symbol =>
+  (symbol.flags & ts.SymbolFlags.Optional) !== 0
+
 /**
  *  if false,return empty object
  * @param {ts.Symbol} symbol
  * @returns {Pick<Kind,'isOptional'>}
  */
-const getOptionalInfo = symbol => {
-  // @ts-ignore
-  // const isOptional = symbol.questionMark != null
-  const isOptional = symbol.flags & ts.SymbolFlags.Optional
-  return isOptional ? { isOptional: true } : {}
-}
+const getOptionalInfo = symbol =>
+  isOptionalSymbol(symbol) ? { isOptional: true } : {}
 
 /**
  * @param {ts.UnionTypeNode} typeNode
@@ -94,15 +92,53 @@ const getJsDoc = s => {
 }
 
 /**
+ * True when `t` is a union that exists only because `strictNullChecks` keeps `null` and
+ * `undefined` apart — a `string | null`, or an optional property's `string | undefined`.
+ *
+ * Without that option the checker strips those members, so the property arrives here as a
+ * plain `string`: `t.isUnion()` is false and the declared node is the only thing left that
+ * knows a union was written. Asking the same question explicitly is what keeps the document
+ * identical whether or not the host compiles with `strictNullChecks` — which matters,
+ * because the caller used to drop the host's compiler options entirely and so always ran
+ * without it.
+ *
+ * A union the author really wrote — `'Admin' | 'User'` — leaves two or more members that are
+ * neither `null` nor `undefined`, and stays with the checker's own reading of it.
+ * @param {ts.Type} t
+ */
+const isNullableOnlyUnion = t =>
+  t.isUnion() &&
+  // @ts-ignore
+  t.types.filter(
+    x => (x.flags & (ts.TypeFlags.Null | ts.TypeFlags.Undefined)) === 0,
+  ).length <= 1
+
+/**
+ * The declared node is read in source order, which is the order the document showed before
+ * the host's tsconfig was honoured, and it is consulted only where the checker has nothing
+ * better to offer: `parseUnionType` resolves each member from the syntax, so on a generic
+ * declaration it can see an unbound type parameter where the checker had already substituted
+ * the type argument's default. `StringFilter<$PrismaModel = never>` is the case that proves
+ * it — its `equals` is a union either way, but only the checker knows `$PrismaModel` is
+ * `never` here.
  * @param {ts.Symbol} s
  */
 const getTypeInfoFromSymbol = s => {
   // @ts-ignore
   const typeNode = s?.valueDeclaration?.type ?? s.type
-  const isUniouNode = typeNode && ts.isUnionTypeNode(typeNode)
   const t = checker.getTypeOfSymbol(s)
-  // when {prop:'string' | null}, t.isUnion() is false
-  return !t.isUnion() && isUniouNode ? parseUnionType(typeNode) : parseType(t)
+  const isUnionNode = typeNode != null && ts.isUnionTypeNode(typeNode)
+  if (isUnionNode && isNullableOnlyUnion(t)) return parseUnionType(typeNode)
+  // An optional property's own `undefined` is already carried by `isOptional`, so spelling
+  // it out in the type as well is noise the document never had.
+  if (isOptionalSymbol(s) && t.isUnion()) {
+    // @ts-ignore
+    const members = t.types.filter(
+      x => (x.flags & ts.TypeFlags.Undefined) === 0,
+    )
+    if (members.length === 1) return parseType(members[0])
+  }
+  return parseType(t)
 }
 
 /** @param {ts.Symbol} s*/
@@ -127,20 +163,22 @@ const parseFirstLevel = s => {
 }
 
 /**
- * 
- * @param {RefType} ref 
+ *
+ * @param {RefType} ref
  * @returns  {ResponseEntity|RefType}
  */
-const entityRef2resEntity = (ref) => {
+const entityRef2resEntity = ref => {
   const { id } = ref
   const { props } = Refs[id]
   const i = props.findIndex(p => isResponseWithExtra(p.name))
-  if (i === -1) return ref;
+  if (i === -1) return ref
   /** @type {Record<string,any>} */
-  const obj = Object.fromEntries(props.map(p => {
-    const { name, ...rest } = p
-    return [name, rest]
-  }))
+  const obj = Object.fromEntries(
+    props.map(p => {
+      const { name, ...rest } = p
+      return [name, rest]
+    }),
+  )
   delete Refs[id]
   /** @type {import('@tealina/doc-types').NumberLiteral|undefined} */
   const numLitrial = obj.statusCode
@@ -149,14 +187,14 @@ const entityRef2resEntity = (ref) => {
     headers: obj.headers,
     statusCode: numLitrial?.value ?? 200,
     response: obj.response,
-    comment: obj.comment?.value
+    comment: obj.comment?.value,
   }
 }
 
 /**
- * @param {DocNode} response 
+ * @param {DocNode} response
  */
-const handleResponse = (response) => {
+const handleResponse = response => {
   switch (response.kind) {
     case DocKind.EntityRef: {
       return entityRef2resEntity(response)
@@ -165,7 +203,6 @@ const handleResponse = (response) => {
       response.types = response.types.map(handleResponse)
       return response
     }
-
   }
   return response
 }
@@ -174,29 +211,29 @@ const handleResponse = (response) => {
  * @param {ts.Declaration|ts.Node} node // the examples symbol
  * @returns {Record<string,any>|string|number|boolean}
  */
-const extractValueFromExpression = (node) => {
+const extractValueFromExpression = node => {
   if (ts.isObjectLiteralExpression(node)) {
-    const result = {};
+    const result = {}
     node.properties.forEach(property => {
       if (ts.isPropertyAssignment(property)) {
-        const key = property.name.getText();
+        const key = property.name.getText()
         // @ts-ignore
-        result[key] = extractValueFromExpression(property.initializer);
+        result[key] = extractValueFromExpression(property.initializer)
       }
-    });
-    return result;
+    })
+    return result
   }
   if (ts.isStringLiteral(node)) {
-    return node.text;
+    return node.text
   }
   if (ts.isNumericLiteral(node)) {
-    return Number(node.text);
+    return Number(node.text)
   }
   if (node.kind === ts.SyntaxKind.TrueKeyword) {
-    return true;
+    return true
   }
   if (node.kind === ts.SyntaxKind.FalseKeyword) {
-    return false;
+    return false
   }
   if (ts.isIdentifier(node)) {
     // @ts-ignore
@@ -212,7 +249,32 @@ const extractValueFromExpression = (node) => {
   }
   const k = ts.SyntaxKind[node.kind]
   console.warn('unhandled syntax kind: ', k)
-  return node.getText();
+  return node.getText()
+}
+
+/**
+ * The api module behind a prop has no default export to read a handler from.
+ *
+ * Two shapes of the same mistake, and they have to be reported together. A module that does
+ * not resolve at all leaves `target.members` undefined; a module that resolves but exports no
+ * default leaves `members` populated without a `default` in it. Only the first used to be
+ * reachable, because an entry that imports a `.ts` specifier is not resolved at all under
+ * `NodeNext` — so the second arrived at `exportSymbol.declarations` as a TypeError instead.
+ * @param {ts.Symbol} s
+ */
+const throwNoExportFound = s => {
+  // @ts-ignore
+  const fileName = s.getDeclarations()[0].getSourceFile().fileName
+  throw new Error(
+    [
+      'Prop ',
+      `[${s.escapedName}]`,
+      'does not conform to the convention.',
+      '\nExport symbol not found',
+      '\n error at file: ',
+      fileName,
+    ].join(''),
+  )
 }
 
 /**
@@ -226,25 +288,15 @@ const parseApi = s => {
   const impType = checker.getTypeAtLocation(s.getDeclarations()[0])
   // @ts-ignore
   const target = impType.resolvedTypeArguments[0]
-  if (target.members == null) {
-    // @ts-ignore
-    const fileName = s.getDeclarations()[0].getSourceFile().fileName
-    throw new Error(
-      [
-        'Prop ',
-        `[${s.escapedName}]`,
-        'does not conform to the convention.',
-        '\nExport symbol not found',
-        '\n error at file: ',
-        fileName,
-      ].join(''),
-    )
-  }
+  if (target.members == null) throwNoExportFound(s)
   const exportSymbol = target.members.get('default')
-  const exampleNode = target.members.get('examples');
-  let examples;
+  if (exportSymbol == null) throwNoExportFound(s)
+  const exampleNode = target.members.get('examples')
+  let examples
   if (exampleNode != null) {
-    examples = extractValueFromExpression(exampleNode.valueDeclaration.initializer)
+    examples = extractValueFromExpression(
+      exampleNode.valueDeclaration.initializer,
+    )
   }
   const handlerSymbol = getHandlerSymbol(exportSymbol.declarations[0])
   const comment = getCommentFromSymbol(handlerSymbol)
@@ -258,30 +310,29 @@ const parseApi = s => {
   return { ...payload, examples, comment, jsDoc }
 }
 
-
 const makeEnumValueParser =
   (pre = 0) =>
-    // @ts-ignore
-    mt => {
-      const symbol = mt.symbol
-      if ('value' in mt) {
-        if (isCompatible(ts.TypeFlags.NumberLiteral, mt.flags)) {
-          pre = mt.value
-          return { kind: DocKind.NumberLiteral, value: mt.value }
-        }
-        return {
-          kind: DocKind.StringLiteral,
-          value: mt.value,
-        }
+  // @ts-ignore
+  mt => {
+    const symbol = mt.symbol
+    if ('value' in mt) {
+      if (isCompatible(ts.TypeFlags.NumberLiteral, mt.flags)) {
+        pre = mt.value
+        return { kind: DocKind.NumberLiteral, value: mt.value }
       }
-      if (symbol.valueDeclaration.initializer == null) {
-        return { kind: DocKind.NumberLiteral, value: pre++ }
+      return {
+        kind: DocKind.StringLiteral,
+        value: mt.value,
       }
-      const computedType = checker.getTypeAtLocation(
-        symbol.valueDeclaration.initializer,
-      )
-      return parseType(computedType)
     }
+    if (symbol.valueDeclaration.initializer == null) {
+      return { kind: DocKind.NumberLiteral, value: pre++ }
+    }
+    const computedType = checker.getTypeAtLocation(
+      symbol.valueDeclaration.initializer,
+    )
+    return parseType(computedType)
+  }
 
 /**
  *  @param {ts.EnumType&{id:number,types:ts.Type[]}} t
@@ -602,7 +653,7 @@ const getCommentFromType = type => {
   if (type.symbol == null) return
   const symbol = type.aliasSymbol
     ? // @ts-ignore
-    type.aliasSymbol.declarations[0].symbol
+      type.aliasSymbol.declarations[0].symbol
     : type.getSymbol()
   const comment = getCommentFromSymbol(symbol)
   return comment
@@ -618,6 +669,22 @@ const getCommentFromSymbol = symbol => {
 }
 
 /**
+ * A JSDoc `@type` cast applied to a function expression parses to a
+ * ParenthesizedExpression, and that is the form a JavaScript template has to use:
+ * annotating the declaration instead makes TypeScript read the alias's call signature as
+ * the function's own, which an `async` arrow cannot satisfy. Every walk below wants the
+ * node inside the parentheses.
+ * @param {import('typescript').Node} node
+ */
+const unwrapParens = node => {
+  let current = node
+  while (current != null && ts.isParenthesizedExpression(current)) {
+    current = current.expression
+  }
+  return current
+}
+
+/**
  * @param {ts.ExportAssignment} exportAssignment
  * @returns {ts.Symbol}
  */
@@ -628,24 +695,33 @@ const getHandlerSymbol = exportAssignment => {
     const sourceFile = exportAssignment.getSourceFile()
     if (ts.isCallExpression(exportAssignment.expression)) {
       const [lastArgument] = exportAssignment.expression.arguments.slice(-1)
-      idname = lastArgument.getText()
+      const last = unwrapParens(lastArgument)
+      if (!ts.isIdentifier(last)) {
+        throw (
+          'The handler passed to convention() must be an identifier: put the JSDoc ' +
+          'type cast on a const declaration, then pass that const.'
+        )
+      }
+      idname = last.getText()
     }
     // @ts-ignore
     const symbol = sourceFile.locals.get(idname)
-    const { initializer } = symbol.valueDeclaration
+    const initializer = unwrapParens(symbol.valueDeclaration.initializer)
     if (
       ts.isArrowFunction(initializer) ||
       ts.isFunctionExpression(initializer)
     ) {
       return symbol
     }
+    // `expression` is the array literal inside an `as const` cast
+    // @ts-ignore
     const { expression } = initializer
     if (expression == null || !ts.isArrayLiteralExpression(expression)) {
       throw 'Export default should be a function, or functions in readonly array'
     }
     const lastEl = expression.elements.at(-1)
     // @ts-ignore
-    const lastSymbol = sourceFile.locals.get(lastEl.getText())
+    const lastSymbol = sourceFile.locals.get(unwrapParens(lastEl).getText())
     return lastSymbol
   } catch (error) {
     throw new Error(
@@ -691,21 +767,43 @@ const findFormLast = (xs, predicate) => {
 }
 
 /**
+ * `readConfigFile` hands back the raw JSON, where `target` is still the string
+ * `"ES2022"`. `createProgram` wants a parsed `CompilerOptions`, and only
+ * `parseJsonConfigFileContent` produces one — handed the raw object it ignores every
+ * option, and handed the raw `compilerOptions` it throws outright. This is also what
+ * resolves `extends`.
+ *
+ * The consequence of getting this wrong is not cosmetic: without the user's `allowJs`, a
+ * `.js` file is not even resolved, so every import in the entry `.d.ts` resolves to
+ * `any` and the whole projection collapses to `never`.
+ * @param {string} tsconfigPath
+ */
+const parseTsConfig = tsconfigPath => {
+  const readResult = ts.readConfigFile(tsconfigPath, p =>
+    readFileSync(p).toString(),
+  )
+  if (readResult.error) {
+    throw new Error(
+      readResult.error.messageText.toString() ??
+        `Error when parseing ${tsconfigPath}`,
+    )
+  }
+  return ts.parseJsonConfigFileContent(
+    readResult.config,
+    ts.sys,
+    path.dirname(tsconfigPath),
+    undefined,
+    tsconfigPath,
+  )
+}
+
+/**
  * @param {{entries:string[],tsconfigPath:string}} param0
  * @returns {import('@tealina/doc-types').ApiDoc}
  * ref https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API
  */
 export const parseDeclarationFile = ({ entries, tsconfigPath }) => {
-  const parsedConfig = ts.readConfigFile(tsconfigPath, p =>
-    readFileSync(p).toString(),
-  )
-  if (parsedConfig.error) {
-    throw new Error(
-      parsedConfig?.error?.messageText.toString() ??
-      `Error when parseing ${tsconfigPath}`,
-    )
-  }
-  const program = ts.createProgram(entries, parsedConfig.config)
+  const program = ts.createProgram(entries, parseTsConfig(tsconfigPath).options)
   checker = program.getTypeChecker()
   const sourceFiles = program.getSourceFiles()
   const entryFileName = entries[0].split(path.sep).join('/')

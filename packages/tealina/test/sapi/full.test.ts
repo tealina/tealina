@@ -36,6 +36,7 @@ describe('test sapi in mock dir', function () {
     apiDir,
     typesDir: apiTypesDir,
     suffix: '.js',
+    sourceExt: '.ts',
   }
 
   beforeAll(() => {

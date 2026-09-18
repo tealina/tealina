@@ -176,6 +176,16 @@ export interface TealinaConifg {
    * @default ".js"
    */
   suffix?: string
+  /** Extension of the source files this generates — the index files and the
+   * handler stub. Set it to ".js" for a JavaScript project.
+   *
+   * Deliberately not the same knob as `suffix`: that one is what the generated
+   * `import` statements say, and the two are only equal by coincidence. Under
+   * `moduleResolution: NodeNext` a TypeScript project writes `import './x.js'`
+   * and still names the file `x.ts`, which is why the default here is ".ts".
+   * @default ".ts"
+   */
+  sourceExt?: string
 }
 
 export const defineConfig = (config: TealinaConifg) => config

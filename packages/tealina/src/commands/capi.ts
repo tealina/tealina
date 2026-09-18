@@ -58,6 +58,7 @@ interface FullSeeds extends Seeds {
 type FullOptions = Omit<RawOptions, 'route' | 'suffix'> & {
   route: string
   suffix: string
+  sourceExt: string
 } & TealinaConifg
 
 interface FullContext {
@@ -69,6 +70,7 @@ interface FullContext {
   testHelperInfo: { isExists: boolean; filePath: string }
   testTemplate: TemplateConfig['test']
   suffix: string
+  sourceExt: string
 }
 
 const parseByAlias = (
@@ -151,17 +153,18 @@ const getTouchedKinds = (opt: FullOptions) => {
   )
 }
 
-const gatherIndexContent = (apiDir: string) => (kinds: string[]) =>
-  asyncPipe(
-    Promise.resolve(kinds),
-    map(kind =>
-      readIndexFile(join(apiDir, kind, 'index.ts')).then(
-        content => [kind, content] as const,
+const gatherIndexContent =
+  (apiDir: string, sourceExt: string) => (kinds: string[]) =>
+    asyncPipe(
+      Promise.resolve(kinds),
+      map(kind =>
+        readIndexFile(join(apiDir, kind, `index${sourceExt}`)).then(
+          content => [kind, content] as const,
+        ),
       ),
-    ),
-    waitAll,
-    kvs => new Map(kvs),
-  )
+      waitAll,
+      kvs => new Map(kvs),
+    )
 
 const toKeyMapTrue = flow(
   map((x: string) => [x, true] as const),
@@ -172,6 +175,7 @@ const getTopIndexSnapshot = (
   xs: { kind: string }[],
   topIndexContent: string[],
   suffix: string,
+  sourceExt: string,
 ): Snapshot | null =>
   pipe(
     xs,
@@ -183,14 +187,14 @@ const getTopIndexSnapshot = (
       return {
         group: 'api',
         action: topIndexContent.length ? 'update' : 'create',
-        filePath: 'index.ts',
+        filePath: `index${sourceExt}`,
         code: genWithWrapper([...newImps, ...topIndexContent]),
       }
     },
   )
 
 const toIndexSnapshot =
-  (kindIndexMap: Map<string, string[]>, suffix: string) =>
+  (kindIndexMap: Map<string, string[]>, suffix: string, sourceExt: string) =>
   (v: { kind: string; namePathsArray: string[][] }): Snapshot | null => {
     const imps = v.namePathsArray.map(pathArr => genIndexProp(suffix)(pathArr))
     const { kind } = v
@@ -201,7 +205,7 @@ const toIndexSnapshot =
     return {
       group: 'api',
       action: isEmpty(contents) ? 'create' : 'update',
-      filePath: join(kind, 'index.ts'),
+      filePath: join(kind, `index${sourceExt}`),
       code: genWithWrapper([...newImps, ...contents]),
     }
   }
@@ -212,11 +216,14 @@ const calcRelativeFilesSnapshots = ({
   topIndexContent,
   options: dirInfo,
   suffix,
+  sourceExt,
 }: FullContext): Snapshot[] =>
   pipe(seeds2kindScope(seeds), kinds =>
     pipe(
-      [getTopIndexSnapshot(kinds, topIndexContent, suffix)],
-      concat(kinds.map(toIndexSnapshot(kindIndexContentMap, suffix))),
+      [getTopIndexSnapshot(kinds, topIndexContent, suffix, sourceExt)],
+      concat(
+        kinds.map(toIndexSnapshot(kindIndexContentMap, suffix, sourceExt)),
+      ),
       filter(notNull),
       map(completePath(dirInfo)),
     ),
@@ -323,9 +330,9 @@ const getTestFilePath = (
 ) => `${join(testDir, basename(apiDir), kind, ...namePaths)}.test.ts`
 
 const getApiFilePath = (
-  { apiDir }: Pick<DirInfo, 'apiDir'>,
+  { apiDir, sourceExt }: Pick<DirInfo, 'apiDir'> & { sourceExt: string },
   { kind, namePaths }: Seeds,
-) => `${join(apiDir, kind, ...namePaths)}.ts`
+) => `${join(apiDir, kind, ...namePaths)}${sourceExt}`
 
 const getFileSummary = (filePath: string): Promise<FileSummary> =>
   pathExists(filePath).then(isExists => ({ filePath, isExists }))
@@ -385,10 +392,11 @@ const collectContext = asyncFlow(
   config =>
     [
       getSeeds(config, config.template?.handlers).then(toKeyValue('seeds')),
-      pipe(getTouchedKinds(config), gatherIndexContent(config.apiDir)).then(
-        toKeyValue('kindIndexContentMap'),
-      ),
-      readIndexFile(join(config.apiDir, 'index.ts')).then(
+      pipe(
+        getTouchedKinds(config),
+        gatherIndexContent(config.apiDir, config.sourceExt),
+      ).then(toKeyValue('kindIndexContentMap')),
+      readIndexFile(join(config.apiDir, `index${config.sourceExt}`)).then(
         toKeyValue('topIndexContent'),
       ),
       collectTypeFileInfo(config).then(toKeyValue('typeFileInfo')),
@@ -396,6 +404,7 @@ const collectContext = asyncFlow(
       toKeyValue('testTemplate')(config.template?.test),
       toKeyValue('options')(config),
       ['suffix', config.suffix],
+      ['sourceExt', config.sourceExt],
     ] as const,
   waitAll,
   kvs => Object.fromEntries(kvs) as FullContext,

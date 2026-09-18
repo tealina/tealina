@@ -1,5 +1,5 @@
-import apis from './index.ts'
-import type { ResolveApiType } from '../apiUtility.ts'
+import apis from './index.js'
+import type { ResolveApiType } from '../apiUtility.js'
 
 type RawApis = typeof apis
 

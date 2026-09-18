@@ -72,8 +72,8 @@ const walkDir = (dir: string): Promise<string[]> =>
     filter(ignoredFilename),
   )
 
-const readIndexContent = (dir: string) =>
-  readFile(join(dir, 'index.ts')).then(
+const readIndexContent = (dir: string, sourceExt: string) =>
+  readFile(join(dir, `index${sourceExt}`)).then(
     v => v.toString(),
     () => '',
   )
@@ -84,16 +84,23 @@ const path2arr = flow(
   x => x.split('/'),
 )
 
-const makeIndexFileSnapshot = (kind: string, code: string): Snapshot => ({
+const makeIndexFileSnapshot = (
+  kind: string,
+  code: string,
+  sourceExt: string,
+): Snapshot => ({
   group: 'api',
   action: 'update',
-  filePath: join(kind, 'index.ts'),
+  filePath: join(kind, `index${sourceExt}`),
   code,
 })
 
-const gatherIndex = (kindDir: string): Promise<GatherPhase> =>
+const gatherIndex = (
+  kindDir: string,
+  sourceExt: string,
+): Promise<GatherPhase> =>
   asyncPipe(
-    waitAll([readIndexContent(kindDir), walkDir(kindDir)]),
+    waitAll([readIndexContent(kindDir, sourceExt), walkDir(kindDir)]),
     ([content, files]): GatherPhase => ({
       kind: basename(kindDir),
       content,
@@ -102,11 +109,11 @@ const gatherIndex = (kindDir: string): Promise<GatherPhase> =>
   )
 
 const gatherTopIndex =
-  (dirs: string[]) =>
+  (dirs: string[], sourceExt: string) =>
   (content: string): GatherPhase => ({
     kind: '',
     content,
-    files: dirs.map(dir => ['', basename(dir), 'index.ts'].join('/')),
+    files: dirs.map(dir => ['', basename(dir), `index${sourceExt}`].join('/')),
   })
 
 const validateAllKind = (vs: string[]): void =>
@@ -118,9 +125,13 @@ interface FileTreeInfo {
   typeFileInfo: TypeFileInfo
   options: Omit<DirInfo, 'testDir'>
   suffix: string
+  sourceExt: string
 }
 
-const collectApiInfo = ({ apiDir }: Pick<DirInfo, 'apiDir'>) =>
+const collectApiInfo = ({
+  apiDir,
+  sourceExt,
+}: Pick<DirInfo, 'apiDir'> & { sourceExt: string }) =>
   asyncPipe(
     readdir(apiDir),
     map(prepend(apiDir)),
@@ -128,35 +139,46 @@ const collectApiInfo = ({ apiDir }: Pick<DirInfo, 'apiDir'>) =>
     invoke(validateAllKind),
     dirs =>
       [
-        pipe(dirs, map(gatherIndex), waitAll),
-        asyncPipe(readIndexContent(apiDir), gatherTopIndex(dirs)),
+        pipe(
+          dirs,
+          map(dir => gatherIndex(dir, sourceExt)),
+          waitAll,
+        ),
+        asyncPipe(
+          readIndexContent(apiDir, sourceExt),
+          gatherTopIndex(dirs, sourceExt),
+        ),
       ] as const,
     waitAll,
   )
 
-const toSnapshot = (genCodeFn: (x: string) => string) => (v: GatherPhase) =>
-  pipe(v.files, map(genCodeFn), genWithWrapper, freshCode =>
-    v.content === freshCode ? null : makeIndexFileSnapshot(v.kind, freshCode),
-  )
+const toSnapshot =
+  (genCodeFn: (x: string) => string, sourceExt: string) => (v: GatherPhase) =>
+    pipe(v.files, map(genCodeFn), genWithWrapper, freshCode =>
+      v.content === freshCode
+        ? null
+        : makeIndexFileSnapshot(v.kind, freshCode, sourceExt),
+    )
 
 const topIndexSnapshot = (info: FileTreeInfo) =>
   pipe(
     flow(path2arr, x => x[0], genTopIndexProp(info.suffix)),
-    toSnapshot,
+    genCodeFn => toSnapshot(genCodeFn, info.sourceExt),
     fn => fn(info.topIndexFile),
   )
 
 const calcSnapshots = (info: FileTreeInfo): Snapshot[] =>
   pipe(
     info.kindIndexFiles,
-    map(toSnapshot(flow(path2arr, genIndexProp(info.suffix)))),
+    map(toSnapshot(flow(path2arr, genIndexProp(info.suffix)), info.sourceExt)),
     concat(topIndexSnapshot(info)),
     filter(notNull),
     map(completePath(info.options)),
     concat(calcTypeFileSnapshot(info)),
   )
 
-export type AlignOption = FileTreeInfo['options'] & Pick<FullOptions, 'suffix'>
+export type AlignOption = FileTreeInfo['options'] &
+  Pick<FullOptions, 'suffix' | 'sourceExt'>
 
 const collectContext = (options: AlignOption): Promise<FileTreeInfo> =>
   asyncPipe(
@@ -167,11 +189,12 @@ const collectContext = (options: AlignOption): Promise<FileTreeInfo> =>
       typeFileInfo,
       options,
       suffix: options.suffix,
+      sourceExt: options.sourceExt,
     }),
   )
 
 const pickOption4align = (full: FullOptions): AlignOption => {
-  const x = pickFn(full, 'apiDir', 'typesDir', 'suffix')
+  const x = pickFn(full, 'apiDir', 'typesDir', 'suffix', 'sourceExt')
   return x
 }
 

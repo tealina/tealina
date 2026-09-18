@@ -14,10 +14,11 @@ import { FuncTemplates } from '../mock/config/funcCRUD.js'
 import { RestfulCRUD } from '../mock/config/restfulCRUD.js'
 
 describe('test dapi calculation part', function () {
-  const dirInfo: DirInfo = {
+  const dirInfo: DirInfo & { sourceExt: string } = {
     apiDir: '',
     testDir: '',
     typesDir: '',
+    sourceExt: '.ts',
   }
   const typeFileInfo = {
     filePath: '',
@@ -33,6 +34,7 @@ describe('test dapi calculation part', function () {
       genSuite: (x: any) => 'test suite',
     },
     suffix: '.js',
+    sourceExt: '.ts',
   }
   const withFileSummary = (v: Seeds) => ({
     ...v,

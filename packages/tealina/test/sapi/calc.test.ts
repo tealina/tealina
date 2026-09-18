@@ -12,6 +12,7 @@ const restCtxMock = {
     filePath: '',
     isExists: true,
   },
+  sourceExt: '.ts',
 }
 test('top index', () => {
   const result = calcSnapshots({
