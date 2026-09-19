@@ -13,7 +13,7 @@ import { base } from './api/client'
  * import { req } from './api/client'
  *
  * const health = await req.get('/health')
- * const isOk: boolean = health.isOk   // boolean because the handler annotates it so
+ * const isOk = health.isOk   // the server's boolean, not a copy of it
  * ```
  *
  * There is nothing to call yet. `src/api-v1/index.ts` is the route table and it starts
