@@ -1,17 +1,6 @@
-export type ModelId = {
-  id: number
-}
-
-export type FindManyArgs = {
-  skip?: number
-  take?: number
-  where?: Record<string, unknown>
-}
-
-export interface PageResult<T> {
-  datas: T[]
-  total: number
-}
+// delta vs create-tealina: `ModelId` / `FindManyArgs` / `PageResult` are dropped here.
+// They describe Prisma query shapes, and this scaffold has no database — keeping them
+// would read as "there is a data layer you have not found yet".
 
 export type AuthedLocals = {
   userId: string

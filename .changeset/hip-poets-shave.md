@@ -1,5 +1,5 @@
 ---
-"create-tealina-lite": minor
+"create-tealina": minor
 ---
 
 Initial release. A minimal tealina scaffold: no database, no Prisma, one `server`

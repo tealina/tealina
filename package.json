@@ -11,7 +11,6 @@
     "preinstall": "npx only-allow pnpm",
     "dev:ui": "concurrently 'pnpm -C playground/doc-factory dev' 'pnpm -F @tealina/doc-ui-src dev'",
     "cproj": "node packages/create-tealina/dist/index.mjs",
-    "cproj:lite": "node packages/create-tealina-lite/dist/index.mjs",
     "up-temp-versions": "node scripts/update-version-in-template.mjs"
   },
   "devDependencies": {

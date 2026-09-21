@@ -1,5 +1,5 @@
 ---
-"create-tealina-lite": minor
+"create-tealina": minor
 ---
 
 Add JavaScript mode: `--js`, for a project whose sources are ESM JavaScript

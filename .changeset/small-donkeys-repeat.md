@@ -1,5 +1,5 @@
 ---
-"create-tealina-lite": patch
+"create-tealina": patch
 ---
 
 Give `types/handler.d.ts` four sections, ordered by what depends on what

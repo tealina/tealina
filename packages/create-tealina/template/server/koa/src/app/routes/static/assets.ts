@@ -1,7 +1,7 @@
-import path from 'node:path'
-import pulugin4static from 'koa-static'
 import type Koa from 'koa'
+import serve from 'koa-static'
+import path from 'node:path'
 
 export const buildAssetsRouter = (app: Koa) => {
-  app.use(pulugin4static(path.resolve('public')))
+  app.use(serve(path.resolve('public')))
 }

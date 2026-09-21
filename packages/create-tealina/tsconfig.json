@@ -8,12 +8,8 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "outDir": "dist",
+    "resolveJsonModule": true,
+    "outDir": "dist"
   },
-  "exclude": [
-    "template",
-    "temp",
-    "test",
-    "vitest.config.ts"
-  ]
+  "exclude": ["template", "temp", "test", "vitest.config.ts"]
 }

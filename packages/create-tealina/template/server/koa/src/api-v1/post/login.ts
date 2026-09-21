@@ -1,4 +1,5 @@
 import type { OpenHandler } from '../../../types/handler.js'
+import { openHandler } from '../../app/middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 /**
@@ -20,4 +21,4 @@ const handler: ApiType = async ctx => {
   ctx.body = { token: 'JWT token' }
 }
 
-export default convention(handler)
+export default convention(openHandler, handler)

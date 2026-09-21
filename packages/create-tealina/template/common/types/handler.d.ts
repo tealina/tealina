@@ -1,3 +1,7 @@
+// delta vs create-tealina: taken from `tealina/utility-types` rather than from
+// `@tealina/utility-types` directly, so the scaffold installs one package to compile its
+// contract instead of two. `tealina` is already a devDependency here for the CLI, and it
+// re-exports these. See test/contract-drift.test.ts.
 import type {
   LastElement,
   MultiTarget,
@@ -5,9 +9,13 @@ import type {
   RemapToExampleType,
   Simplify,
   TargetKeys,
-} from '@tealina/utility-types'
+} from 'tealina/utility-types'
 import type { AuthHeaders, AuthedLocals, JsonHeaders } from './common.js'
 import type { HandlerAliasCore } from './alias.js'
+
+// ---------------------------------------------------------------------------
+// Shapes everything else in this file is built on
+// ---------------------------------------------------------------------------
 
 interface RawPayload {
   body?: unknown
@@ -16,14 +24,22 @@ interface RawPayload {
   headers?: unknown
 }
 
-export type FullInfo = RawPayload & { response: unknown }
-
-type EmptyLocals = {}
-type EmptyObj = {}
 type ShapeOfMultiTarget = MultiTarget<Record<TargetKeys, any>>
 type VariantPayload = RawPayload | ShapeOfMultiTarget
 
+type EmptyLocals = {}
+// delta vs create-tealina: exported here. Upstream keeps it module-local and the demo
+// handlers import it anyway, which only compiles because TypeScript does not check
+// exports of a `.d.ts` module. See test/contract-drift.test.ts.
+export type EmptyObj = {}
+
+export type FullInfo = RawPayload & { response: unknown }
+
 export type HTTPMethods = 'get' | 'post' | 'patch' | 'delete'
+
+// ---------------------------------------------------------------------------
+// The handler declarations
+// ---------------------------------------------------------------------------
 
 interface HandlerAlias<
   T extends FullInfo = { response: unknown },
@@ -50,6 +66,12 @@ export type AuthedHandler<
   AuthedLocals & TLocals
 >
 
+export type CustomHandlerType = HandlerAlias<any, any>
+
+// ---------------------------------------------------------------------------
+// Projections: what the doc generator and the client read
+// ---------------------------------------------------------------------------
+
 type ExtractApiType<
   T,
   K extends TargetKeys,
@@ -71,8 +93,6 @@ export type ResolveApiTypeForClient<
   [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'client'>
 }
 
-export type CustomHandlerType = HandlerAlias<any, any>
-
 type DocTargetFirst<T> = T extends ShapeOfMultiTarget
   ? Simplify<Omit<T, TargetKeys> & T['doc']>
   : T
@@ -81,3 +101,25 @@ type DocTargetFirst<T> = T extends ShapeOfMultiTarget
 export type MakeExamplesType<T> = T extends HandlerAlias<infer P, any>
   ? RemapToExampleType<DocTargetFirst<P>>
   : never
+
+// ---------------------------------------------------------------------------
+// Global aliases
+// ---------------------------------------------------------------------------
+
+// delta vs create-tealina: global aliases for JavaScript handlers, which have no
+// `import type` and would otherwise repeat a relative import chain in every file.
+// `EmptyObj` is declared again here only to make the name reachable without an import;
+// it is the same type as the one this file exports above.
+declare global {
+  type EmptyObj = {}
+
+  type OpenAPI<
+    TPayload extends VariantPayload = EmptyObj,
+    TResponse = unknown,
+  > = OpenHandler<TPayload, TResponse>
+
+  type AuthedAPI<
+    TPayload extends VariantPayload = EmptyObj,
+    TResponse = unknown,
+  > = AuthedHandler<TPayload, TResponse>
+}

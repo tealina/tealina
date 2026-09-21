@@ -72,7 +72,6 @@ const latestDocUI = async () => {
 // template versions freeze at whatever was last committed by hand.
 const kVersionMapPaths = [
   'packages/create-tealina/template/versionMaps.json',
-  'packages/create-tealina-lite/template/versionMaps.json',
 ]
 
 const updateVersionMap = async (kVersionMapPath, subPkgMaps) => {

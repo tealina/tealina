@@ -1,3 +1,4 @@
+import Router from '@koa/router'
 import {
   type TealinaVdocWebConfig,
   assembleHTML,
@@ -5,12 +6,11 @@ import {
 } from '@tealina/doc-ui'
 import type Koa from 'koa'
 import mount from 'koa-mount'
-import Router from '@koa/router'
 import serve from 'koa-static'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-const VDOC_BASENAME = '/api-doc';
+const VDOC_BASENAME = '/api-doc'
 
 const vDocCofig: TealinaVdocWebConfig = {
   sources: [
@@ -26,10 +26,6 @@ const vDocCofig: TealinaVdocWebConfig = {
       commonFields: {
         headers: {
           Authorization: 'string',
-        },
-        body: {
-          skip: { type: 'number', default: 0 },
-          take: { type: 'number', default: 10 },
         },
       },
     },

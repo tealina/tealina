@@ -1,14 +1,14 @@
 import plugin4static from '@fastify/static'
-import { FastifyPluginCallback } from 'fastify'
-import { readFile } from 'fs/promises'
+import type { FastifyPluginCallback } from 'fastify'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
-  TealinaVdocWebConfig,
+  type TealinaVdocWebConfig,
   getAssetsPath,
   assembleHTML,
 } from '@tealina/doc-ui'
 
-const VDOC_BASENAME = '/api-doc';
+const VDOC_BASENAME = '/api-doc'
 
 const vDocCofig: TealinaVdocWebConfig = {
   sources: [
@@ -24,10 +24,6 @@ const vDocCofig: TealinaVdocWebConfig = {
       commonFields: {
         headers: {
           Authorization: 'string',
-        },
-        body: {
-          skip: { type: 'number', default: 0 },
-          take: { type: 'number', default: 10 },
         },
       },
     },

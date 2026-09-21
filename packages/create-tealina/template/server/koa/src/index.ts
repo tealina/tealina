@@ -1,12 +1,11 @@
-import './config/env.js'
-//Make sure this 👆 line at the top of entry file
+import { PORT } from './config/env.js'
 import { buildApp } from './app/index.js'
 import { VDOC_BASENAME } from './app/routes/static/docs.js'
 import type { AddressInfo } from 'node:net'
 
-const logAddress = async (address: AddressInfo) => {
+const logAddress = (address: AddressInfo) => {
   const domain = `http://localhost:${address.port}`
-  console.log(`Server started at ${domain}`)
+  console.log(`Service started at ${domain}`)
   console.log(`API document page at ${domain}${VDOC_BASENAME}/index.html`)
 }
 
@@ -17,7 +16,7 @@ const handleError = (e: unknown) => {
 
 const startServer = async () => {
   const app = await buildApp()
-  const server = app.listen(Number(process.env.PORT))
+  const server = app.listen(PORT)
   logAddress(server.address() as AddressInfo)
 }
 

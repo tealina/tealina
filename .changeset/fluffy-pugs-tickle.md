@@ -1,5 +1,5 @@
 ---
-"create-tealina-lite": minor
+"create-tealina": minor
 ---
 
 Add `--web`: a minimal frontend that reads the server's types instead of restating them

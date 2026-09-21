@@ -1,6 +1,6 @@
 ---
 "tealina": minor
-"create-tealina-lite": patch
+"create-tealina": patch
 ---
 
 Add a `tealina/utility-types` subpath, and let the scaffold take its types from there

@@ -6,7 +6,7 @@ import {
   assembleHTML,
 } from '@tealina/doc-ui'
 
-const VDOC_BASENAME = '/api-doc';
+const VDOC_BASENAME = '/api-doc'
 
 const vDocCofig: TealinaVdocWebConfig = {
   sources: [
@@ -22,10 +22,6 @@ const vDocCofig: TealinaVdocWebConfig = {
       commonFields: {
         headers: {
           Authorization: 'string',
-        },
-        body: {
-          skip: { type: 'number', default: 0 },
-          take: { type: 'number', default: 10 },
         },
       },
     },

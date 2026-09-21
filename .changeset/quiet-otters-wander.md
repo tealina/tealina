@@ -1,5 +1,5 @@
 ---
-"create-tealina-lite": patch
+"create-tealina": patch
 ---
 
 Name the JavaScript handler types `OpenAPI` / `AuthedAPI`
