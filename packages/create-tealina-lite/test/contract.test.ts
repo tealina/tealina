@@ -38,6 +38,12 @@ const fixtureRoot = path.join(pkgDir, 'temp/contract')
 
 const tscBin = path.join(pkgDir, 'node_modules/.bin/tsc')
 const utilityTypesSrc = path.join(repoRoot, 'packages/utility-types/index.ts')
+// The subpath the shipped contract layer imports from. Its source is the one-line
+// re-export `tealina` publishes, so mapping it here keeps this test off `pnpm build` too.
+const tealinaUtilityTypesSrc = path.join(
+  repoRoot,
+  'packages/tealina/src/utility-types.ts',
+)
 
 const FRAMEWORKS = ['express', 'fastify', 'koa'] as const
 type Framework = (typeof FRAMEWORKS)[number]
@@ -56,7 +62,10 @@ const baseCompilerOptions = {
   noEmit: true,
   baseUrl: '.',
   // Point at the source so this test does not depend on `pnpm build` having run first.
-  paths: { '@tealina/utility-types': [utilityTypesSrc] },
+  paths: {
+    '@tealina/utility-types': [utilityTypesSrc],
+    'tealina/utility-types': [tealinaUtilityTypesSrc],
+  },
 }
 
 const fixtureTsconfig = (mode: Mode) => ({
@@ -211,6 +220,12 @@ describe('shipped contract layer type-checks', () => {
     expect(fs.existsSync(utilityTypesSrc), `missing ${utilityTypesSrc}`).toBe(
       true,
     )
+    // A `paths` entry pointing at a file that moved would be a silent false pass: the
+    // specifier resolves to nothing, and `skipLibCheck` keeps the error out of the output.
+    expect(
+      fs.existsSync(tealinaUtilityTypesSrc),
+      `missing ${tealinaUtilityTypesSrc}`,
+    ).toBe(true)
   })
 
   for (const mode of ['ts', 'js'] as const) {

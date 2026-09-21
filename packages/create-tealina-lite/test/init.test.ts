@@ -57,6 +57,13 @@ const workspacePaths: Record<string, string[]> = {
   '@tealina/utility-types': [
     path.join(repoRoot, 'packages/utility-types/index.ts'),
   ],
+  // The contract layer takes the utility types it is built from through here rather than
+  // from `@tealina/utility-types` directly, so that a generated project installs one
+  // package to compile itself instead of two. Mapped to the re-export's source, so this
+  // gate still needs no build of `tealina`.
+  'tealina/utility-types': [
+    path.join(repoRoot, 'packages/tealina/src/utility-types.ts'),
+  ],
   '@tealina/doc-types': [
     path.join(repoRoot, 'packages/tealina-doc-types/index.ts'),
   ],
@@ -79,8 +86,9 @@ const workspacePaths: Record<string, string[]> = {
  * this file compiles is a question about the host having installed `tealina`, not about
  * `init`. It is copied byte-for-byte from the template, the manifest test asserts it is in
  * the set, and T3 compiles it for real after an install. Hence `include` below: it covers
- * `types/**` and `src/**` and nothing else, which is why the fixture needs no `tealina`
- * mapping.
+ * `types/**` and `src/**` and nothing else, so the bare `tealina` needs no mapping here.
+ * The one file in that set which reaches into the package is the contract layer, and it
+ * takes a subpath rather than the entry — see `'tealina/utility-types'` above.
  */
 
 /** The runtime package `init` looks for to detect the framework. */
@@ -436,8 +444,11 @@ describe('init into an existing project', () => {
         for (const name of ['@tealina/server', '@tealina/doc-ui']) {
           expect(pkg.dependencies[name], name).toBeDefined()
         }
-        expect(pkg.devDependencies['@tealina/utility-types']).toBeDefined()
+        // `tealina` is what the copied contract layer imports its utility types from, so
+        // it is the one dependency whose presence here is load-bearing. There used to be a
+        // second name checked beside it, `@tealina/utility-types`.
         expect(pkg.devDependencies.tealina).toBeDefined()
+        expect(pkg.devDependencies['@tealina/utility-types']).toBeUndefined()
 
         // The toolchain is the host's call — `init` reports it rather than swapping their
         // compiler or runner out from under them. `typescript` is the exception, and only
@@ -528,27 +539,35 @@ describe('init into an existing project', () => {
 const hostNameOf = (fw: ServerTemplate) => `existing-${fw}-api`
 
 /**
- * The one dependency in these fixtures that stands in for something a user installs rather
+ * The dependencies in these fixtures that stand in for something a user installs rather
  * than something this repo ships as source.
  *
- * Everything else is `paths`-mapped to `src/` so the gate needs no build. Not this one:
- * the web package's `@tealina/client` is a published package resolved through an `exports`
- * map, and the witness it carries is only meaningful as what that map hands back. Mapping
- * it to `src/` would test a resolution nobody runs. Built, once, at the first fixture that
- * needs it — the same lazy shape as `ensureCliBuilt` in the e2e gate, and CI builds before
+ * Everything else is `paths`-mapped to `src/` so the gate needs no build. Not these: what
+ * the frontend reaches is a published package resolved through an `exports` map, and the
+ * witness it carries is only meaningful as what that map hands back. Mapping it to `src/`
+ * would test a resolution nobody runs. Built, once each, at the first fixture that needs
+ * one — the same lazy shape as `ensureCliBuilt` in the e2e gate, and CI builds before
  * testing anyway.
+ *
+ * `tealina` is here one step further in than the client: the contract layer takes its
+ * utility types through `tealina/utility-types`, which is an `exports` entry and a `.d.ts`
+ * under that package's `dist/`, so the fixture has to resolve the real thing and not a
+ * mapping of it. Unlike `paths`, a broken resolution here is silent — the import sits in a
+ * `.d.ts`, where every gate in this repo sets `skipLibCheck`, and the projection widens to
+ * `any` instead of failing. That is why the mutation below, and not the compile above it,
+ * is the test that matters.
  */
-let clientBuilt = false
-const ensureClientBuilt = () => {
-  if (clientBuilt) return
-  clientBuilt = true
-  const res = spawnSync('pnpm', ['-F', '@tealina/client', 'build'], {
+const builtPackages = new Set<string>()
+const ensureBuilt = (name: string) => {
+  if (builtPackages.has(name)) return
+  builtPackages.add(name)
+  const res = spawnSync('pnpm', ['-F', name, 'build'], {
     cwd: repoRoot,
     encoding: 'utf-8',
     shell: process.platform === 'win32',
   })
   const output = `${res.stdout ?? ''}${res.stderr ?? ''}`
-  expect(res.status, `building @tealina/client failed:\n${output}`).toBe(0)
+  expect(res.status, `building ${name} failed:\n${output}`).toBe(0)
 }
 
 type WebFixture = {
@@ -603,7 +622,8 @@ const preparedWeb = (
   mode: Mode,
   probe = false,
 ): WebFixture => {
-  ensureClientBuilt()
+  ensureBuilt('@tealina/client')
+  ensureBuilt('tealina')
   const key = `${fw}-${mode}${probe ? '-probe' : ''}`
   const cached = webFixtures.get(key)
   if (cached != null) return cached
@@ -634,9 +654,14 @@ const preparedWeb = (
     write(path.join(webDir, `src/probe.${ext(mode)}`), kWebProbe[mode])
   }
 
-  // The two workspace links an install would make, made by hand — there is no install here.
+  // The workspace links an install would make, made by hand — there is no install here.
   // The first is the host under its *own* name, which is what makes the specifier rewrite
   // load-bearing rather than cosmetic; the second is the client.
+  //
+  // The host's other dependencies need no line here: `writeHost` points its
+  // `node_modules` at this package's own, where every dependency the templates declare is
+  // a devDependency — `tealina` included, which is what the contract layer resolves
+  // `tealina/utility-types` through.
   const webModules = path.join(webDir, 'node_modules')
   fs.mkdirSync(path.join(webModules, '@tealina'), { recursive: true })
   fs.symlinkSync(hostDir, path.join(webModules, hostNameOf(fw)))

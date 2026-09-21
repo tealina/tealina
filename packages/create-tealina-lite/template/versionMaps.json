@@ -5,7 +5,6 @@
       "@tealina/doc-ui": "^2.0.1"
     },
     "devDependencies": {
-      "@tealina/utility-types": "^1.0.0",
       "tealina": "^2.2.2"
     }
   },

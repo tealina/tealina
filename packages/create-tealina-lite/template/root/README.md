@@ -220,10 +220,11 @@ pnpm -F web dev      # http://localhost:5173
 Two things worth knowing:
 
 - Resolving those types pulls the server's **source** in (`api-v1.d.ts` → `src/api-v1/`
-  → `convention.ts` → `express`/`fastify`/`koa`). So the server's own
-  `@tealina/utility-types` and framework type packages must stay installed. A
-  `skipLibCheck` in the frontend will not paper over a break here, because this is `.ts`,
-  not `.d.ts`.
+  → `convention.ts` → `express`/`fastify`/`koa` → `tealina/utility-types`). So the server's
+  own `tealina` and framework type packages must stay installed — the utility types the
+  contract is built from arrive through `tealina`, which the server already has for the
+  CLI. A `skipLibCheck` in the frontend will not paper over a break here, because this is
+  `.ts`, not `.d.ts`.
 - The proxy is what keeps this same-origin: `vite.config.ts` forwards `/api` to
   `http://localhost:8000`, so no server template needs CORS headers.
 

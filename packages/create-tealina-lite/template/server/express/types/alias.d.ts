@@ -1,8 +1,11 @@
+// delta vs create-tealina: taken from `tealina/utility-types` rather than from
+// `@tealina/utility-types` directly, so the scaffold installs one package to compile its
+// contract instead of two. See test/contract-drift.test.ts.
 import {
   ExtractResponse,
   MaybeProperty,
   PickTarget,
-} from '@tealina/utility-types'
+} from 'tealina/utility-types'
 import type { NextFunction, Request, Response } from 'express'
 
 // delta vs create-tealina: exported here. Upstream omits the keyword on this one file

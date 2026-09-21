@@ -1,3 +1,7 @@
+// delta vs create-tealina: taken from `tealina/utility-types` rather than from
+// `@tealina/utility-types` directly, so the scaffold installs one package to compile its
+// contract instead of two. `tealina` is already a devDependency here for the CLI, and it
+// re-exports these. See test/contract-drift.test.ts.
 import type {
   LastElement,
   MultiTarget,
@@ -5,7 +9,7 @@ import type {
   RemapToExampleType,
   Simplify,
   TargetKeys,
-} from '@tealina/utility-types'
+} from 'tealina/utility-types'
 import type { AuthHeaders, AuthedLocals, JsonHeaders } from './common.js'
 import type { HandlerAliasCore } from './alias.js'
 

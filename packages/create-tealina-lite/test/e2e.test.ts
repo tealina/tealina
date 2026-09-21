@@ -233,6 +233,22 @@ describeE2E('scaffolded project, end to end', () => {
           projectDir,
         )
 
+        // 3b. and the other config, which is the one nothing else here would notice. The
+        //     dev check above reads `tsconfig.json` (NodeNext); the build reads
+        //     `tsconfig.build.json`, and while that one was `Node` it could not see the
+        //     `tealina/utility-types` subpath the contract layer imports — a build that
+        //     failed on a file the editor had just called clean. TypeScript mode only:
+        //     the JavaScript tree has no `build` script, because node runs those files
+        //     as they are.
+        if (mode === 'ts') {
+          must('pnpm', ['-F', 'server', 'build'], projectDir)
+          const built = path.join(serverDir, 'dist/index.js')
+          expect(
+            fs.existsSync(built),
+            `\`pnpm -F server build\` wrote nothing to ${built}`,
+          ).toBe(true)
+        }
+
         // 4. the doc route reads this file off disk
         must('pnpm', ['-F', 'server', 'gdoc'], projectDir)
         const doc = path.join(serverDir, 'docs/api-v1.json')

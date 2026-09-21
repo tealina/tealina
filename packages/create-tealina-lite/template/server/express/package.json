@@ -27,7 +27,6 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
-    "@tealina/utility-types": "^1.0.0",
     "@types/express": "^5.0.3",
     "@types/node": "^20.19.4",
     "tealina": "^2.2.2",

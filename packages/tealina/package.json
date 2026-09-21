@@ -9,10 +9,13 @@
     ".": {
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
+    },
+    "./utility-types": {
+      "types": "./dist/utility-types.d.ts"
     }
   },
   "scripts": {
-    "gen-types": "tsc src/index.ts --declaration --emitDeclarationOnly --esModuleInterop --outDir dist",
+    "gen-types": "tsc src/index.ts src/utility-types.ts --declaration --emitDeclarationOnly --esModuleInterop --outDir dist",
     "build": "unbuild && pnpm gen-types",
     "test": "vitest --dir ./test --run --testTimeout=20000"
   },

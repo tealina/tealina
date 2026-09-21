@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    // `NodeNext`, to match `tsconfig.json`. The two have to agree about how a bare
+    // specifier is looked up, and this one used to say `Node`, which reads no `exports`
+    // map: it looks for `node_modules/tealina/utility-types.d.ts` on disk and gives up
+    // (TS2307). The contract layer imports that subpath, so the build failed on a file
+    // the editor — which reads `tsconfig.json` — had just called clean.
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "target": "ES2023",
     "strict": true,
     "esModuleInterop": true,

@@ -87,6 +87,33 @@ const GLOBAL_NAMESPACE = [
 const DELTAS: Delta[] = [
   {
     file: 'common/types/handler.d.ts',
+    from: [
+      'import type {',
+      '  LastElement,',
+      '  MultiTarget,',
+      '  PickTarget,',
+      '  RemapToExampleType,',
+      '  Simplify,',
+      '  TargetKeys,',
+      "} from '@tealina/utility-types'",
+    ].join('\n'),
+    to: [
+      '// delta vs create-tealina: taken from `tealina/utility-types` rather than from',
+      '// `@tealina/utility-types` directly, so the scaffold installs one package to compile its',
+      '// contract instead of two. `tealina` is already a devDependency here for the CLI, and it',
+      '// re-exports these. See test/contract-drift.test.ts.',
+      'import type {',
+      '  LastElement,',
+      '  MultiTarget,',
+      '  PickTarget,',
+      '  RemapToExampleType,',
+      '  Simplify,',
+      '  TargetKeys,',
+      "} from 'tealina/utility-types'",
+    ].join('\n'),
+  },
+  {
+    file: 'common/types/handler.d.ts',
     from: 'type EmptyObj = {}',
     to: [
       '// delta vs create-tealina: exported here. Upstream keeps it module-local and the demo',
@@ -127,6 +154,26 @@ const DELTAS: Delta[] = [
     file: 'common/types/handler.d.ts',
     from: MAKE_EXAMPLES,
     to: `${MAKE_EXAMPLES}\n\n${GLOBAL_NAMESPACE}`,
+  },
+  {
+    file: 'server/express/types/alias.d.ts',
+    from: [
+      'import {',
+      '  ExtractResponse,',
+      '  MaybeProperty,',
+      '  PickTarget,',
+      "} from '@tealina/utility-types'",
+    ].join('\n'),
+    to: [
+      '// delta vs create-tealina: taken from `tealina/utility-types` rather than from',
+      '// `@tealina/utility-types` directly, so the scaffold installs one package to compile its',
+      '// contract instead of two. See test/contract-drift.test.ts.',
+      'import {',
+      '  ExtractResponse,',
+      '  MaybeProperty,',
+      '  PickTarget,',
+      "} from 'tealina/utility-types'",
+    ].join('\n'),
   },
   {
     file: 'server/express/types/alias.d.ts',
@@ -186,6 +233,16 @@ const DELTAS: Delta[] = [
   },
   {
     file: 'server/koa/types/alias.d.ts',
+    from: "import type { PickTarget, ExtractResponse } from '@tealina/utility-types'",
+    to: [
+      '// delta vs create-tealina: taken from `tealina/utility-types` rather than from',
+      '// `@tealina/utility-types` directly, so the scaffold installs one package to compile its',
+      '// contract instead of two. See test/contract-drift.test.ts.',
+      "import type { PickTarget, ExtractResponse } from 'tealina/utility-types'",
+    ].join('\n'),
+  },
+  {
+    file: 'server/koa/types/alias.d.ts',
     from: [
       '  (',
       '    ctx: ExtendableContext & {',
@@ -223,6 +280,26 @@ const DELTAS: Delta[] = [
       '    next: () => Promise<any>,',
       '  ): void',
       '}',
+    ].join('\n'),
+  },
+  {
+    file: 'server/fastify/types/alias.d.ts',
+    from: [
+      'import type {',
+      '  PickTarget,',
+      '  ExtractResponse,',
+      '  MaybeProperty,',
+      "} from '@tealina/utility-types'",
+    ].join('\n'),
+    to: [
+      '// delta vs create-tealina: taken from `tealina/utility-types` rather than from',
+      '// `@tealina/utility-types` directly, so the scaffold installs one package to compile its',
+      '// contract instead of two. See test/contract-drift.test.ts.',
+      'import type {',
+      '  PickTarget,',
+      '  ExtractResponse,',
+      '  MaybeProperty,',
+      "} from 'tealina/utility-types'",
     ].join('\n'),
   },
   {

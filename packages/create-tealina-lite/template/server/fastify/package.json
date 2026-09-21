@@ -28,7 +28,6 @@
     "fastify": "^5.5.0"
   },
   "devDependencies": {
-    "@tealina/utility-types": "^1.0.0",
     "@types/node": "^20.19.4",
     "tealina": "^2.2.2",
     "tsx": "^4.20.5",
