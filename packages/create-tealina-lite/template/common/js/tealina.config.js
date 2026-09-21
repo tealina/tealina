@@ -29,9 +29,9 @@ export default {
  * assignable to every framework's `HandlerAliasCore`, so this single file is correct
  * for express, fastify and koa alike.
  *
- * `Tealina.Authed` comes from the global namespace declared in `types/handler.d.ts`,
- * which is the one thing a generated file could not work out for itself: how many `../`
- * it takes to reach the contract from a directory nobody has written yet.
+ * `AuthedAPI` is one of the globals declared in `types/handler.d.ts`, which is the one
+ * thing a generated file could not work out for itself: how many `../` it takes to reach
+ * the contract from a directory nobody has written yet.
  *
  * The `@type` has to sit on the `const`, not inline in the `convention(...)` call:
  * `convention` is what the generator reads to find the handler, and it looks the name up
@@ -47,14 +47,14 @@ function generateBasicCode({ relative2api }) {
     '',
     '/**',
     ' * TODO: describe what it does',
-    ' * @type {Tealina.Authed}',
+    ' * @type {AuthedAPI}',
     ' */',
     `const handler = async () => {`,
     '  throw new Error("Handler not implemented.")',
     '}',
     '',
     '// A token is required by default. To make this route public, declare the handler',
-    '// as Tealina.Open and pass the marker: convention(openHandler, handler)',
+    '// as OpenAPI and pass the marker: convention(openHandler, handler)',
     `export default convention(handler)`,
     '',
   ].join('\n')

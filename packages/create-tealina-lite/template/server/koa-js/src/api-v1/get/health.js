@@ -3,7 +3,7 @@ import { convention } from '../../convention.js'
 
 /**
  *  Check server is ok
- * @type {Tealina.Open<EmptyObj, { isOk: boolean }>}
+ * @type {OpenAPI<EmptyObj, { isOk: boolean }>}
  */
 const handler = async ctx => {
   ctx.body = { isOk: true }

@@ -24,8 +24,8 @@ import { PROBE_JS, PROBE_TS, WIDENED_CONVENTION } from './probe.js'
  * why the JavaScript one is written the way it is and why the JS arm runs twice.
  *
  * Three things the plain gate above cannot see, each with its own test below: the stub
- * `align` generates (a string no other test ever compiles), the global namespace the JS
- * handlers read their types from (deleting it has to be noticed), and the inside of the
+ * `align` generates (a string no other test ever compiles), the globals the JS handlers
+ * read their types from (deleting them has to be noticed), and the inside of the
  * contract layer's own `.d.ts` files — every tsconfig in this repo sets `skipLibCheck`,
  * so an error written in `types/` is invisible to every other gate here.
  */
@@ -82,18 +82,18 @@ const fixtureTsconfig = (mode: Mode) => ({
 type BuildOptions = {
   /** Replaces `src/convention.<ext>` after the tree has been copied. */
   convention?: string
-  /** Deletes the JS handlers' global namespace from `types/handler.d.ts`. */
+  /** Deletes the JS handlers' global aliases from `types/handler.d.ts`. */
   stripGlobals?: boolean
   /** Names the scratch directory, for a variant that differs only in how it is run. */
   key?: string
 }
 
 /**
- * Where the JS handlers get `Tealina.Open` / `Tealina.Authed` / `EmptyObj` from. Both the
- * mutation below and the drift test key off this string, so it is kept in one piece.
+ * Where the JS handlers get `OpenAPI` / `AuthedAPI` / `EmptyObj` from. Both the mutation
+ * below and the drift test key off this string, so it is kept in one piece.
  */
 const GLOBAL_NAMESPACE_MARKER =
-  '// delta vs create-tealina: a global namespace for JavaScript handlers'
+  '// delta vs create-tealina: global aliases for JavaScript handlers'
 
 function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   const variant = options.convention
@@ -254,13 +254,13 @@ describe('shipped contract layer type-checks', () => {
   }
 
   for (const fw of FRAMEWORKS) {
-    // Second self-check, for the other load-bearing name. `Tealina.Open` is the one type
-    // in a JS handler that resolves without an import, so the test above would keep
-    // passing if the namespace it comes from were deleted and every handler fell back to
-    // `any` — a JS file with no annotations still compiles. Delete it and insist on being
-    // told. TS2503 specifically, not an error count: `EmptyObj` goes missing in the same
-    // edit and brings its own TS2304 along.
-    it(`${fw} (js): the handlers stop compiling without the global namespace`, () => {
+    // Second self-check, for the other load-bearing name. `OpenAPI` is the one type in a
+    // JS handler that resolves without an import, so the test above would keep passing if
+    // the global block it comes from were deleted and every handler fell back to `any` —
+    // a JS file with no annotations still compiles. Delete it and insist on being told.
+    // TS2304 specifically, not an error count: `EmptyObj` goes missing in the same edit
+    // and brings its own TS2304 along.
+    it(`${fw} (js): the handlers stop compiling without the global aliases`, () => {
       const dest = buildFixture(fw, 'js', { stripGlobals: true })
       const output = runTsc(dest)
       expect(
@@ -268,7 +268,7 @@ describe('shipped contract layer type-checks', () => {
         'the JS handlers compiled with `declare global` removed from ' +
           'types/handler.d.ts — the types they name are resolving to something, so ' +
           `this fixture can no longer tell a real handler type from \`any\`:\n${output}`,
-      ).toContain('TS2503')
+      ).toContain('TS2304')
     })
   }
 

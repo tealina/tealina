@@ -11,7 +11,7 @@ import { convention } from '../../convention.js'
  * @property {string} password - This JSDoc comment will appear in the documentation
  */
 
-/** @type {Tealina.Open<{ body: LoginPayload }, { token: string }>} */
+/** @type {OpenAPI<{ body: LoginPayload }, { token: string }>} */
 const handler = async ctx => {
   const { body } = ctx.request
   console.log(body.account)

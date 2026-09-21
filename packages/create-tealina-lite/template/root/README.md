@@ -77,9 +77,9 @@ That `openHandler` argument is what makes the route public — see
   the declaration, and an inline object type would be inlined into the document.
 - JSDoc comments become documentation; `//` comments are ignored.
 
-Scaffolded with `--js`, the same handler is written in JSDoc, and the types come from a
-global namespace instead of an import — nothing to count `../` for, which matters because
-`align` writes stubs into directories that did not exist when the type file was written:
+Scaffolded with `--js`, the same handler is written in JSDoc, and the types come from
+globals instead of an import — nothing to count `../` for, which matters because `align`
+writes stubs into directories that did not exist when the type file was written:
 
 ```js
 import { openHandler } from '../../app/middlewares/auth/openHandler.js'
@@ -91,7 +91,7 @@ import { convention } from '../../convention.js'
  * @property {string} password
  */
 
-/** @type {Tealina.Open<{ body: LoginPayload }, { token: string }>} */
+/** @type {OpenAPI<{ body: LoginPayload }, { token: string }>} */
 const handler = async (req, res) => {
   res.send({ token: 'JWT token' })
 }
@@ -99,7 +99,7 @@ const handler = async (req, res) => {
 export default convention(openHandler, handler)
 ```
 
-`Tealina.Open` and `Tealina.Authed` mirror `OpenHandler` and `AuthedHandler` argument for
+`OpenAPI` and `AuthedAPI` mirror `OpenHandler` and `AuthedHandler` argument for
 argument; a handler with no payload writes the bare global `EmptyObj`. All three are
 declared at the end of `types/handler.d.ts`, the one type file a handler already imports.
 
@@ -160,7 +160,7 @@ curl -i -X POST localhost:8000/api/v1/article -H 'Authorization: anything'   # 2
 
 The marker and the type annotation are two halves of the same decision — a chain carrying
 `openHandler` should be declared `OpenHandler`, and a guarded one `AuthedHandler`
-(`Tealina.Open` and `Tealina.Authed` in the JavaScript tree). Change
+(`OpenAPI` and `AuthedAPI` in the JavaScript tree). Change
 them together: **nothing checks that they agree**, and a mismatch compiles cleanly and
 then surprises you at runtime (a route the types say is public answering `401`, or a
 handler reaching for `locals.userId` on a route anyone can call).
@@ -272,9 +272,9 @@ argument; `packages/web/js` in the scaffold's template is the worked example.
 `packages/server/types/` is the part you should not casually restructure:
 
 - `handler.d.ts` — `OpenHandler` / `AuthedHandler` and the projections that derive
-  client and doc types. Imports `./alias.js`. Also carries the `Tealina.*` global
-  namespace, which is how the JavaScript tree's handlers name these two without an
-  import; it is inert in a TypeScript project.
+  client and doc types. Imports `./alias.js`. Also declares the `OpenAPI` / `AuthedAPI`
+  globals, which is how the JavaScript tree's handlers name these two without an import;
+  they are inert in a TypeScript project.
 - `alias.d.ts` — the one framework-specific file. This is where express/koa/fastify
   request and response types get bound to the generic handler shape.
 - `api-v1.d.ts` — the exit point. `ApiTypesForDoc` **must** stay the first export in

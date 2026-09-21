@@ -29,7 +29,7 @@ import { verifyToken } from '../../middlewares/auth/verifyToken.js'
  * endpoint that says nothing requires an Authorization header.
  *
  * The marker is how `convention(openHandler, handler)` announces a public route —
- * pair it with `Tealina.Open` on the handler rather than `Tealina.Authed`. Nothing
+ * pair it with `OpenAPI` on the handler rather than `AuthedAPI`. Nothing
  * checks that the annotation and the marker agree, so make the two edits together.
  */
 const kOpenHandlerName = openHandler.name

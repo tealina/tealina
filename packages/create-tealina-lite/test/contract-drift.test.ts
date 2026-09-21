@@ -60,23 +60,21 @@ const MAKE_EXAMPLES = [
  * this package ships (`skipLibCheck: true` everywhere) and fails everywhere else.
  */
 const GLOBAL_NAMESPACE = [
-  '// delta vs create-tealina: a global namespace for JavaScript handlers, which have no',
+  '// delta vs create-tealina: global aliases for JavaScript handlers, which have no',
   '// `import type` and would otherwise repeat a relative import chain in every file.',
   '// `EmptyObj` is declared again here only to make the name reachable without an import;',
   '// it is the same type as the one this file exports above.',
   'declare global {',
   '  type EmptyObj = {}',
   '',
-  '  namespace Tealina {',
-  '    type Open<',
-  '      TPayload extends VariantPayload = EmptyObj,',
-  '      TResponse = unknown,',
-  '    > = OpenHandler<TPayload, TResponse>',
-  '    type Authed<',
-  '      TPayload extends VariantPayload = EmptyObj,',
-  '      TResponse = unknown,',
-  '    > = AuthedHandler<TPayload, TResponse>',
-  '  }',
+  '  type OpenAPI<',
+  '    TPayload extends VariantPayload = EmptyObj,',
+  '    TResponse = unknown,',
+  '  > = OpenHandler<TPayload, TResponse>',
+  '  type AuthedAPI<',
+  '    TPayload extends VariantPayload = EmptyObj,',
+  '    TResponse = unknown,',
+  '  > = AuthedHandler<TPayload, TResponse>',
   '}',
 ].join('\n')
 

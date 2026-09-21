@@ -12,7 +12,7 @@ import { convention } from '../../convention.js'
 
 /**
  *  Create an article. Login required.
- * @type {Tealina.Authed<{ body: ArticlePayload }, { id: number }>}
+ * @type {AuthedAPI<{ body: ArticlePayload }, { id: number }>}
  */
 const handler = async ctx => {
   const { body } = ctx.request
