@@ -5,12 +5,10 @@ type PreHanlder = preHandlerHookHandler | preHandlerAsyncHookHandler
 /**
  * The marker that makes an endpoint public: `convention(openHandler, handler)`.
  *
- * delta vs create-tealina: this file has no upstream counterpart. Upstream decides
- * which routes are public with a hand-written path table (`OpenPathRecord`) in
- * `src/app/routes/api/v1.ts`, which has to be kept in step with the handlers by hand.
- * Here an endpoint declares it for itself by carrying this marker in its handler
- * chain, and the router registers that route without `verifyToken` — the other file
- * in this directory.
+ * An endpoint declares its own visibility, by carrying this marker in its handler chain,
+ * rather than being listed in a path table that someone has to keep in step with the
+ * handlers by hand. The router registers a marked route without `verifyToken` — the
+ * other file in this directory.
  *
  * Typed as the preHandler it is: the router runs everything before the last element
  * as `preHandler`, so the marker rides in the chain like any other hook. A preHandler

@@ -306,9 +306,9 @@ describeE2E('scaffolded project, end to end', () => {
         expect(login.status, `${fw} made /login require a token`).toBe(200)
         expect(await login.json()).toEqual({ token: 'JWT token' })
 
-        // The 401 half is the only thing that can catch a framework whose verifyToken
-        // does not check the header — the upstream express template does not, and T1
-        // type-checks only, so it can never see this.
+        // The 401 half is the only thing that can catch a verifyToken that answers
+        // without checking the header: T1 type-checks the contract only, so a middleware
+        // that lets every call through is invisible to it.
         const anonymous = await fetch(`${base}/api/v1/article`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

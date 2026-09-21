@@ -1,6 +1,6 @@
-// delta vs create-tealina: `ModelId` / `FindManyArgs` / `PageResult` are dropped here.
-// They describe Prisma query shapes, and this scaffold has no database — keeping them
-// would read as "there is a data layer you have not found yet".
+// No `ModelId` / `FindManyArgs` / `PageResult` here: they describe Prisma query shapes,
+// and this scaffold has no database. Shipping them would read as "there is a data layer
+// you have not found yet".
 
 export type AuthedLocals = {
   userId: string

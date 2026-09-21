@@ -89,11 +89,10 @@ type BuildOptions = {
 }
 
 /**
- * Where the JS handlers get `OpenAPI` / `AuthedAPI` / `EmptyObj` from. Both the mutation
- * below and the drift test key off this string, so it is kept in one piece.
+ * Where the JS handlers get `OpenAPI` / `AuthedAPI` / `EmptyObj` from. The mutation below
+ * keys off this string, so it is kept in one piece.
  */
-const GLOBAL_NAMESPACE_MARKER =
-  '// delta vs create-tealina: global aliases for JavaScript handlers'
+const GLOBAL_NAMESPACE_MARKER = '// Aliases for JavaScript handlers.'
 
 function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   const variant = options.convention
@@ -168,6 +167,18 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
     // quietly delete nothing and the test below would pass for the wrong reason.
     if (at < 0) {
       throw new Error(`${contract} no longer contains the namespace marker`)
+    }
+    // The slice below drops everything from the marker to EOF, so the only thing allowed
+    // between the two is that comment. A declaration in between would be deleted with the
+    // block, and this test — which asserts nothing more than the appearance of TS2304 —
+    // would not go red for it, only weaker in a way nothing else measures.
+    const blockAt = src.indexOf('\ndeclare global {', at)
+    if (blockAt < 0) {
+      throw new Error(`${contract} has no global block after the marker`)
+    }
+    const between = src.slice(at + GLOBAL_NAMESPACE_MARKER.length, blockAt)
+    if (!between.split('\n').every(line => /^\s*(\/\/.*)?$/.test(line))) {
+      throw new Error(`${contract} declares something before its global block`)
     }
     fs.writeFileSync(contract, src.slice(0, at))
   }

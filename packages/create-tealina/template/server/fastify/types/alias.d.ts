@@ -1,6 +1,5 @@
-// delta vs create-tealina: taken from `tealina/utility-types` rather than from
-// `@tealina/utility-types` directly, so the scaffold installs one package to compile its
-// contract instead of two. See test/contract-drift.test.ts.
+// Taken from `tealina/utility-types` rather than from `@tealina/utility-types` directly,
+// so the scaffold installs one package to compile its contract instead of two.
 import type {
   PickTarget,
   ExtractResponse,
@@ -32,15 +31,14 @@ export interface HandlerAliasCore<
     request: FastifyRequest<RouteGeneric> & MaybeProperty<TLocals, 'locals'>, // extend `locals` prop
     reply: FastifyReply<RouteGeneric>,
   ): R | void | Promise<R | void>
-  // delta vs create-tealina: the same signature, a second time, so that this is
-  // an overload set. A JavaScript handler annotated with a JSDoc `@type` above
-  // its declaration is otherwise checked against the alias as one signature,
-  // which makes that signature the function's own — and an `async` handler is
-  // then rejected outright, because a promise union is not the global `Promise`
-  // (TS1065). Repeating the signature verbatim is the point: anything narrower,
-  // such as `Promise<R | void>`, is also one signature of an overload set, and
-  // would reject a handler that returns its payload instead of awaiting
-  // `reply.send`.
+  // The same signature, a second time, so that this is an overload set. A
+  // JavaScript handler annotated with a JSDoc `@type` above its declaration is
+  // otherwise checked against the alias as one signature, which makes that
+  // signature the function's own — and an `async` handler is then rejected
+  // outright, because a promise union is not the global `Promise` (TS1065).
+  // Repeating the signature verbatim is the point: anything narrower, such as
+  // `Promise<R | void>`, is also one signature of an overload set, and would
+  // reject a handler that returns its payload instead of awaiting `reply.send`.
   (
     this: FastifyInstance,
     request: FastifyRequest<RouteGeneric> & MaybeProperty<TLocals, 'locals'>, // extend `locals` prop

@@ -1,7 +1,6 @@
-// delta vs create-tealina: taken from `tealina/utility-types` rather than from
-// `@tealina/utility-types` directly, so the scaffold installs one package to compile its
-// contract instead of two. `tealina` is already a devDependency here for the CLI, and it
-// re-exports these. See test/contract-drift.test.ts.
+// Taken from `tealina/utility-types` rather than from `@tealina/utility-types` directly,
+// so the scaffold installs one package to compile its contract instead of two. `tealina`
+// is already a devDependency here for the CLI, and it re-exports these.
 import type {
   LastElement,
   MultiTarget,
@@ -28,9 +27,10 @@ type ShapeOfMultiTarget = MultiTarget<Record<TargetKeys, any>>
 type VariantPayload = RawPayload | ShapeOfMultiTarget
 
 type EmptyLocals = {}
-// delta vs create-tealina: exported here. Upstream keeps it module-local and the demo
-// handlers import it anyway, which only compiles because TypeScript does not check
-// exports of a `.d.ts` module. See test/contract-drift.test.ts.
+// Exported because the demo handlers `import type` it — a module-local type would not be
+// reachable from another file. Dropping the keyword does not reliably error, though:
+// TypeScript does not check the exports of a `.d.ts` module, so this is a change that can
+// go unnoticed. Keep it exported.
 export type EmptyObj = {}
 
 export type FullInfo = RawPayload & { response: unknown }
@@ -106,10 +106,11 @@ export type MakeExamplesType<T> = T extends HandlerAlias<infer P, any>
 // Global aliases
 // ---------------------------------------------------------------------------
 
-// delta vs create-tealina: global aliases for JavaScript handlers, which have no
-// `import type` and would otherwise repeat a relative import chain in every file.
-// `EmptyObj` is declared again here only to make the name reachable without an import;
-// it is the same type as the one this file exports above.
+// Aliases for JavaScript handlers.
+//
+// A `.js` handler has no `import type`, so without these each one would repeat a relative
+// import chain. `EmptyObj` is declared again here only to make the name reachable without
+// an import; it is the same type as the one this file exports above.
 declare global {
   type EmptyObj = {}
 
