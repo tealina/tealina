@@ -16,12 +16,15 @@ To develop and test:
 
 The other commands declared in package.json also run in the same format
 
-## Hints for create new scafold template
+## Hints for create new scaffold template
 
-A scafold template include two parts below:
+A scaffold template has two parts:
 
-1. dynamic [handler file](./packages/create-tealina/src/template-factory)
-2. static [files](./packages/create-tealina/template/server)
+1. the manifest that names the files it writes — [`src/template-manifest.ts`](./packages/create-tealina/src/template-manifest.ts)
+2. the files themselves — [`template/`](./packages/create-tealina/template)
+
+The retired full-kit scaffold built its file list by walking directories instead; it is kept
+at [`archive/create-tealina`](./archive/create-tealina) for reference only.
 
 ## Debugging
 

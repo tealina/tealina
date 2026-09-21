@@ -7,7 +7,7 @@ import type { MockApi } from '../MockApi'
 // the shape type parameter somewhere to be inferred from. This guards that half. The
 // other half — that it really does pin the projection — can only be shown where a
 // JavaScript tree is compiled against a server's exported types, which is what the
-// generated `web` package in create-tealina-lite is for.
+// generated `web` package in create-tealina is for.
 test('a shape witness is inert', async () => {
   const mockFetchFn = vi.fn()
   global.fetch = mockFetchFn

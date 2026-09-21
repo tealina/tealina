@@ -3,6 +3,18 @@
 > 本文全部基于直接读源码得到的事实，附 `file:line`，供讨论时对齐认知用。
 > 最后一节「已发现的问题」与「开放问题」是讨论的入口。
 
+> **2026-09-22 追记。** 本文写于 2026-09-18，当时 `packages/create-tealina` 是**整包**脚手架、
+> lite 是并列的第二个包。此后 lite 接替了名字（3.0.0），整包退役并归档到
+> `archive/create-tealina`。下文的 `file:line` 已按接替后的树重新对齐（同一个相对路径，
+> 活跃的那份），但有几处主语仍是整包，读时留意：
+>
+> - **§4 的 `common.d.ts`**：`ModelId` / `PageResult` 随整包退役，活跃的契约层里没有它们。
+> - **§5.1 / §5.3 的 axios 客户端**：活跃的前端模板用 `@tealina/client` 的 `createFetchClient`，
+>   响应同样已拆包，只是不再是 `.then(v => v.data)`。
+> - **§8 / §9 / §10 里 `init-demo.mjs`、deno runtime、`template-factory/`、`runScripts`
+>   这些条目**：主语都是整包，代码在 `archive/create-tealina`。
+> - **§9 的结论已过时**：brownfield 入口不再是空的，见 §9 末尾的追记。
+
 ## 1. 产品定位
 
 一句话：**用类型标注代替手写路由表和接口文档的自动化工具链**。仓库根 README 的自我描述是 "The Full-Stack Automation Kit: Code Gen CLI, Interactive Docs & Type-Safe Client"，副标题是 "No Framework Left Behind: Seamless E2E Types for Express, Fastify, and Koa with **Minimal Changes**"。
@@ -21,7 +33,7 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 | `utility-types` | 条件类型工具箱，单文件无运行时代码。`PickTarget` / `MultiTarget` / `ExtractResponse` / `Extract2xxResponse` / `Simplify` / `LastElement` / `WithExtra` / `DocDataKeys` 等 |
 | `tealina-doc-types` | 文档数据结构的类型（`ApiDoc:180`、`DocKind:23`）。`DocDataKeys` 不在这里——它由 `utility-types:67` 定义，doc-types 只 import 使用、并未 re-export |
 | `tealina-doc-ui` | 文档站点 UI（`assembleHTML`、`getAssetsPath`、`TealinaVdocWebConfig`）+ 其源码包 `tealina-doc-ui-src` |
-| `create-tealina` | 绿地脚手架（bin-only，`npm create tealina`） |
+| `create-tealina` | 脚手架（bin-only，`npm create tealina`）。3.0.0 起是**极简**那版：无数据库层、无 Prisma、无 shared-types、无 create-vite 前端、只 node；绿地用 `create`，brownfield 用 `init`。整包（Prisma + React + node/bun 双 runtime）退役在 `archive/create-tealina`，只作参考 |
 
 `packages/tealina/package.json:43` 有 `peerDependencies: typescript >=5.6.2`——CLI 依赖 TS 做声明文件解析，这是它敢做端到端类型的原因。
 
@@ -52,11 +64,11 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 **`types/handler.d.ts`**（`packages/create-tealina/template/common/types/handler.d.ts`；下文所有 `handler.d.ts:N` 都指这个文件）——契约的顶点
 - `RawPayload = { body?, params?, query?, headers? }`，`FullInfo = RawPayload & { response }`
 - `OpenHandler<TPayload, TResponse, TLocals>` / `AuthedHandler<...>`——用户写 handler 时标注的就是这两个。`AuthedHandler` 额外注入 `AuthHeaders` 并把 `AuthedLocals & TLocals` 塞进 locals。
-- 从 handler 反推 API 描述：`ExtractApiType`（`:53-60`）取 handler 元组的**最后一个元素**（`LastElement<T>`，即真正的 handler，前面是中间件），从中 `infer` 出 `Info`，再按目标平台投影。
-- `ResolveApiTypeForDoc`（`:62`）与 `ResolveApiTypeForClient`（`:68`）——同一份 handler 类型，分别投影成文档用的形状和客户端用的形状。
+- 从 handler 反推 API 描述：`ExtractApiType`（`:75-82`）取 handler 元组的**最后一个元素**（`LastElement<T>`，即真正的 handler，前面是中间件），从中 `infer` 出 `Info`，再按目标平台投影。
+- `ResolveApiTypeForDoc`（`:84`）与 `ResolveApiTypeForClient`（`:90`）——同一份 handler 类型，分别投影成文档用的形状和客户端用的形状。
 
 **`types/alias.d.ts`**（每框架一份）——**框架适配的接缝**
-`handler.d.ts:10` `import type { HandlerAliasCore } from './alias.js'`。三个框架的 `alias.d.ts` 各自定义同名的 `HandlerAliasCore`，把框架自己的上下文类型（koa 的 `ExtendableContext`、express 的 `Request`/`Response`、fastify 的请求对象）代入同一个泛型签名。**换框架只换这一个文件**，上层 `handler.d.ts` 一字不动。这是整套设计的关节所在。
+`handler.d.ts:13` `import type { HandlerAliasCore } from './alias.js'`。三个框架的 `alias.d.ts` 各自定义同名的 `HandlerAliasCore`，把框架自己的上下文类型（koa 的 `ExtendableContext`、express 的 `Request`/`Response`、fastify 的请求对象）代入同一个泛型签名。**换框架只换这一个文件**，上层 `handler.d.ts` 一字不动。这是整套设计的关节所在。
 
 **`src/convention.ts`**（每框架一份）——中间件契约的执行者
 ```ts
@@ -66,7 +78,7 @@ export const convention: EnsureHandlerType = (...handlers) => handlers
 ```
 运行时它只是原样返回参数数组，**全部价值在那个 `<const T extends ...>` 元组泛型**：它保住每个元素在元组里的**位置**（`LastElement<T>` 才能据此揪出最后一个 handler），并禁止非 handler 占据末位。所以 `handler` 在 `transformToRouteOptions` 里是函数数组而非单个函数——fastify 适配器才要 `preHandler: handler.slice(0,-1)` / `handler: handler.at(-1)!` 这样切分，而 express / koa 直接把整个数组摊开交给框架（express 的 `(url, ...handlers)` 与 koa 的 `router[method](url, ...handler)` 本就接受这个形状）。**这条契约的守卫在 `convention.ts`，不在 `@tealina/server`。**
 
-**`types/common.d.ts`**——用户可替换的业务类型（`AuthedLocals`、`AuthHeaders`、`JsonHeaders`、`ModelId`、`PageResult`）。名字比较通用，接进已有项目时存在撞名风险。
+**`types/common.d.ts`**——用户可替换的业务类型（`AuthedLocals`、`AuthHeaders`、`JsonHeaders`）。名字比较通用，接进已有项目时存在撞名风险。整包那版另有 `ModelId`、`PageResult`（Prisma 查询形状），随整包一起退役了。
 
 **`types/api-v1.d.ts`**——契约的出口，链接到 index 聚合文件
 ```ts
@@ -76,7 +88,7 @@ export type ApiTypesForClient = { [M in keyof RawApis]: ResolveApiTypeForClient<
 ```
 文件里的注释点明了两件事：**第一个 type 导出用于文档生成**（`parseDeclarationFile` 按顺序取第一个），且该文件由 `package.json` 的 `export.types` 暴露给外部包。
 
-三层消费者：`gdoc` 读 `ApiTypesForDoc` → OpenAPI JSON；`web/src/api/client.ts:3` 读 `ApiTypesForClient` → 前端端到端类型；`exports["./api/v1"].types` → 跨包消费。
+三层消费者：`gdoc` 读 `ApiTypesForDoc` → OpenAPI JSON；`web/src/api/client.ts:2` 读 `ApiTypesForClient` → 前端端到端类型；`exports["./api/v1"].types` → 跨包消费。
 
 ## 5. 类型层的两个核心机制：响应包装与 `MultiTarget`
 
@@ -95,7 +107,7 @@ export type ApiTypesForClient = { [M in keyof RawApis]: ResolveApiTypeForClient<
 | `EmptyObject`（`:50-51`） | `{[emptyObjectSymbol]?: never}` | 名义空对象。`MakeParameters` 靠它判断「无 payload → 只传 config」 |
 | `Simplify<T>`（`:53-55`） | `{[K in keyof T]: T[K]} & {}` | 把交叉类型拍平成好显示的对象 |
 
-`HandlerAliasCore` 里 `R = ExtractResponse<PickTarget<TResponse,'server'>>`——所以 handler 收到的 `res` 是塌缩后的形状；而客户端那边用 `Extract2xxResponse` 再过滤一层，并且**已经拆掉了包装**——这正是模板 `client.ts` 里 `.then(v => v.data)` 的由来：拿到的直接是 body，不需要再取 `.data`。
+`HandlerAliasCore` 里 `R = ExtractResponse<PickTarget<TResponse,'server'>>`——所以 handler 收到的 `res` 是塌缩后的形状；而客户端那边用 `Extract2xxResponse` 再过滤一层，并且**已经拆掉了包装**——这正是活跃的模板 `client.ts` 直接 `return response.json()` 的由来：拿到的就是 body，没有 `.data` 可再取一层。（整包的 axios 版模板则写成 `.then(v => v.data)`。）
 
 ### 5.2 `MultiTarget`：一份声明，三种投影
 
@@ -105,7 +117,7 @@ MultiTarget<T> = T & { [MultiTargetSymbol]: true } // :110-112
 PickTarget<T,K> = T extends MultiTarget<infer M> ? M[K] : T  // :114-116
 ```
 
-`ShapeOfMultiTarget = MultiTarget<Record<TargetKeys, any>>`，`VariantPayload = RawPayload | ShapeOfMultiTarget`（`handler.d.ts:23-24`）——payload 可以写成普通对象，也可以按目标平台分叉。
+`ShapeOfMultiTarget = MultiTarget<Record<TargetKeys, any>>`，`VariantPayload = RawPayload | ShapeOfMultiTarget`（`handler.d.ts:26-27`）——payload 可以写成普通对象，也可以按目标平台分叉。
 
 **为什么需要分叉**：同一份声明要喂三个消费者，而三者的真实形状确实不同——
 
@@ -113,7 +125,7 @@ PickTarget<T,K> = T extends MultiTarget<infer M> ? M[K] : T  // :114-116
 - **`client`**：浏览器收发的那部分，响应已拆包
 - **`doc`**：OpenAPI 面。含显式的 `WithHeaders`/`WithStatusCode` 包装、示例值、可写 JSDoc 的具名类型
 
-`PickTarget` 的分支挂在唯一 symbol 上，所以**没打标的普通类型原样穿过**（`:116`，即三元的 `: T` 那一支）——普通写法零成本，只有需要分叉时才付代价。打标只在两处发生：`alias.d.ts` 的 `PickTarget<TPayload,'server'>`/`PickTarget<TResponse,'server'>`，以及 `handler.d.ts:57-58` 的 `ExtractApiType`（取 `'doc'` 与 `'client'`）。限制：`:108` 注明**不支持嵌套**，`PickTarget` 只看顶层。
+`PickTarget` 的分支挂在唯一 symbol 上，所以**没打标的普通类型原样穿过**（`:116`，即三元的 `: T` 那一支）——普通写法零成本，只有需要分叉时才付代价。打标只在两处发生：`alias.d.ts` 的 `PickTarget<TPayload,'server'>`/`PickTarget<TResponse,'server'>`，以及 `handler.d.ts:79-80` 的 `ExtractApiType`（取 `'doc'` 与 `'client'`）。限制：`:108` 注明**不支持嵌套**，`PickTarget` 只看顶层。
 
 ### 5.3 端到端类型流转（完整链路）
 
@@ -196,17 +208,18 @@ type Snapshot = {
 
 - **tealina 用 mkdist**（`build.config.ts` + `builder: 'mkdist'`）：`src/` 1:1 镜像到 `dist/`，**不打包**。所以 `dist/index.mjs` 只有 304 字节，且 `dist/commands/sapi.mjs` 这类深路径可被寻址。配套 `gen-types` 脚本（`package.json:15`）单独跑 `tsc --declaration --emitDeclarationOnly` 出 `.d.ts`，注意它**只以 `src/index.ts` 为根**，图外的文件拿不到声明。
 - **create-tealina 用 unbuild rollup + `inlineDependencies: true`**：依赖全打进单文件，所以 `dependencies` 可以留着而产物自包含。
-- **版本注入**：`scripts/update-version-in-template.mjs` 把各包的**真实版本号**写进模板的 `versionMaps.json`，目前只有一处（`kVersionMapPath`，`:82`）：`packages/create-tealina/template/versionMaps.json`。注意 `workflow()` 里对 versionMaps 的每个 key 都要求 `packages/<name>` 存在，否则 `throw sub pkg not found`；一旦新增模板副本，这里必须同步加路径，否则新模板里的版本号会一直停在上次手改的值。
+- **版本注入**：`scripts/update-version-in-template.mjs` 把各包的**真实版本号**写进模板的 `versionMaps.json`，目前只有一处（`kVersionMapPaths`，`:73-75`）：`packages/create-tealina/template/versionMaps.json`。注意 `workflow()` 里对 versionMaps 的每个 key 都要求 `packages/<name>` 存在，否则 `throw sub pkg not found`（`:85`）；一旦新增模板副本，这里必须同步加路径，否则新模板里的版本号会一直停在上次手改的值。
+- **同一个脚本里还有一条注入是断的**：模板的 `template/server/*/package.json` 把 `devDependencies` 直接写死（`tealina` 还停在 `^2.2.2`），唯一会去改它们的 `updateTeamplateDependance`（`TEMP_LIST`，`:5-9`）唯一的调用点在 `:110-113`，是注释掉的。于是 `versionMaps.json` 里的依赖每次发布都跟着升，模板自身的 devDependencies 不会——`^` 范围目前还兜得住，但那是碰巧，不是被注入的。
 - **发布**：changesets。CI 递归 `pnpm build` + `pnpm test`；publish workflow 在 CI 成功后跑 `pnpm release`。
 - `scripts/inject-pnpm-overides.mjs` 把 monorepo 里的公共包以 `file:` 协议注入临时脚手项目的 overrides（调试 create-tealina 用），它**跳过 `create` 开头的目录**（`:10`）。
 
 ## 9. 脚手架路径
 
-**目前只有一条**：
+（本节写于 2026-09-18。当时的形态：**只有一条路**。）
 
 - **`create-tealina`**——绿地。组装 monorepo + Prisma 7 + zod env + create-vite，**自己不跑 install**，而是生成 `init-demo.mjs`（`src/core.ts:237-239`）让用户手动跑 `install → prisma generate → db push → v1 -a → v1 gtype → v1 gdoc`。它 ship 的 api 聚合文件是**手写预置**的，不跑 align。
 
-**接进已有项目这条路，现在是空的。** 曾经在 `tealina` 包里做了一版 `tealina init`（`copyDir` + 跳过同名文件），已撤销。撤销的三个理由对下一版仍然是约束，所以留在这里：
+**接进已有项目这条路，当时是空的。** 曾经在 `tealina` 包里做了一版 `tealina init`（`copyDir` + 跳过同名文件），已撤销。撤销的三个理由对下一版仍然是约束，所以留在这里：
 
 1. **鸡生蛋**——它需要先装上 `tealina` 才能运行，而它的用途正是把 tealina 装进来。
 2. **在已有项目上静默失败**——`copyDir` 跳过同名文件，于是用户已有的 `src/index.ts` 被跳过、`src/api-v1/` 落盘却没人挂载，命令行照常打印 `✔ tealina initialized`。
@@ -214,9 +227,16 @@ type Snapshot = {
 
 由此得到的结论：集成入口应当是一个 `create-*` 形态的**独立包**——`npx` 一次性运行、用完即走、不进入目标项目的依赖；而不是 `tealina` 自己的子命令。绿地归 create-tealina，集成归新包，两个入口不写同一套骨架。
 
+**2026-09-22 追记：这条路已经落地，形态照上面的结论，落点比它少一层。** 接替后的
+`create-tealina` 带一个 `init` 子命令：独立包、`npx create tealina init` 一次性运行、不进入目标
+项目的依赖，正是那个形态。当年撤掉 `tealina init` 的三个理由被逐个堵上——不猜入口文件（打印
+三行挂载代码让人自己贴）、目的地先查重（冲突就整批中止，`--skip-existing` 才跳过）、并且写
+`exports["./api/v1"].types`。区别只在于它没有另开一个包：绿地与集成由同一个包提供、共用同一套
+模板，所以 §11 第 1 条担心的「契约层变两份」没有发生。
+
 ## 10. 已发现的问题（都有证据）
 
-**a. `create-tealina/src/template-factory/` 是死代码。** 10 个文件，全仓 grep 只有 `.github/CONTRIBUTING.md:23` 一处散文引用，无任何 import；`dist/index.mjs` 里 0 匹配。同目录的 `write.ts` 连 `create.ts` 都不引用。另两处死物：`pathe` 依赖从未 import、minimist 的 `-d` 标志从未被读。`.github/CONTRIBUTING.md:23` 那条文档链接指向的正是这个已死的目录。
+**a. `create-tealina/src/template-factory/` 是死代码。**（2026-09-22：本条的主语是整包，目录已归档到 `archive/create-tealina`；接替的包没有 `template-factory/`——文件清单由 `src/template-manifest.ts` 列出而不是遍历目录——`pathe` 依赖、minimist 的 `-d`、deno 分支也都没跟过来。）10 个文件，全仓 grep 只有 `.github/CONTRIBUTING.md:23` 一处散文引用，无任何 import；`dist/index.mjs` 里 0 匹配。同目录的 `write.ts` 连 `create.ts` 都不引用。另两处死物：`pathe` 依赖从未 import、minimist 的 `-d` 标志从未被读。`.github/CONTRIBUTING.md:23` 那条文档链接指向的正是这个已死的目录。
 
 **b. align 的兜底生成是坏的（本文最值得注意的一条）。** `withTypeFile.ts:20` `calcTypeFileSnapshot` 在类型文件**已存在时返回 `[]`**（永不重写），缺失时用 `codeGen.ts:24-39` 的 `genTypeCode` 生成。但两者产出的**不是同一套类型**：
 
@@ -225,17 +245,17 @@ type Snapshot = {
 | 导入 | `ResolveApiTypeForDoc` / `ResolveApiTypeForClient` | `ResolveApiType` |
 | 导出 | `ApiTypesForDoc` / `ApiTypesForClient` | `ApiTypesRecord` |
 
-而 `handler.d.ts` 里**根本没有 `ResolveApiType`**（只有 `ResolveApiTypeForDoc`/`ResolveApiTypeForClient`，见 `:62`/`:68`），且没有任何代码消费 `ApiTypesRecord`——这个标识符只出现在 `tealina-client` 的 JSDoc 示例里（`src/axios/index.ts` 8 处、`src/fetch/index.ts:28,30`），被当作「让用户从 `'server/api/v1'` 导入的类型名」，而那些示例本身就与模板实际导出的 `ApiTypesForDoc`/`ApiTypesForClient` 对不上。也就是说：**一旦类型文件缺失（用户改了 api 目录名、或删了该文件），align 会生成一个导入不存在的类型、且无人使用的坏文件**——而文件名 `withTypeFile.ts:37` 又是跟着 `<basename(apiDir)>.d.ts` 走的，改目录名必然触发这条路径。同时 `gdoc` 靠 `parseDeclarationFile` 取第一个 type 导出，生成版的名字也对不上。
+而 `handler.d.ts` 里**根本没有 `ResolveApiType`**（只有 `ResolveApiTypeForDoc`/`ResolveApiTypeForClient`，见 `:84`/`:90`），且没有任何代码消费 `ApiTypesRecord`——这个标识符只出现在 `tealina-client` 的 JSDoc 示例里（`src/axios/index.ts` 8 处、`src/fetch/index.ts:28,30`），被当作「让用户从 `'server/api/v1'` 导入的类型名」，而那些示例本身就与模板实际导出的 `ApiTypesForDoc`/`ApiTypesForClient` 对不上。也就是说：**一旦类型文件缺失（用户改了 api 目录名、或删了该文件），align 会生成一个导入不存在的类型、且无人使用的坏文件**——而文件名 `withTypeFile.ts:37` 又是跟着 `<basename(apiDir)>.d.ts` 走的，改目录名必然触发这条路径。同时 `gdoc` 靠 `parseDeclarationFile` 取第一个 type 导出，生成版的名字也对不上。
 
 **c. `packages/tealina/package.json:24` 的 `files` 里 `"bin"` 并不存在**（包根只有 `index.js` shim，靠 npm 对 bin 目标的自动收录）。
 
-**d. 其他小的**：`create-tealina/src/core.ts:369-377` 的 `getRuntime` 能返回 `'deno'`，但 `template/runtime/deno/` 不存在；`updateViteConfig`（`:318`）靠字符串手术切掉 `vite.config.ts` 的最后一行；`test/helper.ts:59` 的 `runScripts` 被注释掉，所以没有任何测试真正编译过生成的项目；`esbuild` target 写 `node18` 而 `engines` 要求 `>=20.19`。
+**d. 其他小的**（2026-09-22：同 (a)，整包）：`create-tealina/src/core.ts:369-377` 的 `getRuntime` 能返回 `'deno'`，但 `template/runtime/deno/` 不存在；`updateViteConfig`（`:318`）靠字符串手术切掉 `vite.config.ts` 的最后一行；`test/helper.ts:59` 的 `runScripts` 被注释掉，所以没有任何测试真正编译过生成的项目；`esbuild` target 写 `node18` 而 `engines` 要求 `>=20.19`。
 
 ## 11. 值得探讨的开放问题
 
-1. **契约层单一来源。** `types/{handler,alias,common}.d.ts` 如今只有 `create-tealina/template/` 一份物理副本。但集成包一旦落地，只要它自带一份模板就会立刻变成两份，而这两份必须逐字节一致——否则两个入口产出的项目会以**不同的方式**通过类型检查，这类错误在类型层面是静默的。有没有办法让契约层只有一份物理副本：共享目录、构建期同步、还是抽成独立的 `@tealina/contracts` 包？
+1. **契约层单一来源。** `types/{handler,alias,common}.d.ts` 如今只有 `create-tealina/template/` 一份物理副本。但集成包一旦落地，只要它自带一份模板就会立刻变成两份，而这两份必须逐字节一致——否则两个入口产出的项目会以**不同的方式**通过类型检查，这类错误在类型层面是静默的。有没有办法让契约层只有一份物理副本：共享目录、构建期同步、还是抽成独立的 `@tealina/contracts` 包？（2026-09-22：没有变成两份——集成入口与绿地入口是同一个包，见 §9 追记。）
 2. **align 兜底生成该修还是该删。** 选项：让 `genTypeCode` 生成和模板一致的 `ApiTypesForDoc`/`ApiTypesForClient`；或者干脆不再生成、缺文件就报错引导用户。前者保持「自动修复」，后者更诚实。
 3. **api 目录名与 `v1` 标签的耦合**，比预想的更深。已确认绑在 `v1` 上的至少有六处：`types/api-v1.d.ts` 文件名（`withTypeFile.ts:37` 由 `<basename(apiDir)>.d.ts` 推出）、`exports["./api/v1"].types`、三个 doc 路由的 `path.resolve('docs/api-v1.json')`、vdoc 配置的 `baseURL:'/api/v1'`/`jsonURL:'./v1.json'`/`name:'v1'`、`gdoc` 的输出文件名（`gdoc.ts:44-47` `${basename(apiDir)}.json`）、以及 `convertToOpenApiJson` 的 base path（`genOpenApi.ts:34` 的默认参数 `prefix = '/api/v1'`——注意它从没被任何调用点显式传过，测试里都是单参数调用，所以改这个默认值就等于改所有输出的前缀）。要不要解开、解到什么程度？
-4. **`types/common.d.ts` 的名字太通用**（`ModelId`、`FindManyArgs`、`PageResult`），接进已有项目撞名风险实在。
-5. **create-tealina 与新集成包能否共用一套模板**，以及 create-tealina 是否也该改成跑 align 而不是预置聚合文件。
-6. **死代码清理**（`template-factory/`、`pathe`、`-d`、deno 分支）要不要单开一次。
+4. **`types/common.d.ts` 的名字太通用**（`ModelId`、`FindManyArgs`、`PageResult`），接进已有项目撞名风险实在。（2026-09-22：活跃的契约层只剩 `AuthedLocals`/`AuthHeaders`/`JsonHeaders`，撞名面小了一截。）
+5. **create-tealina 与新集成包能否共用一套模板**，以及 create-tealina 是否也该改成跑 align 而不是预置聚合文件。（2026-09-22：前半已不成立——只有一条入口了。后半仍待答。）
+6. **死代码清理**（`template-factory/`、`pathe`、`-d`、deno 分支）要不要单开一次。（2026-09-22：这些都在整包里，随归档一起冻结，接替的包没有它们——这一问不必再答。）

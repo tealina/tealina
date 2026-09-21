@@ -34,14 +34,18 @@ No Framework Left Behind: Seamless E2E Types for Express, Fastify, and Koa with 
 ## Getting Started
 
 ```bash
-# The full kit: API + database (Prisma) + a React frontend wired to it
 pnpm create tealina my-app
-
-# The minimal one: just the typed server, three workspace packages lighter
-pnpm create tealina-lite my-app
 ```
 
-Both generate the same route convention, the same generated API documentation and the
-same end-to-end types. `create-tealina-lite` drops the database layer, the frontend
-scaffold and the node/bun split — see
-[its README](./packages/create-tealina-lite/README.md) for the trade-off.
+You will be asked for a project directory and a server framework. The result is a typed API
+server for Express, Fastify or Koa, where the directory layout is the route table and each
+handler's annotation is the single source of truth that the router, the API documentation
+and the frontend types are derived from. `--web` adds a minimal Vite frontend that reads
+those types rather than restating them.
+
+`--template express|fastify|koa`, `--js` and `--no-install` make a run fully
+non-interactive; the tutorial continues in
+[the scaffold's README](./packages/create-tealina/README.md).
+
+Already have a server? `pnpm create tealina init` installs the same convention into it in
+place, without touching your source.
