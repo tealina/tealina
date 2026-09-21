@@ -71,12 +71,21 @@ const GLOBAL_NAMESPACE = [
   '    TPayload extends VariantPayload = EmptyObj,',
   '    TResponse = unknown,',
   '  > = OpenHandler<TPayload, TResponse>',
+  '',
   '  type AuthedAPI<',
   '    TPayload extends VariantPayload = EmptyObj,',
   '    TResponse = unknown,',
   '  > = AuthedHandler<TPayload, TResponse>',
   '}',
 ].join('\n')
+
+/**
+ * The rule the reorganised `handler.d.ts` draws between its sections. Built here rather
+ * than typed out below so the dash count cannot drift between the shipped file and the
+ * deltas, where one dash too few is a mismatch whose diff says nothing about the cause.
+ */
+const RULE = `// ${'-'.repeat(75)}`
+const section = (title: string) => [RULE, `// ${title}`, RULE].join('\n')
 
 /**
  * Each `to` carries a `delta vs create-tealina:` comment in the shipped file saying why.
@@ -110,14 +119,112 @@ const DELTAS: Delta[] = [
       "} from 'tealina/utility-types'",
     ].join('\n'),
   },
+  // The reorder, declared as the two rotations it actually is. A reorder cannot be said in
+  // a small delta — every line outside a declared region has to stay upstream's byte for
+  // byte — so these two regions are as narrow as the move allows. Nothing in either `to` is
+  // a new line: they are the same declarations in the shipped order.
+  //
+  // `EmptyObj` rides along inside the first region, which is why the entry that used to
+  // declare its `export` keyword on its own is gone. That is forced, not a preference: any
+  // delta spanning the move contains that line, so a separate entry for it would be
+  // destroyed by whichever of the two ran second. `undoDeltas` replaces the first
+  // occurrence only, and throws when a `to` has gone missing.
   {
     file: 'common/types/handler.d.ts',
-    from: 'type EmptyObj = {}',
+    from: [
+      'interface RawPayload {',
+      '  body?: unknown',
+      '  params?: unknown',
+      '  query?: unknown',
+      '  headers?: unknown',
+      '}',
+      '',
+      'export type FullInfo = RawPayload & { response: unknown }',
+      '',
+      'type EmptyLocals = {}',
+      'type EmptyObj = {}',
+      'type ShapeOfMultiTarget = MultiTarget<Record<TargetKeys, any>>',
+      'type VariantPayload = RawPayload | ShapeOfMultiTarget',
+      '',
+      "export type HTTPMethods = 'get' | 'post' | 'patch' | 'delete'",
+    ].join('\n'),
     to: [
+      section('Shapes everything else in this file is built on'),
+      '',
+      'interface RawPayload {',
+      '  body?: unknown',
+      '  params?: unknown',
+      '  query?: unknown',
+      '  headers?: unknown',
+      '}',
+      '',
+      'type ShapeOfMultiTarget = MultiTarget<Record<TargetKeys, any>>',
+      'type VariantPayload = RawPayload | ShapeOfMultiTarget',
+      '',
+      'type EmptyLocals = {}',
       '// delta vs create-tealina: exported here. Upstream keeps it module-local and the demo',
       '// handlers import it anyway, which only compiles because TypeScript does not check',
       '// exports of a `.d.ts` module. See test/contract-drift.test.ts.',
       'export type EmptyObj = {}',
+      '',
+      'export type FullInfo = RawPayload & { response: unknown }',
+      '',
+      "export type HTTPMethods = 'get' | 'post' | 'patch' | 'delete'",
+      '',
+      section('The handler declarations'),
+    ].join('\n'),
+  },
+  {
+    file: 'common/types/handler.d.ts',
+    from: [
+      'type ExtractApiType<',
+      '  T,',
+      '  K extends TargetKeys,',
+      '> = LastElement<T> extends HandlerAlias<infer Info, any>',
+      "  ? PickTarget<Omit<Info, 'response'>, K> & {",
+      "      response: PickTarget<Info['response'], K>",
+      '    }',
+      '  : never',
+      '',
+      'export type ResolveApiTypeForDoc<',
+      '  T extends Record<string, Promise<{ default: unknown }>>,',
+      '> = {',
+      "  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'doc'>",
+      '}',
+      '',
+      'export type ResolveApiTypeForClient<',
+      '  T extends Record<string, Promise<{ default: unknown }>>,',
+      '> = {',
+      "  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'client'>",
+      '}',
+      '',
+      'export type CustomHandlerType = HandlerAlias<any, any>',
+    ].join('\n'),
+    to: [
+      'export type CustomHandlerType = HandlerAlias<any, any>',
+      '',
+      section('Projections: what the doc generator and the client read'),
+      '',
+      'type ExtractApiType<',
+      '  T,',
+      '  K extends TargetKeys,',
+      '> = LastElement<T> extends HandlerAlias<infer Info, any>',
+      "  ? PickTarget<Omit<Info, 'response'>, K> & {",
+      "      response: PickTarget<Info['response'], K>",
+      '    }',
+      '  : never',
+      '',
+      'export type ResolveApiTypeForDoc<',
+      '  T extends Record<string, Promise<{ default: unknown }>>,',
+      '> = {',
+      "  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'doc'>",
+      '}',
+      '',
+      'export type ResolveApiTypeForClient<',
+      '  T extends Record<string, Promise<{ default: unknown }>>,',
+      '> = {',
+      "  [K in keyof T]: ExtractApiType<Awaited<T[K]>['default'], 'client'>",
+      '}',
     ].join('\n'),
   },
   {
@@ -151,7 +258,13 @@ const DELTAS: Delta[] = [
   {
     file: 'common/types/handler.d.ts',
     from: MAKE_EXAMPLES,
-    to: `${MAKE_EXAMPLES}\n\n${GLOBAL_NAMESPACE}`,
+    to: [
+      MAKE_EXAMPLES,
+      '',
+      section('Global aliases'),
+      '',
+      GLOBAL_NAMESPACE,
+    ].join('\n'),
   },
   {
     file: 'server/express/types/alias.d.ts',
