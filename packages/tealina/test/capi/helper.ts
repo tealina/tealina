@@ -11,9 +11,11 @@ export const cleanDir = (root: string) => {
     if (!fs.existsSync(root)) return
     fs.rmSync(root, { recursive: true })
   })
-  afterAll(x => {
+  // vitest 4.1 moved the suite task from the 1st argument to the 2nd; the 1st is
+  // now the fixtures context, and it has to be destructured even when unused.
+  afterAll(({}, suite) => {
     if (
-      x.tasks
+      suite.tasks
         .map(v => v.result?.state)
         .filter(notNull)
         .every(v => v != 'fail')

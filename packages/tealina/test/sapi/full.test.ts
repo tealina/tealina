@@ -44,8 +44,9 @@ describe('test sapi in mock dir', function () {
     fs.mkdirSync(apiTypesDir, { recursive: true })
   })
 
-  afterAll(x => {
-    if (x.tasks.every(v => v.result?.state != 'fail')) {
+  // the 2nd argument is the suite task since vitest 4.1
+  afterAll(({}, suite) => {
+    if (suite.tasks.every(v => v.result?.state != 'fail')) {
       fs.rmSync(tempDir, { recursive: true })
     }
   })
