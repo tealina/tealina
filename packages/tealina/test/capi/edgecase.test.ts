@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { Snapshot } from '../../src/utils/effectFiles.js'
 import { cleanDir, parseCommandArgs, tempDirFactory } from './helper.js'
 

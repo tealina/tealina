@@ -72,14 +72,12 @@ export type CustomHandlerType = HandlerAlias<any, any>
 // Projections: what the doc generator and the client read
 // ---------------------------------------------------------------------------
 
-type ExtractApiType<
-  T,
-  K extends TargetKeys,
-> = LastElement<T> extends HandlerAlias<infer Info, any>
-  ? PickTarget<Omit<Info, 'response'>, K> & {
-      response: PickTarget<Info['response'], K>
-    }
-  : never
+type ExtractApiType<T, K extends TargetKeys> =
+  LastElement<T> extends HandlerAlias<infer Info, any>
+    ? PickTarget<Omit<Info, 'response'>, K> & {
+        response: PickTarget<Info['response'], K>
+      }
+    : never
 
 export type ResolveApiTypeForDoc<
   T extends Record<string, Promise<{ default: unknown }>>,
@@ -98,9 +96,10 @@ type DocTargetFirst<T> = T extends ShapeOfMultiTarget
   : T
 
 /** Takes an Handler's payload type and transforms it for example declarations. */
-export type MakeExamplesType<T> = T extends HandlerAlias<infer P, any>
-  ? RemapToExampleType<DocTargetFirst<P>>
-  : never
+export type MakeExamplesType<T> =
+  T extends HandlerAlias<infer P, any>
+    ? RemapToExampleType<DocTargetFirst<P>>
+    : never
 
 // ---------------------------------------------------------------------------
 // Global aliases

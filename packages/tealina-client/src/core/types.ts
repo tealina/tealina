@@ -96,9 +96,7 @@ export type ShapeWitness<T> = T | undefined
  * @ref {@link https://github.com/type-challenges/type-challenges/issues/9770}
  */
 export type UnionToIntersection<U> = (
-  U extends U
-    ? (arg: U) => void
-    : never
+  U extends U ? (arg: U) => void : never
 ) extends (arg: infer T) => void
   ? T
   : never

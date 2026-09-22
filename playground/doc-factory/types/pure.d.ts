@@ -28,16 +28,15 @@ export namespace Pure {
     skills?: Skills
   }
   /**
-  * Enums
-  */
+   * Enums
+   */
   // Based on
   // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-  
+
   export const Skills: {
-    Node: "Node"
-    React: "React"
-    Typescript: "Typescript"
+    Node: 'Node'
+    React: 'React'
+    Typescript: 'Typescript'
   }
   export type Skills = (typeof Skills)[keyof typeof Skills]
-  
 }

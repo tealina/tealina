@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { type2text } from '../../src/transformer/type2text'
 import type {
   ArrayType,

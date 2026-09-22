@@ -2,18 +2,18 @@
   "name": "@tealina/server",
   "version": "1.0.2",
   "description": "Includes core runtime utility functions for API files to routes.",
-  "main": "./dist/index.js",
-  "scripts": {
-    "test": "vitest --run",
-    "build": "rm -rf dist && tsup src/index.ts --dts"
-  },
+  "keywords": [
+    "file-routing",
+    "tealina"
+  ],
+  "license": "MIT",
+  "author": "Neo Yeo",
   "files": [
     "dist"
   ],
-  "keywords": [
-    "tealina",
-    "file-routing"
-  ],
-  "author": "Neo Yeo",
-  "license": "MIT"
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "vp test --run",
+    "build": "rm -rf dist && tsup src/index.ts --dts"
+  }
 }

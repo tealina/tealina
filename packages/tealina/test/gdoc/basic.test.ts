@@ -8,7 +8,7 @@ import {
   TupleType,
   UnionType,
 } from '@tealina/doc-types'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 
 describe('test genereta api documentation api/post/createUser', () => {

@@ -6,9 +6,18 @@ import {
   type DocNode,
   type Entity,
   type ObjectType,
-  type TupleEntity
+  type TupleEntity,
 } from '@tealina/doc-types'
-import { Button, Card, Segmented, Spin, Tabs, Tag, Typography, type TabsProps } from 'antd'
+import {
+  Button,
+  Card,
+  Segmented,
+  Spin,
+  Tabs,
+  Tag,
+  Typography,
+  type TabsProps,
+} from 'antd'
 import { useAtomValue } from 'jotai'
 import { Suspense, lazy } from 'react'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
@@ -188,15 +197,10 @@ function PlayloadPanel({
         case 'literal': {
           const key = Math.random().toString(16)
           if (k.value.props.length <= 0) {
-            return <ColorText type='object'>{`{ }`}</ColorText>
+            return <ColorText type="object">{`{ }`}</ColorText>
           }
           return (
-            <EntityTable
-              entity={k.value}
-              key={key}
-              id={key}
-              doc={parsedDoc}
-            />
+            <EntityTable entity={k.value} key={key} id={key} doc={parsedDoc} />
           )
         }
       }
@@ -206,11 +210,14 @@ function PlayloadPanel({
 
   const renderWithLeader = (d: DocNode) => (
     <div className="flex flex-col gap-3 pb-10">
-      <div className='flex gap-3 items-center'>
-        <Typography.Text className='text-1.8em'>
+      <div className="flex gap-3 items-center">
+        <Typography.Text className="text-1.8em">
           {type2cell(d, doc, false)}
         </Typography.Text>
-        <ExapmleBtn exampleItem={docItem.examples?.[key]} title={`${capitalize(curTab)} Examples`} />
+        <ExapmleBtn
+          exampleItem={docItem.examples?.[key]}
+          title={`${capitalize(curTab)} Examples`}
+        />
       </div>
       {renderContent(d)}
     </div>
@@ -222,15 +229,21 @@ function PlayloadPanel({
       case DocKind.ResponseEntity: {
         const statusCode = String(v.statusCode ?? 200)
         if (v.response == null) {
-          return { key: statusCode, label: statusCode, children: <p>{v.comment}</p> }
+          return {
+            key: statusCode,
+            label: statusCode,
+            children: <p>{v.comment}</p>,
+          }
         }
         return {
           key: statusCode,
           label: statusCode,
-          children: <div>
-            {v.comment && <p>{v.comment}</p>}
-            {renderWithLeader(v.response)}
-          </div>
+          children: (
+            <div>
+              {v.comment && <p>{v.comment}</p>}
+              {renderWithLeader(v.response)}
+            </div>
+          ),
         }
       }
       default: {
@@ -249,7 +262,9 @@ function PlayloadPanel({
   }
   const isUnion = targetNode.kind === DocKind.Union
   if (isUnion) {
-    const hasResponseEntity = targetNode.types.some(t => t.kind === DocKind.ResponseEntity)
+    const hasResponseEntity = targetNode.types.some(
+      t => t.kind === DocKind.ResponseEntity,
+    )
     if (!hasResponseEntity) {
       return renderWithLeader(targetNode)
     }
@@ -342,4 +357,3 @@ function PlaygroundPanel({
     </Suspense>
   )
 }
-

@@ -2,24 +2,24 @@
   "name": "@tealina/utility-types",
   "version": "1.0.0",
   "description": "A collection of useful TypeScript utility types",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json",
-    "test": "vitest --run"
-  },
   "keywords": [
     "tealina",
     "utility types"
   ],
-  "author": "Neo Yeo",
   "license": "MIT",
+  "author": "Neo Yeo",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "vp test --run"
   }
 }

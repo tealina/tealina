@@ -1,4 +1,4 @@
-import { expectTypeOf, test } from 'vitest'
+import { expectTypeOf, test } from 'vite-plus/test'
 import { Extract2xxResponse, WithExtra, WithStatusCode } from '../index.js'
 
 test('test types', () => {

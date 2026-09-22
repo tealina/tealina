@@ -1,4 +1,10 @@
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import path from 'node:path'
 
 const getAllPublickPkgs = () => {
@@ -16,7 +22,8 @@ const getAllPublickPkgs = () => {
   return pkgs.filter(v => v != null)
 }
 
-const stripOverrides = yaml => yaml.replace(/\noverrides:\n(?:[ \t].*\n?)*/g, '')
+const stripOverrides = yaml =>
+  yaml.replace(/\noverrides:\n(?:[ \t].*\n?)*/g, '')
 
 /**
  * inject pnpm overrides to the temp create project.

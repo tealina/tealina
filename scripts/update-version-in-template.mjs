@@ -13,9 +13,10 @@ const updateTeamplateDependance = updates =>
 
 const readJsonFile = dest =>
   readFile(dest, { encoding: 'utf-8' }).then(v => JSON.parse(v.toString()))
-const writeJson = (dest, data) => writeFileSync(dest, JSON.stringify(data, null, 2), {
-  encoding: 'utf-8',
-})
+const writeJson = (dest, data) =>
+  writeFileSync(dest, JSON.stringify(data, null, 2), {
+    encoding: 'utf-8',
+  })
 const deepValueEqual = (a, b) => Object.entries(b).every(([k, v]) => a[k] === v)
 
 const formatLog = (dest, result) => {
@@ -53,7 +54,7 @@ const latestTealinaServer = async () => {
   return {
     key: 'devDependencies',
     value: {
-      "@tealina/server": `^${next.version}`,
+      '@tealina/server': `^${next.version}`,
     },
   }
 }
@@ -70,9 +71,7 @@ const latestDocUI = async () => {
 
 // Every scaffold that ships a versionMaps.json must be listed here, otherwise its
 // template versions freeze at whatever was last committed by hand.
-const kVersionMapPaths = [
-  'packages/create-tealina/template/versionMaps.json',
-]
+const kVersionMapPaths = ['packages/create-tealina/template/versionMaps.json']
 
 const updateVersionMap = async (kVersionMapPath, subPkgMaps) => {
   const versionMaps = await readJsonFile(kVersionMapPath)

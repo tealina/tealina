@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, test } from 'vite-plus/test'
 import { loadAPIs, transformToRouteOptions } from '../src/index.js'
 
 test('load and transform APIs', async () => {

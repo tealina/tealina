@@ -22,16 +22,14 @@ interface RawPayload {
   headers?: unknown
 }
 
-type ExtractApiType<
-  T,
-  K extends TargetKeys,
-> = LastElement<T> extends OpenHandler<
-  infer Payload,
-  infer Response,
-  infer _Locals
->
-  ? Simplify<PickTarget<Payload, K> & { response: PickTarget<Response, K> }>
-  : never
+type ExtractApiType<T, K extends TargetKeys> =
+  LastElement<T> extends OpenHandler<
+    infer Payload,
+    infer Response,
+    infer _Locals
+  >
+    ? Simplify<PickTarget<Payload, K> & { response: PickTarget<Response, K> }>
+    : never
 
 interface HandlerAlias<
   TPayload,
@@ -77,11 +75,7 @@ export type CustomHandlerType =
   | AuthedHandler<any, any, any, any>
   | OpenHandler<any, any, any, any>
 
-export type MakeExamplesType<T> = T extends OpenHandler<
-  infer P,
-  infer R,
-  any,
-  any
->
-  ? RemapToExampleType<P & { response: R }>
-  : never
+export type MakeExamplesType<T> =
+  T extends OpenHandler<infer P, infer R, any, any>
+    ? RemapToExampleType<P & { response: R }>
+    : never

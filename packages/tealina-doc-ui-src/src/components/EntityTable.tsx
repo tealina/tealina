@@ -49,17 +49,21 @@ export function EntityTable({
         const { jsDoc = {} } = record
         return (
           <div>
-            <div className='flex flex-wrap gap-2 max-w-40vw'>
+            <div className="flex flex-wrap gap-2 max-w-40vw">
               {jsDoc.deprecated ? (
                 <>
                   <Tag>deprecated</Tag>
                   <br />
                 </>
               ) : null}
-              {jsDoc.format ? <LabelTag label='fmt' text={jsDoc.format} /> : null}
-              {jsDoc.example ? <LabelTag label='eg' text={String(jsDoc.example)} /> : null}
+              {jsDoc.format ? (
+                <LabelTag label="fmt" text={jsDoc.format} />
+              ) : null}
+              {jsDoc.example ? (
+                <LabelTag label="eg" text={String(jsDoc.example)} />
+              ) : null}
             </div>
-            <div className='-my-4'>
+            <div className="-my-4">
               <MarkdownView>{comment}</MarkdownView>
             </div>
           </div>
@@ -78,8 +82,11 @@ export function EntityTable({
     <Card bodyStyle={{ padding: 10 }}>
       <div className="text-lg">
         <div>
-
-          {entity.comment && <div className='-my-4'><MarkdownView>{entity.comment}</MarkdownView></div>}
+          {entity.comment && (
+            <div className="-my-4">
+              <MarkdownView>{entity.comment}</MarkdownView>
+            </div>
+          )}
           <Anchor id={id} style={{ color: TypeColors.any }}>
             {entity.name}
           </Anchor>
@@ -96,11 +103,11 @@ export function EntityTable({
   )
 }
 
-function LabelTag({ label, text }: { label: string, text: ReactNode }) {
+function LabelTag({ label, text }: { label: string; text: ReactNode }) {
   return (
-    <div className='flex gap-1 outline-blue/20 outline-solid w-max rounded dark:text-white/65 text-black/65'>
-      <div className='pl-1'>{label}:</div>
-      <div className='px-1'>{text}</div>
+    <div className="flex gap-1 outline-blue/20 outline-solid w-max rounded dark:text-white/65 text-black/65">
+      <div className="pl-1">{label}:</div>
+      <div className="px-1">{text}</div>
     </div>
   )
 }

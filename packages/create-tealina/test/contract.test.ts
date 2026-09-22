@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import jsTemplate from '../template/common/js/tealina.config.js'
 import { PROBE_JS, PROBE_TS, WIDENED_CONVENTION } from './probe.js'
 

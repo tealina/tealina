@@ -15,7 +15,7 @@ import type {
 } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { LightColors } from '../../src/atoms/themeAtom'
 import { type2cell } from '../../src/transformer/type2cell'
 

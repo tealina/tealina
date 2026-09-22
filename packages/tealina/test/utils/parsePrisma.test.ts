@@ -1,5 +1,5 @@
 import { pick } from 'fp-lite'
-import { expect, test } from 'vitest'
+import { expect, test } from 'vite-plus/test'
 import { extraModelNames, parseSchame } from '../../src/utils/parsePrisma'
 
 const filePath = 'test/utils/mock/mock.prisma'

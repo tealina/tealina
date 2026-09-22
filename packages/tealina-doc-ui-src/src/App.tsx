@@ -6,7 +6,6 @@ import { themeAtom } from './atoms/themeAtom'
 import { HomePage } from './Home'
 import { LandingPage } from './Landing'
 
-
 function MyApp() {
   const themeMode = useAtomValue(themeAtom)
   const authCtx = useAtomValue(authAtom)
@@ -25,7 +24,11 @@ function MyApp() {
         }}
       >
         <App>
-          {authCtx.isNeedPwd && !authCtx.isValidated ? <LandingPage /> : <HomePage />}
+          {authCtx.isNeedPwd && !authCtx.isValidated ? (
+            <LandingPage />
+          ) : (
+            <HomePage />
+          )}
         </App>
       </ConfigProvider>
     </ErrorBoundary>

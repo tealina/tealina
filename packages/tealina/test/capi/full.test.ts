@@ -2,7 +2,7 @@ import { map, pipe, unique } from 'fp-lite'
 import fs from 'node:fs'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import type { Snapshot } from '../../src/utils/effectFiles.js'
 import { ensureWrite } from '../../src/utils/tool.js'
 import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
@@ -218,44 +218,38 @@ function makeFullResult(
     seeds,
     map(v => v.method),
     unique,
-    map(
-      (method): Snapshot => ({
-        group: 'api',
-        action: 'create',
-        filePath: path.join(apiDir, method, 'index.ts'),
-      }),
-    ),
+    map((method): Snapshot => ({
+      group: 'api',
+      action: 'create',
+      filePath: path.join(apiDir, method, 'index.ts'),
+    })),
   )
   const preNames = [route].flat()
   const handlerList = preNames.map(preName =>
-    seeds.map(
-      (v): Snapshot => ({
-        group: 'api',
-        action: 'create',
-        filePath: path.join(
-          apiDir,
-          v.method,
-          v.name.length ? `${preName}/${v.name}.ts` : `${preName}.ts`,
-        ),
-      }),
-    ),
+    seeds.map((v): Snapshot => ({
+      group: 'api',
+      action: 'create',
+      filePath: path.join(
+        apiDir,
+        v.method,
+        v.name.length ? `${preName}/${v.name}.ts` : `${preName}.ts`,
+      ),
+    })),
   )
   const testList = withTest
     ? preNames.map(preName =>
-        seeds.map(
-          (v): Snapshot => ({
-            group: 'test',
-            action: 'create',
-            filePath: path.join(
-              testDir,
-              path.basename(apiDir),
-              v.method,
-              v.name.length
-                ? `${preName}/${v.name}.test.ts`
-                : `${preName}.test.ts`,
-            ),
-          }),
-        ),
+        seeds.map((v): Snapshot => ({
+          group: 'test',
+          action: 'create',
+          filePath: path.join(
+            testDir,
+            path.basename(apiDir),
+            v.method,
+            v.name.length
+              ? `${preName}/${v.name}.test.ts`
+              : `${preName}.test.ts`,
+          ),
+        })),
       )
     : []
   const typeFile: Snapshot = {

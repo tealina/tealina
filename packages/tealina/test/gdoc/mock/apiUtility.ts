@@ -33,19 +33,21 @@ interface RawPayload {
   query?: Record<string, unknown>
 }
 
-type LastElement<T> = T extends ReadonlyArray<any>
-  ? T extends readonly [...any, infer U]
-    ? U
+type LastElement<T> =
+  T extends ReadonlyArray<any>
+    ? T extends readonly [...any, infer U]
+      ? U
+      : T
     : T
-  : T
 
-type ExtractRestfulAPI<T> = LastElement<T> extends ApiHandler<
-  infer Payload,
-  infer Response,
-  infer Headers
->
-  ? Simplify<Payload & { response: Response; headers: Headers }>
-  : never
+type ExtractRestfulAPI<T> =
+  LastElement<T> extends ApiHandler<
+    infer Payload,
+    infer Response,
+    infer Headers
+  >
+    ? Simplify<Payload & { response: Response; headers: Headers }>
+    : never
 
 type b = Simplify<{ b: number } & { c: string }>
 
@@ -75,13 +77,9 @@ export type ResolveApiType<T extends Record<string, Promise<any>>> = {
   [K in keyof T]: ExtractRestfulAPI<Awaited<T[K]>['default']>
 }
 
-export type MakeExampleType<T> = T extends ApiHandler<
-  infer P,
-  infer R,
-  any,
-  any
->
-  ? RemapToExampleType<P & { response: R }>
-  : never
+export type MakeExampleType<T> =
+  T extends ApiHandler<infer P, infer R, any, any>
+    ? RemapToExampleType<P & { response: R }>
+    : never
 
 type A = MakeExampleType<FuncAPI<{ query: { page: number } }>>

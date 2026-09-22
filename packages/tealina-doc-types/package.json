@@ -2,26 +2,26 @@
   "name": "@tealina/doc-types",
   "version": "1.1.0-beta.0",
   "description": "API document type designed for transformation tools",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "keywords": [
+    "tealina"
+  ],
+  "license": "MIT",
+  "author": "Neo Yeo",
   "files": [
     "dist"
   ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "rm -rf dist && tsc",
     "test": "pnpm tsc ./index.ts --noEmit"
   },
-  "keywords": [
-    "tealina"
-  ],
-  "author": "Neo Yeo",
-  "license": "MIT",
   "devDependencies": {
     "@tealina/utility-types": "workspace:*"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
   }
 }

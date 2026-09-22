@@ -1,13 +1,15 @@
 {
   "name": "create-tealina",
   "version": "2.2.6",
-  "type": "module",
   "description": "tealina scaffold: typed routes, api docs, end-to-end types",
-  "scripts": {
-    "build": "unbuild",
-    "test": "vitest --dir test --testTimeout=0 --run",
-    "cproj": "tsx src/index.ts"
-  },
+  "keywords": [
+    "documentation generation",
+    "end-to-end types",
+    "scaffold",
+    "self-documented"
+  ],
+  "license": "MIT",
+  "author": "Neo Yeo",
   "bin": {
     "create-tealina": "index.js"
   },
@@ -16,16 +18,11 @@
     "template",
     "dist"
   ],
-  "keywords": [
-    "scaffold",
-    "end-to-end types",
-    "self-documented",
-    "documentation generation"
-  ],
-  "author": "Neo Yeo",
-  "license": "MIT",
-  "engines": {
-    "node": ">=20.19"
+  "type": "module",
+  "scripts": {
+    "build": "unbuild",
+    "test": "vp test --dir test --testTimeout=0 --run",
+    "cproj": "tsx src/index.ts"
   },
   "dependencies": {
     "chalk": "^5.2.0",
@@ -51,5 +48,8 @@
     "tealina": "workspace:*",
     "tsx": "3.12.7",
     "typescript": "~5.8.3"
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }

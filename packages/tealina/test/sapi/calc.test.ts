@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, test } from 'vite-plus/test'
 import { calcSnapshots } from '../../src/commands/sapi'
 
 const restCtxMock = {

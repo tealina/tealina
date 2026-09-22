@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { setTimeout } from 'timers/promises'
 import UnoCSS from 'unocss/vite'
-import { defineConfig } from 'vitest/config'
+import { defineConfig, lazyPlugins } from 'vite-plus'
 import axios from 'axios'
 import path from 'path/posix'
 
@@ -22,7 +22,7 @@ const getRemoteConfig = async () => {
 
 // https://vitejs.dev/config/
 export default defineConfig(env => ({
-  plugins: [
+  plugins: lazyPlugins(async () => [
     react(),
     UnoCSS(),
     {
@@ -49,7 +49,7 @@ export default defineConfig(env => ({
         },
       },
     },
-  ],
+  ]),
   // base: fv(env.command === 'build' ? VDOC_BASENAME : '/doc'),
   base: './',
   test: {

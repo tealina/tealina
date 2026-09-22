@@ -2,7 +2,7 @@ import { type ChildProcess, spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { afterAll, describe, expect, it, onTestFailed } from 'vitest'
+import { afterAll, describe, expect, it, onTestFailed } from 'vite-plus/test'
 
 /**
  * T3 — the acceptance test: scaffold a real project, install it, compile it, generate

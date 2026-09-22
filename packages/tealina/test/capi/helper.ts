@@ -1,7 +1,7 @@
 import { notNull } from 'fp-lite'
 import fs from 'node:fs'
 import path from 'node:path'
-import { afterAll, beforeAll } from 'vitest'
+import { afterAll, beforeAll } from 'vite-plus/test'
 import { cli } from '../../src/commands/index.js'
 import { DirInfo } from '../../src/utils/withTypeFile.js'
 import { ensureDirSync } from '../../src/utils/fs-extra.js'

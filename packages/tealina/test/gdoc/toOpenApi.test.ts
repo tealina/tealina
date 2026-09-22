@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { expect, test } from 'vitest'
+import { expect, test } from 'vite-plus/test'
 import { convertToOpenApiJson } from '../../src/utils/genOpenApi'
 
 test('Convert to Open API', async () => {

@@ -3,7 +3,7 @@ import { useAtomValue } from 'jotai'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { DocKind } from '@tealina/doc-types'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, describe, expect, test } from 'vite-plus/test'
 import { curShowApiAtom } from '../src/atoms/jsonSourceAtom'
 import { ApiMenus } from '../src/components/menus/ApiMenus'
 import { JSON_URL } from './mockConfig'
@@ -29,7 +29,7 @@ const defaultApiDoc = {
 }
 
 const server = setupServer(
-  http.get(JSON_URL, (_ctx) => {
+  http.get(JSON_URL, _ctx => {
     return HttpResponse.json(defaultApiDoc)
   }),
 )
@@ -46,7 +46,11 @@ describe('test use menus hook', () => {
     const ContentSection = () => {
       const cur = useAtomValue(curShowApiAtom)
       curApi = cur
-      return <div>{cur?.method}, {cur?.path}</div>
+      return (
+        <div>
+          {cur?.method}, {cur?.path}
+        </div>
+      )
     }
     const result = render(
       <div>

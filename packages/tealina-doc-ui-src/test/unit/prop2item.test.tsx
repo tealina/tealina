@@ -2,7 +2,7 @@ import { DocKind } from '@tealina/doc-types'
 import { fireEvent, render } from '@testing-library/react'
 import '@vitest/web-worker'
 import { Button, Form } from 'antd'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { prop2item } from '../../src/transformer/prop2item'
 
 const EmptyDeps = {
