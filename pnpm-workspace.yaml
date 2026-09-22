@@ -2,3 +2,29 @@ packages:
   - 'packages/*'
   - '!temp/**'
   - '!temp-*'
+
+# Moved out of .npmrc and package.json, which pnpm >= 11 no longer reads for
+# these settings. The workspace file is their only home now.
+autoInstallPeers: false
+saveWorkspaceProtocol: rolling
+
+# Keep the pre-12 behaviour: a version published minutes ago still resolves.
+# The e2e fixtures install freshly published packages, and the release flow
+# reinstalls right after changesets publishes.
+minimumReleaseAge: 0
+
+overrides:
+  tealina: workspace:*
+  create-tealina: workspace:*
+  '@tealina/doc-types': workspace:*
+  '@tealina/doc-ui': workspace:*
+  '@tealina/server': workspace:*
+  '@tealina/client': workspace:*
+# Dependency build scripts are not run by default since pnpm 10. These are the
+# ones this repo relies on; every other dependency's scripts stay off.
+# esbuild (pulled in by tsup, tsx and vitest) fetches its platform binary here,
+# lefthook installs the hook runner its config drives, msw prints its notice.
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  msw: true

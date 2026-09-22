@@ -211,7 +211,7 @@ type Snapshot = {
 - **版本注入**：`scripts/update-version-in-template.mjs` 把各包的**真实版本号**写进模板的 `versionMaps.json`，目前只有一处（`kVersionMapPaths`，`:73-75`）：`packages/create-tealina/template/versionMaps.json`。注意 `workflow()` 里对 versionMaps 的每个 key 都要求 `packages/<name>` 存在，否则 `throw sub pkg not found`（`:85`）；一旦新增模板副本，这里必须同步加路径，否则新模板里的版本号会一直停在上次手改的值。
 - **同一个脚本里还有一条注入是断的**：模板的 `template/server/*/package.json` 把 `devDependencies` 直接写死（`tealina` 还停在 `^2.2.2`），唯一会去改它们的 `updateTeamplateDependance`（`TEMP_LIST`，`:5-9`）唯一的调用点在 `:110-113`，是注释掉的。于是 `versionMaps.json` 里的依赖每次发布都跟着升，模板自身的 devDependencies 不会——`^` 范围目前还兜得住，但那是碰巧，不是被注入的。
 - **发布**：changesets。CI 递归 `pnpm build` + `pnpm test`；publish workflow 在 CI 成功后跑 `pnpm release`。
-- `scripts/inject-pnpm-overides.mjs` 把 monorepo 里的公共包以 `file:` 协议注入临时脚手项目的 overrides（调试 create-tealina 用），它**跳过 `create` 开头的目录**（`:10`）。
+- `scripts/inject-pnpm-overrides.mjs` 把 monorepo 里的公共包以 `file:` 协议注入临时脚手项目的 overrides（调试 create-tealina 用），它**跳过 `create` 开头的目录**（`:10`）。写的是该工程 `pnpm-workspace.yaml` 的 `overrides:` —— pnpm 11 起不再读 `package.json` 的 `pnpm` 字段，写在那里会看着像生效了，其实什么都没改。
 
 ## 9. 脚手架路径
 

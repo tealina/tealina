@@ -29,17 +29,7 @@
   "dependencies": {
     "@changesets/cli": "^2.26.2",
     "fast-glob": "^3.3.1",
-    "tealina-monorepo": "1.0.0"
+    "tealina-monorepo": "link:."
   },
-  "pnpm": {
-    "overrides": {
-      "tealina": "workspace:*",
-      "create-tealina": "workspace:*",
-      "@tealina/doc-types": "workspace:*",
-      "@tealina/doc-ui": "workspace:*",
-      "@tealina/server": "workspace:*",
-      "@tealina/client": "workspace:*"
-    }
-  },
-  "packageManager": "pnpm@8.15.9+sha256.daa27a0b541bc635323ff96c2ded995467ff9fe6d69ff67021558aa9ad9dcc36"
+  "packageManager": "pnpm@12.5.1"
 }

@@ -4,7 +4,9 @@ Hi! We are really excited that you are interested in contributing to Tealina. Be
 
 ## Repo Setup
 
-The Tealina repo is a monorepo using pnpm workspaces. The package manager used to install and link dependencies must be [pnpm](https://pnpm.io/).
+The Tealina repo is a monorepo using pnpm workspaces. The package manager used to install and link dependencies must be [pnpm](https://pnpm.io/) **12** — the root `packageManager` field pins `pnpm@12.5.1`, and the committed lockfile is `lockfileVersion: '9.0'`, which pnpm 8 cannot read.
+
+Most settings live in `pnpm-workspace.yaml` rather than `.npmrc`: since pnpm 11 the `pnpm` field of `package.json` is no longer read, and `.npmrc` holds auth and registry only.
 
 To develop and test:
 

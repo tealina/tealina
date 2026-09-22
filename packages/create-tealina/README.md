@@ -42,8 +42,9 @@ Starting from a server you already have, rather than a new one?
 
 ### Requirements
 
-Node ≥ 20.19, and pnpm if you want the scaffold to install for you. Without pnpm it
-skips the install and tells you what to run.
+Node ≥ 20.19, and pnpm ≥ 11 if you want the scaffold to install for you — the
+generated `pnpm-workspace.yaml` uses `allowBuilds`, which older pnpm ignores.
+Without pnpm the scaffold skips the install and tells you what to run.
 
 ## 📦 What You Get
 
