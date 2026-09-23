@@ -10,6 +10,7 @@
   ],
   "license": "MIT",
   "author": "Neo Yeo",
+  "type": "module",
   "files": [
     "dist"
   ],
