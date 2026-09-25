@@ -40,7 +40,7 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 **`@tealina/server` 只有两个导出**（`src/index.ts:1-2`），这是它最值得注意的地方——所有复杂度都在类型层，运行时极薄：
 
 - `loadAPIs(apisV1)`（`resolveBatchExport.ts:42-48`）吃生成的 `index.ts`（两层懒加载 `import()`），`loadEachMethod`（`:26-37`）逐层 await 并取 `.default`，产出 `Record<method, Record<url, handlerFn>>`。类型侧由 `Obj2Map`/`Kind2Map`（`:1-7`）剥掉两层 `Awaited<...>['default']`，导出为 `ResolvedAPIs<HandlerType>`（`:11-14`）。
-- `transformToRouteOptions`（`transformToRouteOptions.ts:41-49`）拍平成 `{method, url, handler}[]`（`BasiRouteOption<T>`，`:32-36`）。**非显然的逻辑是排序**：`sortPath`（`:25-30`）+ `orderBySlashCount`（`:18-22`）把路径分成含 `:` 与不含 `:` 两组，各自按斜杠数**降序**排，静态路径全部先于参数化路径注册——防止 `/:id` 抢先匹配掉同级的静态路由。这是 Express 系路由的经典陷阱，在这里被统一处理掉了。
+- `transformToRouteOptions`（`transformToRouteOptions.ts:41-49`）拍平成 `{method, url, handler}[]`（`BasicRouteOption<T>`，`:32-36`）。**非显然的逻辑是排序**：`sortPath`（`:25-30`）+ `orderBySlashCount`（`:18-22`）把路径分成含 `:` 与不含 `:` 两组，各自按斜杠数**降序**排，静态路径全部先于参数化路径注册——防止 `/:id` 抢先匹配掉同级的静态路由。这是 Express 系路由的经典陷阱，在这里被统一处理掉了。
 
 注意 `EmptyObj`、`HTTPMethods`、`CustomHandlerType`、`Simplify` **都不在 `@tealina/server` 里**——它们是生成项目里 `types/handler.d.ts` 的内容，或来自 `@tealina/utility-types`。
 
@@ -182,7 +182,7 @@ cac 解析 argv
   → pickOption4Xxx(config)                   // 各命令自己挑它读得懂的字段
   → 具体实现
 ```
-`pickOption4align`（`sapi.ts:173`）、`pickOption4gdoc`（`gdoc.ts:17`）、`pickOption4gtype`（`gtype.ts:432`）都是同一个模式：用 `pickFn` 从庞大的 `FullOptions` 里挑出本命令需要的子集。`FullOptions` 的定义在 `capi.ts:58`，是 `RawOptions` + `suffix` + `TealinaConifg` 的交叉类型。
+`pickOption4align`（`sapi.ts:173`）、`pickOption4gdoc`（`gdoc.ts:17`）、`pickOption4gtype`（`gtype.ts:432`）都是同一个模式：用 `pickFn` 从庞大的 `FullOptions` 里挑出本命令需要的子集。`FullOptions` 的定义在 `capi.ts:58`，是 `RawOptions` + `suffix` + `TealinaConfig` 的交叉类型。
 
 `gdoc` 的 `gtype.input` 有个值得注意的兜底：`index.ts:42-51` 先看 `./prisma.config.ts` 里有没有 `schema` 字段，没有才退回 `./prisma/schema.prisma`。
 

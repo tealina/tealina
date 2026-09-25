@@ -29,7 +29,7 @@ const sortPath = (xs: string[]) => {
   )
 }
 
-interface BasiRouteOption<T> {
+interface BasicRouteOption<T> {
   method: string
   url: string
   handler: T
@@ -40,7 +40,7 @@ interface BasiRouteOption<T> {
  */
 const transformToRouteOptions = <T>(
   oneMethodRecords: ResolvedAPIs<T>,
-): BasiRouteOption<T>[] =>
+): BasicRouteOption<T>[] =>
   Object.entries(oneMethodRecords).flatMap(([method, sameMethodApis]) =>
     sortPath(Object.keys(sameMethodApis)).map(url => {
       const handler = sameMethodApis[url] as T

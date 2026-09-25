@@ -19,7 +19,7 @@ import type { GtypeConfig } from '..'
 import type {
   BlockAST,
   MatchForExcludeProp,
-  MatchForOptionalChcek as MatchForOptionalCheck,
+  MatchForOptionalCheck,
   MatchForTypeTransform,
   MatheLocate,
   MutationKind,
@@ -190,6 +190,25 @@ const findBlockSpecificExclude = (
   return matches.find(byMatch(block, kind))?.predicate
 }
 
+let warnedTransofrmType = false
+
+/**
+ * `transofrmType` is the old spelling of `transformType`, kept for configuration files
+ * written before the rename. Warned about once — the callers run per block and per kind.
+ */
+const pickTypeTransforms = (overwrite: GtypeConfig['overwrite']) => {
+  if (overwrite?.transofrmType != null && !warnedTransofrmType) {
+    warnedTransofrmType = true
+    consola.warn(
+      [
+        'gtype.overwrite.transofrmType is deprecated, use transformType instead,',
+        'eg: overwrite: { transformType: [...] }',
+      ].join('\n'),
+    )
+  }
+  return overwrite?.transformType ?? overwrite?.transofrmType
+}
+
 const toFilterFn =
   (predicates: ((x: PropAST) => boolean)[]) => (prop: PropAST) =>
     !predicates.some(fn => fn(prop))
@@ -208,7 +227,7 @@ const makeTsInterface = ({ overwrite }: GtypeConfig) =>
     transformType: block => prop => {
       const fn = getFirstMatch(
         [
-          findBlockSpecificTransform(block, '', overwrite?.transofrmType),
+          findBlockSpecificTransform(block, '', pickTypeTransforms(overwrite)),
           ...TypeTransformStrategies,
         ].filter(notNull),
       )
@@ -230,7 +249,7 @@ const getActualTransformer = (
 ): ((prop: PropAST) => string) => {
   const fn = getFirstMatch(
     [
-      findBlockSpecificTransform(block, kind, overwrite?.transofrmType),
+      findBlockSpecificTransform(block, kind, pickTypeTransforms(overwrite)),
       typeRemap ? (prop: PropAST) => typeRemap(prop.type) : null,
       makeCompositeTypeBy('CreateInput'), //always create input for compositeType
       ...TypeTransformStrategies,

@@ -1,6 +1,6 @@
-import type { TealinaConifg } from '../../../src'
+import type { TealinaConfig } from '../../../src'
 
-const defineConfig = (x: TealinaConifg) => x
+const defineConfig = (x: TealinaConfig) => x
 export default defineConfig({
   template: {
     handlers: [],

@@ -3,7 +3,7 @@ import {
   Seeds,
   getApiFilePath,
   getTestFilePath,
-  getTestHeplerPath,
+  getTestHelperPath,
   parseByAlias,
   parseByRoute,
 } from '../../src/commands/capi.js'
@@ -26,7 +26,7 @@ describe('test dapi calculation part', function () {
   }
   const restCtx = {
     testHelperInfo: {
-      filePath: getTestHeplerPath(dirInfo),
+      filePath: getTestHelperPath(dirInfo),
       isExists: false,
     },
     testTemplate: {

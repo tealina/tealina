@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url'
 import { extname, join, normalize } from 'pathe'
 import ts from 'typescript'
 import type { RawOptions } from '../commands'
-import type { TealinaConifg, TemplateContext } from '../index'
+import type { TealinaConfig, TemplateContext } from '../index'
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1)
@@ -65,7 +65,7 @@ export const readIndexFile = (indexFilePath: string): Promise<string[]> =>
   )
 
 export const mergeInlineOptions = (
-  config: TealinaConifg,
+  config: TealinaConfig,
   inlineOption: InlineOptions,
 ) => {
   return {

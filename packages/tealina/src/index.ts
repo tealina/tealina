@@ -49,9 +49,12 @@ export interface MatheLocate {
   blockName: string
 }
 
-export interface MatchForOptionalChcek extends MatheLocate {
+export interface MatchForOptionalCheck extends MatheLocate {
   predicate: (prop: PropAST) => boolean
 }
+
+/** @deprecated use MatchForOptionalCheck */
+export type MatchForOptionalChcek = MatchForOptionalCheck
 
 export interface MatchForTypeTransform extends MatheLocate {
   transform: (prop: PropAST) => string
@@ -62,8 +65,10 @@ export interface MatchForExcludeProp extends MatheLocate {
 }
 
 export interface Overwrite {
-  isOptional?: MatchForOptionalChcek[]
+  isOptional?: MatchForOptionalCheck[]
+  /** @deprecated use transformType */
   transofrmType?: MatchForTypeTransform[]
+  transformType?: MatchForTypeTransform[]
   excludeProps?: MatchForExcludeProp[]
 }
 
@@ -163,7 +168,7 @@ export type TemplateConfig = {
   }
 }
 
-export interface TealinaConifg {
+export interface TealinaConfig {
   template?: TemplateConfig
   typesDir: string
   /**
@@ -188,7 +193,10 @@ export interface TealinaConifg {
   sourceExt?: string
 }
 
-export const defineConfig = (config: TealinaConifg) => config
+/** @deprecated use TealinaConfig */
+export type TealinaConifg = TealinaConfig
+
+export const defineConfig = (config: TealinaConfig) => config
 
 export const defineApiTemplates = (config: ApiTemplateType[]) => config
 

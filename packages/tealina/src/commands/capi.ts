@@ -18,7 +18,7 @@ import type { RawOptions } from '.'
 import type {
   ApiTemplateType,
   GenTestSuiteFnType,
-  TealinaConifg,
+  TealinaConfig,
   TemplateConfig,
 } from '../index'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
@@ -59,7 +59,7 @@ type FullOptions = Omit<RawOptions, 'route' | 'suffix'> & {
   route: string
   suffix: string
   sourceExt: string
-} & TealinaConifg
+} & TealinaConfig
 
 interface FullContext {
   seeds: FullSeeds[]
@@ -321,7 +321,7 @@ const seeds2kindScope = flow(
   })), //only care about kind and pathArrList
 )
 
-const getTestHeplerPath = (opt: DirInfo) =>
+const getTestHelperPath = (opt: DirInfo) =>
   join(opt.testDir, basename(opt.apiDir), 'helper.ts')
 
 const getTestFilePath = (
@@ -378,7 +378,7 @@ const checkTestHelper = async (
   opt: FullOptions,
 ): Promise<FullContext['testHelperInfo']> => {
   if (opt.testDir == null) return { isExists: true, filePath: '' }
-  const filePath = getTestHeplerPath(opt as DirInfo)
+  const filePath = getTestHelperPath(opt as DirInfo)
   const isExists = opt.withTest ? await pathExists(filePath) : false
   return { isExists, filePath }
 }
@@ -425,7 +425,7 @@ export {
   getApiFilePath,
   getSeeds,
   getTestFilePath,
-  getTestHeplerPath,
+  getTestHelperPath,
   parseByAlias,
   parseByRoute,
   prepareKindArgs,

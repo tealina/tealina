@@ -65,10 +65,25 @@
 | `TealinaConifg` | `packages/tealina/src/index.ts:166`，`defineConfig` 的签名用它 | ❌ 公开 API |
 | `MatchForOptionalChcek` | 同上 `:52`，出现在公开的 `gtype.overwrite` 配置里 | ❌ 公开 API |
 | `transofrmType` | 同上 `:66`，同上 | ❌ 公开 API |
-| `BasiRouteOption` | `tealina-server/src/transformToRouteOptions.ts:32` | ✅ **未 export**，模块内部类型 |
-| `getTestHeplerPath` | `tealina/src/commands/capi.ts:317` | ✅ 内部函数（`tealina` 发布的 `.d.ts` 只以 `src/index.ts` 为根，深路径根本没有声明文件） |
+| `BasiRouteOption` | `packages/tealina-server/src/transformToRouteOptions.ts:32` | ✅ **未 export**，模块内部类型 |
+| `getTestHeplerPath` | `packages/tealina/src/commands/capi.ts:324` | ✅ 内部函数（`tealina` 发布的 `.d.ts` 只以 `src/index.ts` 为根，深路径根本没有声明文件） |
 
 判据不是「它是不是拼错了」，而是**它有没有出现在用户会写的那份配置/类型里**。
+
+**2026-09-26 追记：上面三行 ❌ 已经修好了，而且是兼容修法。**「不能直接改名」被当成了
+「不能修」，这一步跳得太快——公开 API 有两种东西，改法不同：
+
+- **类型名**（`TealinaConifg`、`MatchForOptionalChcek`）是结构性的，所以新名用原声明
+  承接，旧名降为带 `@deprecated` 的 type 别名。外部配置一行不用改，新写的人看到的是
+  正确拼写。
+- **属性键**（`transofrmType`）是真会被用户写进 `tealina.config.ts` 的，所以两个键都读：
+  新增 `transformType` 并优先，`transofrmType` 仍然生效但会 `consola.warn` 一次
+  （`commands/gtype.ts` 的 `pickTypeTransforms`）。
+- 两个 ✅ 的直接改名，没有留别名：`BasiRouteOption` → `BasicRouteOption`，
+  `getTestHeplerPath` → `getTestHelperPath`（深路径既不可达也没有声明文件）。
+
+所以真正要守的是**那条判据的用法**：判据决定「用哪种修法」，不决定「改不改」。
+`docs/architecture.md` 里的两个旧名也一并换掉了。
 
 ---
 

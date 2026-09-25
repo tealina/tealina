@@ -3,11 +3,11 @@
  * TypeScript config a contextual type. `@type` does the same job here, and doing it this
  * way leaves the config with no runtime import at all.
  *
- * @typedef {import('tealina').TealinaConifg} TealinaConifg
+ * @typedef {import('tealina').TealinaConfig} TealinaConfig
  * @typedef {import('tealina').TemplateContext} TemplateContext
  */
 
-/** @type {TealinaConifg} */
+/** @type {TealinaConfig} */
 export default {
   typesDir: 'types',
   // The one option that makes this a JavaScript project: `align` writes `index.js` and
