@@ -40,3 +40,58 @@ const requester = async (url: string, config: RequestInit) => {
  * keep in step. Change a handler's response and this call site stops compiling.
  */
 export const req = createFetchClient<ApiTypesForClient, RequestInit>(requester)
+
+// Prefer axios? Put `axios` in this package's dependencies and swap the factory:
+//
+//   import axios from 'axios'
+//   import type { AxiosRequestConfig } from 'axios'
+//   import { createAxiosRPC } from '@tealina/client'
+//
+//   export const rpc = createAxiosRPC<ApiTypesForClient, AxiosRequestConfig>(
+//     config => axios.request(config).then(response => response.data),
+//   )
+//
+// `createAxiosReq` is the axios spelling of `req` above. Its instance does with `baseURL`
+// and an interceptor what `requester` does by hand.
+
+/**
+ * `ApiTypesForClient` reaches `req` only as an argument type, so a function taking a
+ * payload it did not build has nothing to annotate itself with. These name one piece of
+ * one endpoint by the method and path — the same pair the call is written with, as in
+ * `TakeBody<'post', '/article'>`.
+ *
+ * Both parameters are constrained against the record, so a method or path the server does
+ * not answer fails where the type is written rather than at the call.
+ */
+
+/** What the endpoint answers with. Every endpoint has one. */
+export type TakeResponse<
+  Method extends keyof ApiTypesForClient,
+  Path extends keyof ApiTypesForClient[Method],
+> = ApiTypesForClient[Method][Path]['response']
+
+/**
+ * The payloads an endpoint can declare. One it does not declare comes back `never`, which
+ * is the honest answer: there is nothing there, so a value claiming to be one cannot be
+ * passed anywhere.
+ */
+export type TakeBody<
+  Method extends keyof ApiTypesForClient,
+  Path extends keyof ApiTypesForClient[Method],
+> = ApiTypesForClient[Method][Path] extends { body: infer B } ? B : never
+
+export type TakeQuery<
+  Method extends keyof ApiTypesForClient,
+  Path extends keyof ApiTypesForClient[Method],
+> = ApiTypesForClient[Method][Path] extends { query: infer Q } ? Q : never
+
+export type TakeParams<
+  Method extends keyof ApiTypesForClient,
+  Path extends keyof ApiTypesForClient[Method],
+> = ApiTypesForClient[Method][Path] extends { params: infer P } ? P : never
+
+/** The headers the endpoint is written with — json on an open one, plus `Authorization`. */
+export type TakeHeaders<
+  Method extends keyof ApiTypesForClient,
+  Path extends keyof ApiTypesForClient[Method],
+> = ApiTypesForClient[Method][Path]['headers']

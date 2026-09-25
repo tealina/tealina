@@ -275,14 +275,22 @@ describe('web manifest', () => {
     })
 
     it(`${mode}: every source file carries the mode's extension`, () => {
-      // `index.html` is exempt for the same reason a `.d.ts` is: nothing the mode
-      // configures compiles it. The two copies differ only in the `<script>` tag, which is
-      // why it is a per-mode file rather than a shared one.
+      // `.d.ts` is exempt for the reason the server-side test gives: it is a type file,
+      // not a source file. `index.html` is exempt because nothing the mode configures
+      // compiles it — which is why it is per-mode: the copies differ only in the
+      // `<script>` tag's extension.
       const wrong = files
         .map(f => f.dest)
         .filter(dest => {
           const ext = path.extname(dest)
-          if (ext === '' || ext === '.json' || ext === '.html') return false
+          if (
+            ext === '' ||
+            ext === '.json' ||
+            ext === '.html' ||
+            dest.endsWith('.d.ts')
+          ) {
+            return false
+          }
           return !dest.endsWith(mode === 'js' ? '.js' : '.ts')
         })
       expect(wrong, `files with the wrong extension for ${mode}`).toEqual([])

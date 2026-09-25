@@ -216,6 +216,19 @@ const kWebNamed = ['index.html', 'tsconfig.json'] as const
  */
 const kWebPerMode = ['vite.config', 'src/api/client'] as const
 
+/**
+ * Files only one tree has, under their literal name — no `extOf`, because a `.d.ts` spells
+ * its own type.
+ *
+ * One entry: the `Take*` names, which a `.js` call site reaches by path. The TypeScript tree
+ * has them in `src/api/client`, so the file there would be a competing set of declarations
+ * rather than a convenience — hence mode-keyed, not shared.
+ */
+const kWebModeOnly: Record<Mode, readonly string[]> = {
+  ts: [],
+  js: ['types/v1.d.ts'],
+}
+
 const webTreeOf = (mode: Mode) => (mode === 'js' ? 'web/js' : 'web')
 
 /**
@@ -238,9 +251,11 @@ const webMainDest = (mode: Mode) => `src/${kWebBareMain(mode)}`
 
 const kWebRest = (mode: Mode): TemplateFile[] => [
   ...kWebShared.map(dest => ({ src: `web/${dest}`, dest })),
-  ...[...kWebNamed, ...kWebPerMode.map(bare => `${bare}${extOf(mode)}`)].map(
-    dest => ({ src: `${webTreeOf(mode)}/${dest}`, dest }),
-  ),
+  ...[
+    ...kWebNamed,
+    ...kWebModeOnly[mode],
+    ...kWebPerMode.map(bare => `${bare}${extOf(mode)}`),
+  ].map(dest => ({ src: `${webTreeOf(mode)}/${dest}`, dest })),
 ]
 
 /**

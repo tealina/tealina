@@ -63,3 +63,15 @@ const requester = async (url, config) => {
  * keep in step. Change a handler's response and this call site stops compiling.
  */
 export const req = createFetchClient(requester, apiShape)
+
+// Prefer axios? Put `axios` in this package's dependencies and swap the factory:
+//
+//   import axios from 'axios'
+//   import { createAxiosRPC } from '@tealina/client'
+//
+//   export const rpc = createAxiosRPC(
+//     config => axios.request(config).then(response => response.data),
+//     apiShape,
+//   )
+//
+// `createAxiosReq` is the axios spelling of `req` above, and takes `apiShape` the same way.
