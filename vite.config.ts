@@ -46,7 +46,21 @@ export default defineConfig({
   },
   lint: {
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
-    ignorePatterns: ['temp-*/**', 'archive/**'], // linter.includes: ["!temp-*"]
+    // 模板目录是「给脚手架项目的数据」，不是本仓库的源码，两条理由：
+    //
+    // 1. 它 import 的 `@tealina/client`、`server/api/v1` 要等脚手架里 pnpm install
+    //    之后才解析得到，在仓库里做类型检查必然报 TS2307 —— 而这是结构性的，不是
+    //    代码有问题。
+    // 2. 更要紧的是 prefer-vite-plus-imports：它会把模板里的 `from 'vite'` 改成
+    //    `from 'vite-plus'`，而脚手架项目的 web/package.json 只声明了 `vite`
+    //    （13e523d 就是这么把模板改坏的，`--fix` 每次都会再改一遍）。
+    //
+    // 排除的只是 lint 与类型检查；fmt 有自己的 ignorePatterns，模板仍会被格式化。
+    ignorePatterns: [
+      'temp-*/**', // linter.includes: ["!temp-*"]
+      'archive/**',
+      'packages/create-tealina/template/**',
+    ],
     plugins: ['react', 'jsx-a11y'], // oxlint 默认关闭这两个插件
     options: { typeAware: true, typeCheck: true },
     rules: {
