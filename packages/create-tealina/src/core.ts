@@ -325,7 +325,11 @@ const showGuide = (ctx: ContextType, ready: boolean) => {
       ? [
           {
             title: blue('The frontend is the Vite dev server:'),
-            items: ['http://localhost:5173'],
+            items: [
+              'http://localhost:5173',
+              'it proxies /api to http://localhost:8000 — retarget that in ' +
+                'packages/web/vite.config.ts if `PORT` is not 8000',
+            ],
           },
         ]
       : []),

@@ -20,6 +20,9 @@ const apiShape = /** @type {ApiShape} */ (undefined)
 /**
  * Where the server mounts its API — see `src/app/routes/api/index.ts`. Read by
  * `src/main.js`, which puts it on the page.
+ *
+ * Kept relative so that the server can serve the built page on one origin. In dev it is
+ * the `/api` proxy in `vite.config.js` that reaches this, not the page's own origin.
  */
 export const base = '/api/v1'
 
