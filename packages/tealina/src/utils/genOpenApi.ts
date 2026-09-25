@@ -452,7 +452,7 @@ function getDescription(docNode: DocNode) {
   return docNode.comment ? { description: docNode.comment } : {}
 }
 
-const kParamsPattern = /:([^\/]+)/g
+const kParamsPattern = /:([^/]+)/g
 
 function transformPath(endpoint: string) {
   if (!endpoint.includes(':')) return endpoint
