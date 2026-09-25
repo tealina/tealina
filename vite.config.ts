@@ -1,4 +1,9 @@
+import { resolve } from 'node:path'
 import { defineConfig } from 'vite-plus'
+
+// 见下面 test 块的注释：这个配置文件会被仓库根和 packages/* 两处读到
+const atRepoRoot = process.cwd() === __dirname
+const pkg = (name: string) => resolve(__dirname, 'packages', name)
 
 export default defineConfig({
   fmt: {
@@ -63,6 +68,49 @@ export default defineConfig({
       'jsx-a11y/prefer-tag-over-role': 'off', // useSemanticElements: "off"
     },
   },
+  // 测试项目：原来散在 vitest.workspace.ts，Vitest 4 已移除 workspace 文件，
+  // 统一收进根配置的 test.projects。
+  //
+  // 两点必须知道：
+  // 1. Vitest 会从子目录向上找到这个配置文件，但 root 仍是子目录 —— 也就是说
+  //    在 packages/* 里跑 `vp test` 时读到的 test 块就是下面这个。所以 projects
+  //    只在仓库根生效：否则 `pnpm test`（递归 8 个包）会把整套用例跑 8 遍。
+  // 2. projects 里的路径用绝对路径，理由同上：相对路径是按 vitest 的 root（=cwd）
+  //    解析的，从包内跑时会拼成 packages/x/packages/y。
+  test: atRepoRoot
+    ? {
+        projects: [
+          // 指向包目录的字符串条目：用包内自带的 vite.config.ts 当项目配置，
+          // doc-ui-src 的 jsdom / setupFiles / monaco alias 就在那里。
+          pkg('tealina-doc-ui-src'),
+          // 其余包没有配置文件可继承，用内联对象带 testTimeout 这类项目级选项
+          {
+            root: pkg('create-tealina'),
+            // 照搬包脚本的 `--dir test`：别把 temp/ 里的 e2e 产物扫进来
+            test: {
+              name: 'create-tealina',
+              testTimeout: 0,
+              include: ['test/**/*.test.ts'],
+            },
+          },
+          {
+            root: pkg('tealina'),
+            test: {
+              name: 'tealina',
+              testTimeout: 20000,
+              // 这个包的测试用 cwd 相对路径，根目录跑时要把 cwd 拨回包目录
+              env: { VITEST_PROJECT_ROOT: pkg('tealina') },
+              setupFiles: [resolve(__dirname, 'test-setup.chdir.ts')],
+            },
+          },
+          { root: pkg('tealina-client'), test: { name: 'tealina-client' } },
+          { root: pkg('tealina-doc-ui'), test: { name: 'tealina-doc-ui' } },
+          { root: pkg('tealina-server'), test: { name: 'tealina-server' } },
+          { root: pkg('utility-types'), test: { name: 'utility-types' } },
+          // tealina-doc-types 没有测试文件，只有 `tsc --noEmit`，不做 project
+        ],
+      }
+    : {},
   // 提交钩子：接手 lefthook.yml 的 pre-commit。
   // 原来的 glob 与命令原样搬过来，vp staged 会把暂存文件路径追加到命令后面，
   // 等价于 lefthook 的 `vp check --fix {staged_files}`。
