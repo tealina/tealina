@@ -21,7 +21,7 @@
   "type": "module",
   "scripts": {
     "build": "unbuild",
-    "test": "vp test --dir test --testTimeout=0 --run",
+    "test": "vp test --testTimeout=0 --run",
     "cproj": "tsx src/index.ts"
   },
   "dependencies": {
@@ -47,7 +47,7 @@
     "koa-static": "^5.0.0",
     "tealina": "workspace:*",
     "tsx": "3.12.7",
-    "typescript": "~5.8.3"
+    "typescript": "~6.0.3"
   },
   "engines": {
     "node": ">=20.19"

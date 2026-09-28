@@ -779,7 +779,14 @@ const findFormLast = (xs, predicate) => {
  * @param {string} tsconfigPath
  */
 const parseTsConfig = tsconfigPath => {
-  const readResult = ts.readConfigFile(tsconfigPath, p =>
+  // Absolute, both as the read path and as the `configFileName` handed to
+  // `parseJsonConfigFileContent`. That fifth argument lands in
+  // `options.configFilePath`, and TS 6 derives the common source directory
+  // against `sys.getCurrentDirectory()` — absolute. A relative `configFilePath`
+  // next to an absolute common directory trips the "Paths must either both be
+  // absolute or both be relative" assertion inside `createProgram`.
+  const configPath = path.resolve(tsconfigPath)
+  const readResult = ts.readConfigFile(configPath, p =>
     readFileSync(p).toString(),
   )
   if (readResult.error) {
@@ -791,9 +798,9 @@ const parseTsConfig = tsconfigPath => {
   return ts.parseJsonConfigFileContent(
     readResult.config,
     ts.sys,
-    path.dirname(tsconfigPath),
+    path.dirname(configPath),
     undefined,
-    tsconfigPath,
+    configPath,
   )
 }
 

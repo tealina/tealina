@@ -2,6 +2,10 @@
   "compilerOptions": {
     "target": "ES2023",
     "module": "NodeNext",
+    // TypeScript 6 stops auto-including every `@types/*` package — the list is empty
+    // unless it is spelled out. `src/config/env.ts` reads `process.env` and calls
+    // `process.loadEnvFile()`, so the Node globals have to be named.
+    "types": ["node"],
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,

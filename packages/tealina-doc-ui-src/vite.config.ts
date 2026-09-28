@@ -6,18 +6,20 @@ import axios from 'axios'
 import path from 'path/posix'
 
 const kDocFactory = 'http://localhost:6001'
-let kConfigPromise = null
-const getRemoteConfig = async () => {
+type RemoteConfig = { customScripts?: string[] } & Record<string, unknown>
+let kConfigPromise: Promise<RemoteConfig | undefined> | null = null
+const getRemoteConfig = async (): Promise<RemoteConfig | undefined> => {
   if (kConfigPromise) return kConfigPromise
-  kConfigPromise = await setTimeout(1000).then(() =>
-    axios
-      .get(`${kDocFactory}/api-doc/config.json`)
-      .then(res => res.data)
-      .catch(e => {
-        console.log(e)
-      }),
-  )
-  return kConfigPromise
+  await setTimeout(1000)
+  const pending = axios
+    .get<RemoteConfig>(`${kDocFactory}/api-doc/config.json`)
+    .then(res => res.data)
+    .catch(e => {
+      console.log(e)
+      return undefined
+    })
+  kConfigPromise = pending
+  return pending
 }
 
 // https://vitejs.dev/config/
@@ -30,9 +32,10 @@ export default defineConfig(env => ({
       apply: 'serve',
       transformIndexHtml: {
         order: 'pre',
-        handler: async html => {
+        handler: async (html: string) => {
           try {
-            const { customScripts = [], ...json } = await getRemoteConfig()
+            const { customScripts = [], ...json } =
+              (await getRemoteConfig()) ?? {}
             const index = html.indexOf('<div') - 4
             const left = html.slice(0, index)
             return [

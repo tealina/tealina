@@ -97,16 +97,10 @@ export default defineConfig({
           // 指向包目录的字符串条目：用包内自带的 vite.config.ts 当项目配置，
           // doc-ui-src 的 jsdom / setupFiles / monaco alias 就在那里。
           pkg('tealina-doc-ui-src'),
+          // create-tealina 的 testTimeout / include / globalSetup 也在它自己的配置里——
+          // 那一份同时服务从包目录发起的 `vp test`，两边只能有一处真相。
+          pkg('create-tealina'),
           // 其余包没有配置文件可继承，用内联对象带 testTimeout 这类项目级选项
-          {
-            root: pkg('create-tealina'),
-            // 照搬包脚本的 `--dir test`：别把 temp/ 里的 e2e 产物扫进来
-            test: {
-              name: 'create-tealina',
-              testTimeout: 0,
-              include: ['test/**/*.test.ts'],
-            },
-          },
           {
             root: pkg('tealina'),
             test: {

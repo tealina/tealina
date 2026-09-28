@@ -60,7 +60,8 @@ const baseCompilerOptions = {
   esModuleInterop: true,
   skipLibCheck: true,
   noEmit: true,
-  baseUrl: '.',
+  // No `baseUrl`: `paths` has resolved relative to the tsconfig without it since TS 4.1,
+  // and TS 6 rejects the option outright (TS5101).
   // Point at the source so this test does not depend on `pnpm build` having run first.
   paths: {
     '@tealina/utility-types': [utilityTypesSrc],

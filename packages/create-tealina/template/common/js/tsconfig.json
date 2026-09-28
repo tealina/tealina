@@ -9,6 +9,9 @@
     // `types/api-v1.d.ts` silently resolves to `any` and the whole projection collapses.
     "allowJs": true,
     "checkJs": true,
+    // TypeScript 6 stops auto-including every `@types/*` package — the list is empty
+    // unless it is spelled out, and `src/config/env.js` reads `process.env`.
+    "types": ["node"],
     // Nothing is emitted: node runs these files as they are.
     "noEmit": true,
     "esModuleInterop": true,

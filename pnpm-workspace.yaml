@@ -24,7 +24,7 @@ overrides:
   vitest@*: "catalog:"
 # Dependency build scripts are not run by default since pnpm 10. These are the
 # ones this repo relies on; every other dependency's scripts stay off.
-# esbuild (pulled in by tsup, tsx and vitest) fetches its platform binary here,
+# esbuild (pulled in by tealina, tsx and vitest) fetches its platform binary here,
 # msw prints its notice.
 allowBuilds:
   esbuild: true

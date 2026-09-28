@@ -24,7 +24,7 @@
     }
   },
   "scripts": {
-    "gen-types": "tsc src/index.ts src/utility-types.ts --declaration --emitDeclarationOnly --esModuleInterop --outDir dist",
+    "gen-types": "tsc src/index.ts src/utility-types.ts --ignoreConfig --strict false --declaration --emitDeclarationOnly --esModuleInterop --outDir dist",
     "build": "unbuild && pnpm gen-types",
     "test": "vp test --dir ./test --run --testTimeout=20000"
   },
@@ -41,7 +41,7 @@
     "tealina": "link:"
   },
   "peerDependencies": {
-    "typescript": ">=5.6.2"
+    "typescript": ">=5.6.2 <7"
   },
   "engines": {
     "node": ">=20.19"

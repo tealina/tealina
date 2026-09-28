@@ -8,6 +8,9 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ES2023",
+    // See `tsconfig.json`: TypeScript 6 no longer picks up `@types/*` on its own, and
+    // this build compiles the same `process.env` reads.
+    "types": ["node"],
     "strict": true,
     "esModuleInterop": true,
     "rootDir": "src",

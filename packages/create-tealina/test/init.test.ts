@@ -215,7 +215,7 @@ const hostTsconfig = (mode: Mode) => ({
     esModuleInterop: true,
     skipLibCheck: true,
     noEmit: true,
-    baseUrl: '.',
+    // `paths` resolves against this tsconfig on its own; TS 6 rejects `baseUrl` (TS5101).
     paths: workspacePaths,
     // The whole difference between the two hosts: in JavaScript mode the compiler is
     // reading the project, not building it, and `allowJs` is what makes it resolve a
@@ -538,37 +538,22 @@ describe('init into an existing project', () => {
 
 const hostNameOf = (fw: ServerTemplate) => `existing-${fw}-api`
 
-/**
- * The dependencies in these fixtures that stand in for something a user installs rather
- * than something this repo ships as source.
- *
- * Everything else is `paths`-mapped to `src/` so the gate needs no build. Not these: what
- * the frontend reaches is a published package resolved through an `exports` map, and the
- * witness it carries is only meaningful as what that map hands back. Mapping it to `src/`
- * would test a resolution nobody runs. Built, once each, at the first fixture that needs
- * one — the same lazy shape as `ensureCliBuilt` in the e2e gate, and CI builds before
- * testing anyway.
- *
- * `tealina` is here one step further in than the client: the contract layer takes its
- * utility types through `tealina/utility-types`, which is an `exports` entry and a `.d.ts`
- * under that package's `dist/`, so the fixture has to resolve the real thing and not a
- * mapping of it. Unlike `paths`, a broken resolution here is silent — the import sits in a
- * `.d.ts`, where every gate in this repo sets `skipLibCheck`, and the projection widens to
- * `any` instead of failing. That is why the mutation below, and not the compile above it,
- * is the test that matters.
- */
-const builtPackages = new Set<string>()
-const ensureBuilt = (name: string) => {
-  if (builtPackages.has(name)) return
-  builtPackages.add(name)
-  const res = spawnSync('pnpm', ['-F', name, 'build'], {
-    cwd: repoRoot,
-    encoding: 'utf-8',
-    shell: process.platform === 'win32',
-  })
-  const output = `${res.stdout ?? ''}${res.stderr ?? ''}`
-  expect(res.status, `building ${name} failed:\n${output}`).toBe(0)
-}
+// The two packages the fixtures below reach past npm for, standing in for something a user
+// installs rather than something this repo ships as source.
+//
+// Everything else in these fixtures is `paths`-mapped to `src/` so the gate needs no build.
+// Not these: what the frontend reaches is a published package resolved through an `exports`
+// map, and the witness it carries is only meaningful as what that map hands back. Mapping it
+// to `src/` would test a resolution nobody runs. Both are built in `global-setup.ts`, once,
+// above the workers — see the note there for why the build cannot be lazy per test file.
+//
+// `tealina` is in that list one step further in than the client: the contract layer takes its
+// utility types through `tealina/utility-types`, which is an `exports` entry and a `.d.ts`
+// under that package's `dist/`, so the fixture has to resolve the real thing and not a
+// mapping of it. Unlike `paths`, a broken resolution here is silent — the import sits in a
+// `.d.ts`, where every gate in this repo sets `skipLibCheck`, and the projection widens to
+// `any` instead of failing. That is why the mutation below, and not the compile above it, is
+// the test that matters.
 
 type WebFixture = {
   hostDir: string
@@ -622,8 +607,6 @@ const preparedWeb = (
   mode: Mode,
   probe = false,
 ): WebFixture => {
-  ensureBuilt('@tealina/client')
-  ensureBuilt('tealina')
   const key = `${fw}-${mode}${probe ? '-probe' : ''}`
   const cached = webFixtures.get(key)
   if (cached != null) return cached

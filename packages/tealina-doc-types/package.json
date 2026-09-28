@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "pnpm tsc ./index.ts --noEmit"
+    "test": "pnpm tsc ./index.ts --ignoreConfig --noEmit"
   },
   "devDependencies": {
     "@tealina/utility-types": "workspace:*"

@@ -3,6 +3,9 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    // TS 6 起 `types` 默认为空，`@types/node` 不再自动进程序。这个 playground 真的
+    // 用 `process` 和 `node:path`，所以要点名。
+    "types": ["node"],
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,

@@ -136,34 +136,11 @@ const killTree = (child: ChildProcess) => {
 const booted: ChildProcess[] = []
 let failed = false
 
-/**
- * The fixtures link the CLI this repo builds, so a `dist/` from before the change under test
- * would have them exercise the old behaviour and fail with nothing to say why. Built rather
- * than asserted, once, at the first fixture that needs it — a test run filtered down to one
- * block still builds, which a hook on the file would not.
- *
- * CI builds before testing, so there this is a rebuild of what already exists.
- */
-let cliBuilt = false
-const ensureCliBuilt = () => {
-  if (cliBuilt) return
-  cliBuilt = true
-  must('pnpm', ['-F', 'tealina', 'build'], repoRoot)
-}
-
-/**
- * The same, for the frontend fixtures that link `@tealina/client` — see `clientOverride`.
- *
- * Only those need it, and only because a `link:` points at the package directory: what the
- * fixture resolves is `dist/`, so the declarations have to exist before it installs. The
- * TypeScript arm installs the published client and never comes through here.
- */
-let clientBuilt = false
-const ensureClientBuilt = () => {
-  if (clientBuilt) return
-  clientBuilt = true
-  must('pnpm', ['-F', '@tealina/client', 'build'], repoRoot)
-}
+// The fixtures link `tealina` and — for the JavaScript frontend, see `clientOverride` —
+// `@tealina/client` by path, so what they resolve is the package's `dist/`. Both are built
+// once in `global-setup.ts`, above the workers, rather than lazily from here: two test files
+// in two workers each building the same package is a `dist/` wiped under a `tsc` that is
+// reading it. Read the note there before moving the build back into this file.
 
 afterAll(() => {
   for (const child of booted) killTree(child)
@@ -187,7 +164,6 @@ describeE2E('scaffolded project, end to end', () => {
         onTestFailed(() => {
           failed = true
         })
-        ensureCliBuilt()
         const projectDir = path.join(tempRoot, `${fw}-${mode}`)
         const serverDir = path.join(projectDir, 'packages/server')
         fs.rmSync(projectDir, { recursive: true, force: true })
@@ -747,7 +723,6 @@ describeE2E('init into an existing project, end to end', () => {
         onTestFailed(() => {
           failed = true
         })
-        ensureCliBuilt()
         const projectDir = path.join(tempRoot, `init-${fw}-${mode}`)
         fs.rmSync(projectDir, { recursive: true, force: true })
         fs.mkdirSync(projectDir, { recursive: true })
@@ -768,13 +743,12 @@ describeE2E('init into an existing project, end to end', () => {
               // in that project. Neither mode's `init` adds `tsx`, which is why the
               // TypeScript fixture has to bring its own or nothing would boot.
               //
-              // `typescript` is pinned rather than left to `tealina`'s peer range, and the
-              // reason is not tidiness: that range is `>=5.6.2`, so an unpinned install
-              // resolves to the current major, and `gdoc` — which drives the compiler API —
-              // dies on it with `ts.readConfigFile is not a function`. The fixture would
-              // then be testing a `gdoc` that cannot run.
+              // `typescript` mirrors the template's own pin rather than being left to
+              // `tealina`'s peer range (`>=5.6.2 <7`). The fixture has to be checked by the
+              // compiler a scaffolded project actually gets: `gdoc` drives the compiler API,
+              // so the version is not incidental to what these tests exercise.
               devDependencies:
-                mode === 'js' ? {} : { tsx: '^4.20.5', typescript: '~5.8.3' },
+                mode === 'js' ? {} : { tsx: '^4.20.5', typescript: '~6.0.3' },
               scripts: {
                 dev: mode === 'js' ? 'node src/index.js' : 'tsx src/index.ts',
               },
@@ -922,8 +896,6 @@ describeE2E('scaffolded project with a frontend, end to end', () => {
       onTestFailed(() => {
         failed = true
       })
-      ensureCliBuilt()
-      if (mode === 'js') ensureClientBuilt()
       const projectDir = path.join(tempRoot, `web-express-${mode}`)
       const serverDir = path.join(projectDir, 'packages/server')
       const webDir = path.join(projectDir, 'packages/web')

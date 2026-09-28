@@ -15,7 +15,7 @@ schame.parse(process.env)
 type CustomEnv = z.infer<typeof schame>
 
 declare global {
-  module NodeJS {
+  namespace NodeJS {
     interface ProcessEnv extends CustomEnv {}
   }
 }

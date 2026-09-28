@@ -35,7 +35,7 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 | `tealina-doc-ui` | 文档站点 UI（`assembleHTML`、`getAssetsPath`、`TealinaVdocWebConfig`）+ 其源码包 `tealina-doc-ui-src` |
 | `create-tealina` | 脚手架（bin-only，`npm create tealina`）。3.0.0 起是**极简**那版：无数据库层、无 Prisma、无 shared-types、无 create-vite 前端、只 node；绿地用 `create`，brownfield 用 `init`。整包（Prisma + React + node/bun 双 runtime）退役在 `archive/create-tealina`，只作参考 |
 
-`packages/tealina/package.json:43` 有 `peerDependencies: typescript >=5.6.2`——CLI 依赖 TS 做声明文件解析，这是它敢做端到端类型的原因。
+`packages/tealina/package.json:44` 有 `peerDependencies: typescript >=5.6.2 <7`——CLI 依赖 TS 做声明文件解析，这是它敢做端到端类型的原因。上界卡在 7 是因为 `gdoc` 直接驱动 Compiler API，而 7.0 是 Go 原生重写。
 
 **`@tealina/server` 只有两个导出**（`src/index.ts:1-2`），这是它最值得注意的地方——所有复杂度都在类型层，运行时极薄：
 
