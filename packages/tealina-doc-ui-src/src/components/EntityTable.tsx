@@ -6,7 +6,6 @@ import { syntaxColorAtom } from '../atoms/themeAtom'
 import { type2cell } from '../transformer/type2cell'
 import { Anchor } from './Anchor'
 import { ColorText } from './ColorText'
-import { CommentSummary } from './CommentSummary'
 import type { EntityOnlyDoc } from './api_detail/useDetailState'
 import { MarkdownView } from './Markdown'
 

@@ -94,7 +94,6 @@ describe('test render fn type2cell', () => {
     }
     const input: UnionType = {
       kind: DocKind.Union,
-      id: 1,
       types: [firstNode, secondNode],
     }
     const CellText = type2cell(input, emptyContext)

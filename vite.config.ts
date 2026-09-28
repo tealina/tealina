@@ -56,10 +56,18 @@ export default defineConfig({
     //    （13e523d 就是这么把模板改坏的，`--fix` 每次都会再改一遍）。
     //
     // 排除的只是 lint 与类型检查；fmt 有自己的 ignorePatterns，模板仍会被格式化。
+    //
+    // playground 同理，只是原因换成「装不上」：它不在 pnpm-workspace.yaml 的
+    // packages/* 里，根目录的 `vp install` 从不碰它，而它自己那份 node_modules
+    // 是指向仓库 store 的相对链接、store 一升级就全变成死链——于是每个
+    // `import express` 都是 TS2307，handler 参数跟着退化成隐式 any。在仓库里跑
+    // `pnpm install` 修不好（pnpm 会向上找到根 workspace 文件去装整个仓库，
+    // archive/README.md 记过这个坑），所以它会一直是这个状态。
     ignorePatterns: [
       'temp-*/**', // linter.includes: ["!temp-*"]
       'archive/**',
       'packages/create-tealina/template/**',
+      'playground/**',
     ],
     plugins: ['react', 'jsx-a11y'], // oxlint 默认关闭这两个插件
     options: { typeAware: true, typeCheck: true },

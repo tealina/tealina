@@ -6,7 +6,6 @@ const kJSON_Type = /json/
 const kDisposition = 'content-disposition'
 const kSimpleJSON = 'application/json'
 const kOctetStream = 'application/octet-stream'
-const kStreamTypes = ['text/event-stream', kOctetStream]
 const kPDF_Type = 'application/pdf'
 const kZipType = 'application/zip'
 const kBinaryTypes = [kOctetStream, kZipType, kPDF_Type]
@@ -128,10 +127,6 @@ function isBinary(contentType: string) {
     kDownloadPattern.test(contentType) ||
     kMediaTypePattern.test(contentType)
   )
-}
-
-function isStream(contentType: string) {
-  return kStreamTypes.some(c => contentType.includes(c))
 }
 
 function isSorfOfJSON(contentType: string) {

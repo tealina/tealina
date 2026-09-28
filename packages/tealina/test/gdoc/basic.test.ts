@@ -106,9 +106,9 @@ describe('test genereta api documentation api/post/createUser', () => {
   test('regular enum prop', () => {
     const responseType = entityRefs[(doc.response as RefType).id]
     expect(responseType.props).length.gte(4)
-    const [, , , , stateProp, badgeProp] = responseType.props
+    const [, , , , stateProp] = responseType.props
     expect(stateProp).contains({ kind: DocKind.EnumRef, name: 'state' })
-    const { name, members } = enumRefs[(stateProp as EnumRefType).id]
+    const { members } = enumRefs[(stateProp as EnumRefType).id]
     const [active, disabled] = members
     expect(active).deep.contains({
       key: 'Active',
@@ -133,7 +133,7 @@ describe('test genereta api documentation api/post/createUser', () => {
     expect(responseType.props).length.gte(4)
     const [, , , , , badgeProp] = responseType.props
     expect(badgeProp).contains({ kind: DocKind.EnumRef, name: 'badge' })
-    const { name, members } = enumRefs[(badgeProp as EnumRefType).id]
+    const { members } = enumRefs[(badgeProp as EnumRefType).id]
     const [blue, gold] = members
     expect(blue).deep.contains({
       key: 'Blue',
@@ -159,19 +159,12 @@ describe('test genereta api documentation api/post/createUser', () => {
 
   test('edge case', () => {
     const variety = post['variety']
-    const { body, response } = variety!
+    const { body } = variety!
     // console.log(entityRefs['540']['props'].at(-1))
     expect(body!.kind).eq(DocKind.EntityRef)
     const bodyEntity = entityRefs[(body as RefType).id]
-    const [
-      limitRecord,
-      unionKeysRecord,
-      recordProp,
-      tupleProp,
-      intersactionProp,
-      unioiProp,
-      enumProp,
-    ] = bodyEntity.props
+    const [limitRecord, , recordProp, tupleProp, , , enumProp] =
+      bodyEntity.props
     expect(enumProp).contains({
       kind: DocKind.EnumRef,
       name: 'newEnum',

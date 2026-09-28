@@ -148,16 +148,23 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   // would ship unnoticed. It goes next to the hand-written handlers, at the same depth, so
   // the `../..` it is handed here is the one it gets in a real project.
   if (mode === 'js') {
-    const [entry] = jsTemplate.template.handlers
+    const [entry] = jsTemplate.template?.handlers ?? []
     if (typeof entry?.generateFn !== 'function') {
       throw new Error(
         'the JS template config no longer exposes template.handlers[0].generateFn — ' +
           'the generated stub has stopped being compiled by anything',
       )
     }
+    // The shipped stub reads only `relative2api`, but `TemplateContext` is what the
+    // generator hands a real config, so the rest is filled in rather than cast away.
     fs.writeFileSync(
       path.join(dest, 'src/api-v1/post/generated.js'),
-      entry.generateFn({ relative2api: '../..' }),
+      entry.generateFn({
+        filename: 'generated',
+        Filename: 'Generated',
+        relative2api: '../..',
+        method: 'post',
+      }),
     )
   }
   if (options.stripGlobals) {

@@ -67,7 +67,6 @@ describe('test render fn type2text', () => {
     }
     const input: UnionType = {
       kind: DocKind.Union,
-      id: 1,
       types: [firstNode, secondNode],
     }
     const result = type2text(input, emptyContext)

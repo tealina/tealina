@@ -19,7 +19,8 @@ beforeAll(cleanOutput)
 afterAll(cleanOutput)
 
 test('actual run gdoc', () => {
-  const parsed = cli.parse(
+  // The return value is unused: `parse` is here for its registration side effect.
+  cli.parse(
     [
       '',
       'tealina',
