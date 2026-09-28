@@ -40,7 +40,7 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 **`@tealina/server` 只有两个导出**（`src/index.ts:1-2`），这是它最值得注意的地方——所有复杂度都在类型层，运行时极薄：
 
 - `loadAPIs(apisV1)`（`resolveBatchExport.ts:42-48`）吃生成的 `index.ts`（两层懒加载 `import()`），`loadEachMethod`（`:26-37`）逐层 await 并取 `.default`，产出 `Record<method, Record<url, handlerFn>>`。类型侧由 `Obj2Map`/`Kind2Map`（`:1-7`）剥掉两层 `Awaited<...>['default']`，导出为 `ResolvedAPIs<HandlerType>`（`:11-14`）。
-- `transformToRouteOptions`（`transformToRouteOptions.ts:41-49`）拍平成 `{method, url, handler}[]`（`BasicRouteOption<T>`，`:32-36`）。**非显然的逻辑是排序**：`sortPath`（`:25-30`）+ `orderBySlashCount`（`:18-22`）把路径分成含 `:` 与不含 `:` 两组，各自按斜杠数**降序**排，静态路径全部先于参数化路径注册——防止 `/:id` 抢先匹配掉同级的静态路由。这是 Express 系路由的经典陷阱，在这里被统一处理掉了。
+- `transformToRouteOptions`（`transformToRouteOptions.ts:53-61`）拍平成 `{method, url, handler}[]`（`BasicRouteOption<T>`，`:32-36`），其中 `toAbsoluteUrl`（`:48`）把 barrel 的逻辑路径补成以 `/` 开头的 url。**非显然的逻辑是排序**：`sortPath`（`:25-30`）+ `orderBySlashCount`（`:18-22`）把路径分成含 `:` 与不含 `:` 两组，各自按斜杠数**降序**排，静态路径全部先于参数化路径注册——防止 `/:id` 抢先匹配掉同级的静态路由。这是 Express 系路由的经典陷阱，在这里被统一处理掉了。
 
 注意 `EmptyObj`、`HTTPMethods`、`CustomHandlerType`、`Simplify` **都不在 `@tealina/server` 里**——它们是生成项目里 `types/handler.d.ts` 的内容，或来自 `@tealina/utility-types`。
 
@@ -49,9 +49,10 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 这是整个项目最要紧的一个设计。**api 目录的目录结构本身就是路由表**，没有单独的路由注册文件。
 
 - `src/utils/codeGen.ts:4-7` `toRoutePath`：把路径段里的 `[id]` 转成 `:id`（Express/Koa/Fastify 通用的 path param 语法）。
-- `genTopIndexProp`（`:9-12`）为每个 http method 目录生成一行 `'get': import('./get/index.js'),`
-- `genIndexProp`（`:14-19`）为每个 handler 文件生成一行 `'/health': import('./health.js'),`
-- `genWithWrapper`（`:21-22`）把行排序后包成 `export default { ... }`，**排序保证输出确定**（同输入必出同字节，diff 干净）。
+- `toPropKey`（`:17-18`，判据是 `:9` 的 `IdentifierPattern`）决定键的写法：合法标识符裸写、否则加引号。判据与格式化器一致（实测 oxfmt 的 `quoteProps: 'as-needed'` 脱 `health`/`get`/`_x`，留 `'123'`/`'user-list'`），所以生成物已是格式化后的形态——跑一遍格式化器不产生 diff，`align` 也不会把格式化过的文件改回去。
+- `genTopIndexProp`（`:18-21`）为每个 http method 目录生成一行 `get: import('./get/index.js'),`
+- `genIndexProp`（`:25-30`）为每个 handler 文件生成一行 `health: import('./health.js'),`，`'user/:id'` 这类含 `/` 或 `:` 的键仍带引号
+- `genWithWrapper`（`:30-31`）把行排序后包成 `export default { ... }`，**排序保证输出确定**（同输入必出同字节，diff 干净）。
 
 于是 `src/api-v1/get/health.ts` 自动对应路由 `GET /health`；`src/api-v1/get/user/[id].ts` 对应 `GET /user/:id`。
 
@@ -137,9 +138,9 @@ PickTarget<T,K> = T extends MultiTarget<infer M> ? M[K] : T  // :114-116
       并在此计算 PickTarget<...,'server'> / ExtractResponse<...>）
     ↓ convention() 用 <const T extends [...Middleware[], CustomHandlerType]> 保住元组位置
 
-生成的 import 图（CLI 写，codeGen.ts:9-22）
+生成的 import 图（CLI 写，codeGen.ts:20-33）
   src/api-v1/index.ts      = { get: import('./get/index.js'), ... }
-  src/api-v1/get/index.ts  = { '/health': import('./health.js'), ... }
+  src/api-v1/get/index.ts  = { health: import('./health.js'), ... }
     ↓ 同一个对象，两条并行的解读路径
 
 【运行时】                                【类型】
@@ -159,13 +160,13 @@ gdoc                                           web/src/api/client.ts
  parseDeclarationFile 走 TS checker            （由 exports.types 映射到 types/api-v1.d.ts）
  靠正则 /__@ResponseFlagSymbol/ 认出富响应      createAxiosRPC<ApiTypesForClient, AxiosRequestConfig>
  → ApiDoc（@tealina/doc-types）                 → createRPC<ToRPC<T,C>, C>
- convertToOpenApiJson(apiDoc, '/api/v1')        → PathToObject 把 '/user/create' 嵌成对象
+ convertToOpenApiJson(apiDoc, '/api/v1')        → PathToObject 把 'user/create' 嵌成对象
  → docs/api-v1.json                             → rpc.post.user.create({body}) : Promise<{...}>
         ↓                                         运行时是 Proxy，makeContext 把 :params 代入 URL
  doc 路由 serve 它，@tealina/doc-ui 渲染          （:param 按最长键优先替换）
 ```
 
-`@tealina/client` 运行时两个都是 `Proxy`：`createReq`（`createReq.ts:23-44`）按 `[method][url]` 索引；`createRPC`（`createRPC.ts:51-78`）累积路径数组，`path[0]` 当 method、`path.slice(1).join('/')` 当 URL。两者都走 `makeContext`（`makeContext.ts:15-42`）做参数代入与 `URLSearchParams` 拼装。
+`@tealina/client` 运行时两个都是 `Proxy`：`createReq`（`createReq.ts:23-46`）按 `[method][url]` 索引；`createRPC`（`createRPC.ts:50-77`）累积路径数组，`path[0]` 当 method、`path.slice(1).join('/')` 当 URL。两者都先把 url 交给 `toAbsoluteUrl`（`makeContext.ts:13-14`）补上前导斜杠，再走 `makeContext`（`makeContext.ts:28-55`）做参数代入与 `URLSearchParams` 拼装。补斜杠这一步是必需的：barrel 的键是逻辑路径，而 requester 拿到的 url 要能直接拼在 base 后面。
 
 ## 6. CLI 的命令与选项流转
 
@@ -238,7 +239,7 @@ type Snapshot = {
 
 **a. `create-tealina/src/template-factory/` 是死代码。**（2026-09-22：本条的主语是整包，目录已归档到 `archive/create-tealina`；接替的包没有 `template-factory/`——文件清单由 `src/template-manifest.ts` 列出而不是遍历目录——`pathe` 依赖、minimist 的 `-d`、deno 分支也都没跟过来。）10 个文件，全仓 grep 只有 `.github/CONTRIBUTING.md:23` 一处散文引用，无任何 import；`dist/index.mjs` 里 0 匹配。同目录的 `write.ts` 连 `create.ts` 都不引用。另两处死物：`pathe` 依赖从未 import、minimist 的 `-d` 标志从未被读。`.github/CONTRIBUTING.md:23` 那条文档链接指向的正是这个已死的目录。
 
-**b. align 的兜底生成是坏的（本文最值得注意的一条）。** `withTypeFile.ts:20` `calcTypeFileSnapshot` 在类型文件**已存在时返回 `[]`**（永不重写），缺失时用 `codeGen.ts:24-39` 的 `genTypeCode` 生成。但两者产出的**不是同一套类型**：
+**b. align 的兜底生成是坏的（本文最值得注意的一条）。** `withTypeFile.ts:20` `calcTypeFileSnapshot` 在类型文件**已存在时返回 `[]`**（永不重写），缺失时用 `codeGen.ts:35-50` 的 `genTypeCode` 生成。但两者产出的**不是同一套类型**：
 
 | | 模板手写版 `api-v1.d.ts` | align 生成版 |
 |---|---|---|

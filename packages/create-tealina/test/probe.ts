@@ -16,12 +16,12 @@
 
 export const PROBE_TS = `import type { ApiTypesForClient, ApiTypesForDoc } from './types/api-v1.js'
 
-type Doc = ApiTypesForDoc['get']['/health']
+type Doc = ApiTypesForDoc['get']['health']
 export const docOk: Doc['response'] = { isOk: true }
 // @ts-expect-error response is { isOk: boolean }
 export const docBad: Doc['response'] = { isOk: 'nope' }
 
-type Client = ApiTypesForClient['post']['/login']
+type Client = ApiTypesForClient['post']['login']
 export const loginOk: Client['body'] = { account: 'a', password: 'b' }
 // @ts-expect-error password is required
 export const loginBad: Client['body'] = { account: 'a' }
@@ -29,14 +29,14 @@ export const loginBad: Client['body'] = { account: 'a' }
 // The authed POST is the only demo carrying a request body *and* a typed response,
 // so it has to be asserted on both projections. Delete get/status without this and
 // the AuthedHandler usage ships with no coverage at all.
-type NewArticle = ApiTypesForClient['post']['/article']
+type NewArticle = ApiTypesForClient['post']['article']
 export const articleOk: NewArticle['body'] = { title: 't', content: 'c' }
 // @ts-expect-error content is required
 export const articleBad: NewArticle['body'] = { title: 't' }
 // @ts-expect-error id is a number
 export const articleRespBad: NewArticle['response'] = { id: 'nope' }
 
-type ArticleDoc = ApiTypesForDoc['post']['/article']
+type ArticleDoc = ApiTypesForDoc['post']['article']
 export const articleDoc: ArticleDoc['response'] = { id: 1 }
 `
 
@@ -56,16 +56,16 @@ export const PROBE_JS = `/**
  * @typedef {import('./types/api-v1.js').ApiTypesForClient} ApiTypesForClient
  */
 
-/** @type {ApiTypesForDoc['get']['/health']['response']} */
+/** @type {ApiTypesForDoc['get']['health']['response']} */
 export const docOk = { isOk: true }
 
-/** @type {ApiTypesForClient['post']['/login']['body']} */
+/** @type {ApiTypesForClient['post']['login']['body']} */
 export const loginOk = { account: 'a', password: 'b' }
 
-/** @type {ApiTypesForClient['post']['/article']['body']} */
+/** @type {ApiTypesForClient['post']['article']['body']} */
 export const articleOk = { title: 't', content: 'c' }
 
-/** @type {ApiTypesForDoc['post']['/article']['response']} */
+/** @type {ApiTypesForDoc['post']['article']['response']} */
 export const articleDoc = { id: 1 }
 `
 

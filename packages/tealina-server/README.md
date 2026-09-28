@@ -35,23 +35,23 @@ export default handler
 // api-v1/post/index.ts
 export default {
   // path: import module
-  '/login': import('./login.js'),
-  '/user/create': import('./user/create.js'),
+  login: import('./login.js'),
+  'user/create': import('./user/create.js'),
 }
 ```
 
 ```ts
 // api-v1/get/index.ts
 export default {
-  '/user/:id': import('./user/[id].js'),
+  'user/:id': import('./user/[id].js'),
 }
 ```
 
 ```ts
 // api-v1/index.ts
 export default {
-  'get': import('./get/index.js'),    // GET method routes
-  'post': import('./post/index.js'),   // POST method routes
+  get: import('./get/index.js'),    // GET method routes
+  post: import('./post/index.js'),   // POST method routes
   // supports other HTTP methods
 }
 ```

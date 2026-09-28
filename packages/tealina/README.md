@@ -43,15 +43,15 @@ api-v1/
 **get/index.ts:**
 ```ts
 export default {
-  '/health': import('./health.ts'), // route : handler
+  health: import('./health.ts'), // route : handler
 }
 ```
 
 **api-v1/index.ts:**
 ```ts
 export default {
-  'get': import('./get/index.ts'),
-  'post': import('./post/index.ts'),
+  get: import('./get/index.ts'),
+  post: import('./post/index.ts'),
 }
 ```
 

@@ -207,7 +207,7 @@ is a placeholder — write your real app in `src/`.
 ```ts
 import { req } from './api/client'
 
-const health = await req.get('/health')
+const health = await req.get('health')
 const isOk: boolean = health.isOk
 ```
 
@@ -236,10 +236,10 @@ header is present, so log in through the open endpoint and hand the token over:
 ```ts
 import { req, setToken } from './api/client'
 
-const { token } = await req.post('/login', { body: { account, password } })
+const { token } = await req.post('login', { body: { account, password } })
 setToken(token)
 
-await req.post('/article', { body: { title: 'hello', content: '...' } })
+await req.post('article', { body: { title: 'hello', content: '...' } })
 // authorized. The same call without a token answers 401.
 ```
 

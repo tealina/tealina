@@ -6,12 +6,12 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(here, '../../..')
 
 /**
- * The two packages the fixtures reach past npm for, built once, here, before Vitest forks a
+ * The packages the fixtures reach past npm for, built once, here, before Vitest forks a
  * worker.
  *
- * Both are linked into a fixture by path, so what it resolves is the package's `dist/` —
- * built rather than asserted, because a `dist/` from before the change under test would
- * have the fixture exercise the old behaviour and fail with nothing to say why.
+ * All of them are linked into a fixture by path, so what it resolves is the package's
+ * `dist/` — built rather than asserted, because a `dist/` from before the change under test
+ * would have the fixture exercise the old behaviour and fail with nothing to say why.
  *
  * It cannot live in the test files, which is where it used to be. A "build once" flag is
  * per *process*, and Vitest runs these files in parallel workers: `e2e.test.ts` and
@@ -23,7 +23,7 @@ const repoRoot = path.resolve(here, '../../..')
  *
  * CI builds before testing, so there this is a rebuild of what already exists.
  */
-const LINKED_PACKAGES = ['tealina', '@tealina/client']
+const LINKED_PACKAGES = ['tealina', '@tealina/client', '@tealina/server']
 
 export default function setup() {
   for (const name of LINKED_PACKAGES) {

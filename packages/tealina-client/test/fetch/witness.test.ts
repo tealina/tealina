@@ -25,5 +25,5 @@ test('a shape witness is inert', async () => {
 
   const res = await req.get('health')
   expect(res).toMatchObject({ status: 'fine' })
-  expect(mockFetchFn).toHaveBeenCalledWith('health', { method: 'get' })
+  expect(mockFetchFn).toHaveBeenCalledWith('/health', { method: 'get' })
 })

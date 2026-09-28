@@ -82,9 +82,13 @@ export const req = createAxiosReq<ApiTypesRecord, AxiosRequestConfig>(c =>
   instance.request(c).then(v => v.data),
 )
 
-// Usage
-req.get('/status').then(result => console.log(result))
+// Usage — the url is the logical path, without a leading slash
+req.get('status').then(result => console.log(result))
 ```
+
+The requester always receives a url beginning with `/`, so one that composes an absolute
+path needs no guard of its own. The slash is not part of the spelling you write: the
+records are keyed by the logical path, so `'/status'` is not a key.
 
 ## How It Works
 

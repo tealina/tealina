@@ -29,6 +29,7 @@ const tempRoot = path.join(pkgDir, 'temp/e2e')
 const cliEntry = path.join(pkgDir, 'src/index.ts')
 const tsxBin = path.join(pkgDir, 'node_modules/.bin/tsx')
 const tealinaDir = path.join(repoRoot, 'packages/tealina')
+const tealinaServerDir = path.join(repoRoot, 'packages/tealina-server')
 
 const enabled = process.env.TEALINA_E2E === '1' || process.env.CI != null
 const describeE2E = enabled ? describe : describe.skip
@@ -51,21 +52,26 @@ const PORT: Record<Mode, Record<Framework, number>> = {
 }
 
 /**
- * The `tealina` every fixture installs, which is the one this repo builds rather than the
- * one on npm.
+ * The two packages every fixture installs from this repo rather than from npm.
  *
- * The templates declare `tealina: ^2.2.2`, and that is right for a user — it is the release
- * they will get. It is wrong for this test: `sourceExt`, the flag that makes `align` write
- * `index.js`, is not in any published version, so the JavaScript fixtures would install a
- * CLI that cannot scaffold the project they are asking it for. The override is scoped to the
- * fixture's own workspace file, so the templates are untouched and a real user's install is
- * unaffected.
+ * The templates declare a published range for both, and that is right for a user — it is the
+ * release they will get. It is wrong for this test. `sourceExt`, the flag that makes `align`
+ * write `index.js`, is not in any published `tealina`, so the JavaScript fixtures would
+ * install a CLI that cannot scaffold the project they are asking it for. And the route keys
+ * that CLI generates carry no leading slash — `@tealina/server` is where the slash comes
+ * back, in `transformToRouteOptions`. A fixture that took the published server would be
+ * generating its barrels with one side of that contract and routing them with the other.
+ *
+ * Both overrides are scoped to the fixture's own workspace file, so the templates are
+ * untouched and a real user's install is unaffected.
  *
  * `link:` needs a path relative to the *workspace root*, which is the fixture directory —
  * pnpm rewrites it into `node_modules/` from there.
  */
-const tealinaOverride = (projectDir: string, extra: string[] = []) =>
-  `\noverrides:\n  tealina: link:${path.relative(projectDir, tealinaDir)}\n` +
+const workspaceOverrides = (projectDir: string, extra: string[] = []) =>
+  `\noverrides:\n` +
+  `  tealina: link:${path.relative(projectDir, tealinaDir)}\n` +
+  `  '@tealina/server': link:${path.relative(projectDir, tealinaServerDir)}\n` +
   extra.join('')
 
 /**
@@ -136,11 +142,12 @@ const killTree = (child: ChildProcess) => {
 const booted: ChildProcess[] = []
 let failed = false
 
-// The fixtures link `tealina` and — for the JavaScript frontend, see `clientOverride` —
-// `@tealina/client` by path, so what they resolve is the package's `dist/`. Both are built
-// once in `global-setup.ts`, above the workers, rather than lazily from here: two test files
-// in two workers each building the same package is a `dist/` wiped under a `tsc` that is
-// reading it. Read the note there before moving the build back into this file.
+// The fixtures link `tealina` and `@tealina/server` — see `workspaceOverrides` — and, for
+// the JavaScript frontend, `@tealina/client` (`clientOverride`) by path, so what they
+// resolve is the package's `dist/`. All of them are built once in `global-setup.ts`, above
+// the workers, rather than lazily from here: two test files in two workers each building
+// the same package is a `dist/` wiped under a `tsc` that is reading it. Read the note there
+// before moving the build back into this file.
 
 afterAll(() => {
   for (const child of booted) killTree(child)
@@ -194,7 +201,7 @@ describeE2E('scaffolded project, end to end', () => {
         // Point the generated project's install at the CLI this repo built — see
         // `tealinaOverride`. Appended rather than written, so the file the scaffolder
         // produced is still the one under test.
-        fs.appendFileSync(workspaceFile, tealinaOverride(projectDir))
+        fs.appendFileSync(workspaceFile, workspaceOverrides(projectDir))
 
         // 2. install — this is also where a broken `allowBuilds` would surface
         must('pnpm', ['install', '--prefer-offline'], projectDir)
@@ -231,15 +238,15 @@ describeE2E('scaffolded project, end to end', () => {
         expect(fs.existsSync(doc), `missing ${doc}`).toBe(true)
         const docJson = JSON.parse(fs.readFileSync(doc, 'utf-8'))
         expect(Object.keys(docJson.apis.post)).toEqual(
-          expect.arrayContaining(['/login', '/article']),
+          expect.arrayContaining(['login', 'article']),
         )
-        expect(docJson.apis.get['/status']).toBeUndefined()
+        expect(docJson.apis.get['status']).toBeUndefined()
 
         // The document has to carry the *derived* response, and this is the only place that
         // sees it end to end. `ExtractApiType` degrades to `never` without a compiler error
         // and without `gdoc` complaining, and what a user would get is a doc page whose
         // response type is the literal string `never` — a page that renders, and lies.
-        const healthDoc = readDocResponse(docJson, 'get', '/health')
+        const healthDoc = readDocResponse(docJson, 'get', 'health')
         expect(healthDoc, 'no documentation for the health demo').not.toBe('{}')
         expect(healthDoc, 'the response projection degraded').not.toContain(
           'never',
@@ -778,7 +785,7 @@ describeE2E('init into an existing project, end to end', () => {
           // scaffold's root ships: esbuild's postinstall is what fetches tsx's binary, and
           // both modes end up with esbuild in the tree — `tealina` pulls tsx in to run a
           // config, and the JavaScript host has no tsx of its own to blame it on.
-          'pnpm-workspace.yaml': `packages:\n  - 'packages/*'\n\nallowBuilds:\n  esbuild: true\n${tealinaOverride(projectDir)}`,
+          'pnpm-workspace.yaml': `packages:\n  - 'packages/*'\n\nallowBuilds:\n  esbuild: true\n${workspaceOverrides(projectDir)}`,
         })
 
         const hostFiles = Object.keys(hostSource[mode][fw])
@@ -811,7 +818,7 @@ describeE2E('init into an existing project, end to end', () => {
         const healthDoc = readDocResponse(
           JSON.parse(fs.readFileSync(docPath, 'utf-8')),
           'get',
-          '/health',
+          'health',
         )
         expect(healthDoc, 'the response projection degraded').not.toContain(
           'never',
@@ -932,7 +939,7 @@ describeE2E('scaffolded project with a frontend, end to end', () => {
       const workspaceFile = path.join(projectDir, 'pnpm-workspace.yaml')
       fs.appendFileSync(
         workspaceFile,
-        tealinaOverride(projectDir, [
+        workspaceOverrides(projectDir, [
           ...(mode === 'js' ? [clientOverride(projectDir)] : []),
         ]),
       )

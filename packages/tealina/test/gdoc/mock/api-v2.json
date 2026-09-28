@@ -1,7 +1,7 @@
 {
   "apis": {
     "get": {
-      "/health": {
+      "health": {
         "response": {
           "kind": 15,
           "statusCode": 200,
@@ -12,7 +12,7 @@
         },
         "comment": "Check server is ok"
       },
-      "/status": {
+      "status": {
         "response": {
           "kind": 3,
           "types": [
@@ -50,7 +50,7 @@
       }
     },
     "post": {
-      "/login": {
+      "login": {
         "body": {
           "kind": 4,
           "id": 824

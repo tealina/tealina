@@ -2,7 +2,7 @@ import type { ApiTypesForClient } from 'server/api/v1'
 
 /**
  * The `Take*` names for the v1 contract. A `.js` file names one by path and calls it with
- * its arguments: `import('../types/v1').TakeBody<'post', '/article'>`.
+ * its arguments: `import('../types/v1').TakeBody<'post', 'article'>`.
  */
 
 /** What the endpoint answers with. Every endpoint has one. */

@@ -100,5 +100,3 @@ export type UnionToIntersection<U> = (
 ) extends (arg: infer T) => void
   ? T
   : never
-
-export type RemoveBeginSlash<T> = T extends `/${infer P}` ? P : T

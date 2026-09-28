@@ -228,7 +228,9 @@ export function openApi2apiDoc(
       if (apis[method] == null) {
         apis[method] = {}
       }
-      const key = url.replace(baseURL, '')
+      // Back to the logical path this doc keys routes by, so a spec that came out of
+      // `convertToOpenApiJson` round-trips to the same key it went in as.
+      const key = url.replace(baseURL, '').replace(/^\//, '')
       if (apis[method][key] == null) {
         apis[method][key] = {}
       }

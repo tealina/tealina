@@ -431,7 +431,11 @@ export function convertToOpenApiJson(
   for (const [method, endpoints] of Object.entries(apiDoc.apis)) {
     for (const [rawEndpoint, docItem] of Object.entries(endpoints)) {
       const pathItem = convertDocItemToPathItem(docItem)
-      const endpoint = [prefix, transformPath(rawEndpoint)].join('')
+      // A doc keys its route as the logical path, so both halves can arrive without the
+      // join slash: the prefix because it is a prefix, the endpoint because that is how
+      // the key is spelled now. Any leading slash the endpoint still carries — a doc JSON
+      // written before that change — comes off rather than doubling.
+      const endpoint = `${prefix.replace(/\/$/, '')}/${transformPath(rawEndpoint).replace(/^\//, '')}`
       if (!openApiJson.paths![endpoint]) {
         openApiJson.paths![endpoint] = {}
       }

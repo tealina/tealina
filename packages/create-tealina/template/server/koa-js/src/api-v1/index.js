@@ -1,4 +1,4 @@
 export default {
-  'get': import('./get/index.js'),
-  'post': import('./post/index.js'),
+  get: import('./get/index.js'),
+  post: import('./post/index.js'),
 }

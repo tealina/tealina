@@ -26,8 +26,8 @@ test('load and transform APIs', async () => {
   })
   const options = transformToRouteOptions<MockHandler>(apiRecords)
   expect(options).deep.eq([
-    { method: 'get', url: 'status', handler: getStutas },
-    { method: 'post', url: 'user/create', handler: createUer },
+    { method: 'get', url: '/status', handler: getStutas },
+    { method: 'post', url: '/user/create', handler: createUer },
   ])
 })
 
@@ -49,9 +49,9 @@ test('test smart reorder', async () => {
   })
   const options = transformToRouteOptions<MockHandler>(apiRecords)
   expect(options).deep.eq([
-    { method: 'post', url: 'user/self/changePassword', handler: mockHandler }, //more slash first
-    { method: 'post', url: 'user/create', handler: mockHandler }, //no params first
-    { method: 'post', url: 'user/:id/address/:phone', handler: mockHandler },
-    { method: 'post', url: 'user/:id/update', handler: mockHandler },
+    { method: 'post', url: '/user/self/changePassword', handler: mockHandler }, //more slash first
+    { method: 'post', url: '/user/create', handler: mockHandler }, //no params first
+    { method: 'post', url: '/user/:id/address/:phone', handler: mockHandler },
+    { method: 'post', url: '/user/:id/update', handler: mockHandler },
   ])
 })

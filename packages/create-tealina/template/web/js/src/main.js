@@ -11,7 +11,7 @@ import { base } from './api/client'
  *
  *     import { req } from './api/client'
  *
- *     const health = await req.get('/health')
+ *     const health = await req.get('health')
  *     const isOk = health.isOk   // the server's boolean, not a copy of it
  *
  * There is nothing to call yet. `src/api-v1/index.js` is the route table and it starts

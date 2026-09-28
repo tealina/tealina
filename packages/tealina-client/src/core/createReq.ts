@@ -1,4 +1,4 @@
-import { makeContext } from './makeContext'
+import { makeContext, toAbsoluteUrl } from './makeContext'
 import type {
   ApiClientShape,
   ClientRequestContext,
@@ -27,9 +27,12 @@ export const createReq = <T extends ApiClientShape, RequestConfig>(
     get:
       (_target, method: string) =>
       (url: string, ...rest: DynamicParameters<RequestConfig>) => {
-        if (rest.length < 1) return requester({ method, url })
+        // Before the branch: the no-payload one hands the url straight over, so
+        // normalizing inside `makeContext` alone would miss it.
+        const absoluteUrl = toAbsoluteUrl(url)
+        if (rest.length < 1) return requester({ method, url: absoluteUrl })
         const [payload, config] = rest
-        const context = makeContext(url, method, payload as PayloadType)
+        const context = makeContext(absoluteUrl, method, payload as PayloadType)
         return requester(context, config)
       },
     ownKeys() {

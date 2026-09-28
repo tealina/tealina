@@ -340,7 +340,7 @@ describe('web manifest', () => {
       }
 
       expect(codeOfPage(webHostFiles(mode))).not.toContain('req')
-      expect(codeOfPage(webFiles(mode))).toContain("req.get('/health')")
+      expect(codeOfPage(webFiles(mode))).toContain("req.get('health')")
 
       // And nothing else about them differs: the two sets are the same list of
       // destinations, sourced from the same trees except for that one entry.

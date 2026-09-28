@@ -13,7 +13,7 @@ test('get request', async () => {
   )
   const res = await req.get.health()
   expect(res).toMatchObject(mockResponse)
-  expect(mockRequester).toHaveBeenCalledWith({ method: 'get', url: 'health' })
+  expect(mockRequester).toHaveBeenCalledWith({ method: 'get', url: '/health' })
 })
 
 test('post request', async () => {
@@ -30,7 +30,7 @@ test('post request', async () => {
   expect(res).toMatchObject(mockResponse)
   expect(mockRequester).toHaveBeenCalledWith({
     method: 'post',
-    url: 'user/create',
+    url: '/user/create',
     data: mockBody,
   })
 })
@@ -51,7 +51,7 @@ test('In route params case', async () => {
   expect(res).toMatchObject(updatedUser)
   expect(mockRequester).toHaveBeenCalledWith({
     method: 'post',
-    url: `user/${mockUser.id}/update`,
+    url: `/user/${mockUser.id}/update`,
     data: mockUpdate,
   })
 })
@@ -70,6 +70,6 @@ test('In query case', async () => {
   expect(res).toMatchObject(mockUser)
   expect(mockRequester).toHaveBeenCalledWith({
     method: 'get',
-    url: `user?${new URLSearchParams(mockQuery)}`,
+    url: `/user?${new URLSearchParams(mockQuery)}`,
   })
 })

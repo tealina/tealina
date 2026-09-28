@@ -58,7 +58,7 @@ export const req = createFetchClient<ApiTypesForClient, RequestInit>(requester)
  * `ApiTypesForClient` reaches `req` only as an argument type, so a function taking a
  * payload it did not build has nothing to annotate itself with. These name one piece of
  * one endpoint by the method and path — the same pair the call is written with, as in
- * `TakeBody<'post', '/article'>`.
+ * `TakeBody<'post', 'article'>`.
  *
  * Both parameters are constrained against the record, so a method or path the server does
  * not answer fails where the type is written rather than at the call.

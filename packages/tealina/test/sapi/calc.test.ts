@@ -27,8 +27,8 @@ test('top index', () => {
   })
   const code =
     'export default {\n' +
-    "  'get': import('./get/index.js'),\n" +
-    "  'post': import('./post/index.js'),\n" +
+    "  get: import('./get/index.js'),\n" +
+    "  post: import('./post/index.js'),\n" +
     '}\n'
   expect(result[0].code).eq(code)
 })
@@ -53,8 +53,8 @@ test('sync api in deep', () => {
   expect(result[0].code).eq(
     [
       'export default {',
-      "  '/user/delete': import('./user/delete.js'),",
-      "  '/user/login': import('./user/login.js'),",
+      "  'user/delete': import('./user/delete.js'),",
+      "  'user/login': import('./user/login.js'),",
       '}',
       '',
     ].join('\n'),
@@ -81,8 +81,31 @@ test('sync api work other suffix, eg: tsx, mts', () => {
   expect(result[0].code).eq(
     [
       'export default {',
-      "  '/page/pdf': import('./page/pdf.js'),",
-      "  '/user/delete': import('./user/delete.js'),",
+      "  'page/pdf': import('./page/pdf.js'),",
+      "  'user/delete': import('./user/delete.js'),",
+      '}',
+      '',
+    ].join('\n'),
+  )
+})
+
+test('a key is quoted only when it is not an identifier', () => {
+  const result = calcSnapshots({
+    kindIndexFiles: [
+      {
+        kind: 'get',
+        content: '',
+        files: ['/health.ts', '/user/list.ts'],
+      },
+    ],
+    ...restCtxMock,
+    suffix: '.js',
+  })
+  expect(result[0].code).eq(
+    [
+      'export default {',
+      "  'user/list': import('./user/list.js'),",
+      "  health: import('./health.js'),",
       '}',
       '',
     ].join('\n'),

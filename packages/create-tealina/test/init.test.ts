@@ -577,7 +577,7 @@ const kWebProbe: Record<Mode, string> = {
   ts: `import { req } from './api/client'
 
 export const probe = async () => {
-  const health = await req.get('/health')
+  const health = await req.get('health')
   const isOk: boolean = health.isOk
   return isOk
 }
@@ -585,7 +585,7 @@ export const probe = async () => {
   js: `import { req } from './api/client'
 
 export const probe = async () => {
-  const health = await req.get('/health')
+  const health = await req.get('health')
   /** @type {boolean} */
   const isOk = health.isOk
   return isOk

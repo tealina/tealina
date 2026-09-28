@@ -3,7 +3,6 @@ import type {
   MakeParameters,
   FullPayload,
   UnionToIntersection,
-  RemoveBeginSlash,
 } from '../core/types'
 
 export interface ShapeOfAxiosReq<D = any> {
@@ -38,17 +37,13 @@ type PathToObject<
   Payload extends FullPayload,
   Config,
   R extends ShapeOfAxiosRes,
-> = RoutePath extends `/${infer Head}/${infer Tail}`
+> = RoutePath extends `${infer Head}/${infer Tail}`
   ? {
-      [K in RemoveBeginSlash<Head> as K extends '' ? never : K]: PathToObject<
-        Tail,
-        Payload,
-        Config,
-        R
-      >
+      // See `core/createRPC.ts`: one level of nesting per route segment.
+      [K in Head]: PathToObject<Tail, Payload, Config, R>
     }
   : {
-      [K in RemoveBeginSlash<RoutePath> as K extends '' ? never : K]: (
+      [K in RoutePath]: (
         ...args: MakeParameters<Payload, Config>
       ) => Promise<Omit<R, 'data'> & { data: Payload['response'] }>
     }

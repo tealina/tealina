@@ -6,7 +6,7 @@ import { req } from './api/client'
  * side writes the type down. There is no annotation here to keep in step with the
  * handler: rename the field over there and this line stops compiling.
  */
-const health = await req.get('/health')
+const health = await req.get('health')
 const isOk = health.isOk
 
 const app = document.querySelector('#app')

@@ -79,6 +79,10 @@ export function DetailContent(summary: OneApiSummary) {
     useDetailState(doc, docItem)
   const source = useAtomValue(curJsonSourceAtom)
   const color = getMethodColor(identity.method)
+  const url = [
+    source.baseURL.replace(/\/$/, ''),
+    identity.path.replace(/^\//, ''),
+  ].join('/')
   return (
     <div className="p-3 h-screen flex flex-col">
       <div className="text-lg flex-shrink-0">
@@ -87,7 +91,7 @@ export function DetailContent(summary: OneApiSummary) {
             {identity.method}
           </Tag>
           <ColorText type="string" className="tracking-wider">
-            {[source.baseURL, identity.path].join('')}
+            {url}
           </ColorText>
           <CopyButton
             identity={identity}

@@ -1,4 +1,4 @@
 export default {
-  '/login': import('./login.js'),
-  '/article': import('./article.js'),
+  login: import('./login.js'),
+  article: import('./article.js'),
 }

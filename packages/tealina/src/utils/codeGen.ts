@@ -6,16 +6,27 @@ const toRoutePath = (xs: string[]) => {
   return route
 }
 
+const IdentifierPattern = /^[A-Za-z_$][A-Za-z0-9_$]*$/
+
+/**
+ * A key is written bare when it is a plain identifier and quoted otherwise — `health`, but
+ * `user/create` and `user/:id`. This is the same judgement a formatter makes when it walks
+ * the file afterwards, so a generated barrel is already in the shape one would leave it in:
+ * formatting the tree produces no diff, and `align` does not rewrite what a formatter wrote.
+ */
+const toPropKey = (key: string) =>
+  IdentifierPattern.test(key) ? key : `'${key}'`
+
 export const genTopIndexProp =
   (suffix = '') =>
   (dir: string) =>
-    `  '${dir}': import('./${dir}/index${suffix}'),`
+    `  ${toPropKey(dir)}: import('./${dir}/index${suffix}'),`
 
 export const genIndexProp =
   (suffix = '') =>
   (fullPathArr: string[]) => {
     const key = toRoutePath(fullPathArr)
-    return `  '/${key}': import('./${fullPathArr.join('/')}${suffix}'),`
+    return `  ${toPropKey(key)}: import('./${fullPathArr.join('/')}${suffix}'),`
   }
 
 export const genWithWrapper = (contens: string[]) =>
