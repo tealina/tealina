@@ -58,7 +58,10 @@ describe('test render fn type2cell', () => {
     }
     const CellText = type2cell(input, emptyContext)
     const layout = render(CellText)
-    expect(layout.getByText('File')).toHaveStyle({ color: TypeColors.any })
+    //The type name is a link, so only the wrapper it inherits from is coloured
+    expect(layout.getByText('File').parentElement).toHaveStyle({
+      color: TypeColors.any,
+    })
   })
 
   test('Record', () => {
