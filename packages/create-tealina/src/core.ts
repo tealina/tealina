@@ -17,7 +17,7 @@ export type ServerTemplate = (typeof kServerTemplates)[number]
 /**
  * This package's own `template/` directory. Resolved off `import.meta.url` the same way
  * `createCtx` resolves the project root below — the file sits directly in `src/` when run
- * through tsx and directly in `dist/` after `unbuild`, so `../..` is the package root in
+ * through tsx and directly in `dist/` after `vp pack`, so `../..` is the package root in
  * both. `init` reads from here too, which is why it is a module-level constant now.
  */
 export const templateRootDir = path.resolve(

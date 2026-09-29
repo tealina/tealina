@@ -25,7 +25,7 @@
   },
   "scripts": {
     "gen-types": "tsc src/index.ts src/utility-types.ts --ignoreConfig --strict false --declaration --emitDeclarationOnly --esModuleInterop --outDir dist",
-    "build": "unbuild && pnpm gen-types",
+    "build": "rm -rf dist && vp pack && pnpm gen-types",
     "test": "vp test --dir ./test --run --testTimeout=20000"
   },
   "dependencies": {

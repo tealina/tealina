@@ -207,8 +207,11 @@ type Snapshot = {
 
 ## 8. 构建与发布
 
-- **tealina 用 mkdist**（`build.config.ts` + `builder: 'mkdist'`）：`src/` 1:1 镜像到 `dist/`，**不打包**。所以 `dist/index.mjs` 只有 304 字节，且 `dist/commands/sapi.mjs` 这类深路径可被寻址。配套 `gen-types` 脚本（`package.json:15`）单独跑 `tsc --declaration --emitDeclarationOnly` 出 `.d.ts`，注意它**只以 `src/index.ts` 为根**，图外的文件拿不到声明。
-- **create-tealina 用 unbuild rollup + `inlineDependencies: true`**：依赖全打进单文件，所以 `dependencies` 可以留着而产物自包含。
+- **库包统一用 `vp pack`（tsdown），配置写在各自 `vite.config.ts` 的 `pack` 块里**——没有 `build.config.ts`，也没有单独的 `tsdown.config.ts`。`target` 一律 `node20`（唯一的例外是浏览器侧的 `tealina-client`，它是 `es6`），与各包 `engines.node: ">=20.19"`、以及 CI 的 `node-version: 20` 对应。根 `@types/node` 也是照这个下限钉的（`^20.19.4`，只此一处声明，其余包靠提升共用）——**不要升到最新大版本**：`types` 要描述*最低支持*的运行时，写高了会放行 Node 20 上根本不存在的 API。产物后缀靠 `fixedExtension`：要 `.mjs` 就用默认，要 `.js` 必须显式 `false`（`main` 写死了 `.js` 的那几个包都设了）。
+- **tealina 用 `unbundle`**：`src/` 1:1 镜像到 `dist/`，**不打包**。所以 `dist/commands/sapi.mjs` 这类深路径可被寻址。`unbundle` 不能关：bin shim（`index.js`）直接 import `dist/utils/catchError.mjs` 和 `dist/commands/index.mjs`，改成打包就断了。
+- **create-tealina 打包成单个 `dist/index.mjs`**（minify 开）。`chalk`/`minimist`/`prompts` 列在 `dependencies` 里，tsdown 默认把它们**外置**——产物并不自包含，运行时靠这几个依赖被装上。
+- **声明文件有两个来源**：多数包是 tsdown 的 `dts: true`；`tealina` 例外，走 `gen-types` 脚本（`tsc --declaration --emitDeclarationOnly`）——因为它的 `fixedExtension` 是 `true`，tsdown 会吐 `.d.mts`，与写死的 `./dist/index.d.ts` 对不上。注意 `gen-types` **只以 `src/index.ts` 为根**，图外的文件拿不到声明。另：`dts: true` 会把 workspace 内的类型内联进 `.d.ts`（`doc-types` 的产物里就没有那行 `import ... from '@tealina/utility-types'` 了），对这些包是好事——那个依赖只列在 `devDependencies` 里，外部消费者本来就解析不到。
+- **唯一不用 `vp pack` 的是 `tealina-doc-ui-src`**（`private`）：它是浏览器 app，走 `vp build`，产物直接落到 `tealina-doc-ui/static`。
 - **版本注入**：`scripts/update-version-in-template.mjs` 把各包的**真实版本号**写进模板的 `versionMaps.json`，目前只有一处（`kVersionMapPaths`，`:73-75`）：`packages/create-tealina/template/versionMaps.json`。注意 `workflow()` 里对 versionMaps 的每个 key 都要求 `packages/<name>` 存在，否则 `throw sub pkg not found`（`:85`）；一旦新增模板副本，这里必须同步加路径，否则新模板里的版本号会一直停在上次手改的值。
 - **同一个脚本里还有一条注入是断的**：模板的 `template/server/*/package.json` 把 `devDependencies` 直接写死（`tealina` 还停在 `^2.2.2`），唯一会去改它们的 `updateTeamplateDependance`（`TEMP_LIST`，`:5-9`）唯一的调用点在 `:110-113`，是注释掉的。于是 `versionMaps.json` 里的依赖每次发布都跟着升，模板自身的 devDependencies 不会——`^` 范围目前还兜得住，但那是碰巧，不是被注入的。
 - **发布**：changesets。CI 递归 `pnpm build` + `pnpm test`；publish workflow 在 CI 成功后跑 `pnpm release`。

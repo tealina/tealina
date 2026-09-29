@@ -15,7 +15,7 @@ const repoRoot = path.resolve(here, '../../..')
  *
  * It cannot live in the test files, which is where it used to be. A "build once" flag is
  * per *process*, and Vitest runs these files in parallel workers: `e2e.test.ts` and
- * `init.test.ts` each built `tealina`, and `unbuild` cleans `dist/` before repopulating it.
+ * `init.test.ts` each built `tealina`, and a build clears `dist/` before repopulating it.
  * One worker's `tsc` resolving `tealina/utility-types` mid-wipe is a TS2307 for a package
  * that is installed and correct, and the failure lands on whichever fixture happened to be
  * compiling — not on the one doing the building. Building above the workers removes the

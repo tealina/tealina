@@ -108,7 +108,8 @@ export default defineConfig({
           // create-tealina 的 testTimeout / include / globalSetup 也在它自己的配置里——
           // 那一份同时服务从包目录发起的 `vp test`，两边只能有一处真相。
           pkg('create-tealina'),
-          // 其余包没有配置文件可继承，用内联对象带 testTimeout 这类项目级选项
+          // 其余包的包内配置里没有 test 块（tealina 那份只有 pack），没有项目级
+          // 选项可继承，所以用内联对象带 testTimeout 这类东西
           {
             root: pkg('tealina'),
             test: {

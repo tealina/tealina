@@ -20,16 +20,18 @@
     "tealina-monorepo": "link:."
   },
   "devDependencies": {
-    "@types/node": "^18.19.64",
+    "@types/node": "^20.19.4",
     "@vitest/coverage-v8": "catalog:",
     "concurrently": "^9.2.0",
     "dotenv-cli": "^10.0.0",
     "tsx": "4.19.2",
     "typescript": "^6.0.3",
-    "unbuild": "^3.6.1",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"
   },
-  "packageManager": "pnpm@12.5.1"
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=20.19"
+  }
 }

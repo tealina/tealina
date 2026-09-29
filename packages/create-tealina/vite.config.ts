@@ -13,4 +13,22 @@ export default defineConfig({
     include: ['test/**/*.test.ts'],
     globalSetup: ['./test/global-setup.ts'],
   },
+  // 单文件产物：`index.js`（bin）和仓库根的 `cproj` 脚本都直接指向
+  // `dist/index.mjs`，所以输出名不能变。platform 为 node 时 `fixedExtension`
+  // 默认为 true，esm 正好给 `.mjs`。
+  //
+  // `chalk`/`minimist`/`prompts` 列在 `dependencies` 里，tsdown 默认把它们外置
+  // —— 与现在的产物一致，不需要额外配置。
+  pack: {
+    entry: { index: 'src/index.ts' },
+    format: 'esm',
+    platform: 'node',
+    target: 'node20',
+    minify: true,
+    // 显式关掉：这个包没写 `types`，tsdown 会退到读 tsconfig 的
+    // `compilerOptions.declaration`——现在恰好没开，但哪天开了就会开始吐 `.d.mts`。
+    dts: false,
+    outDir: 'dist',
+    clean: false,
+  },
 })

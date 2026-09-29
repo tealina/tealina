@@ -19,7 +19,10 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "build": "rm -rf dist && vp pack",
     "test": "vp test --run"
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }

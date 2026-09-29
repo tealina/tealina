@@ -20,7 +20,7 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "unbuild",
+    "build": "rm -rf dist && vp pack",
     "test": "vp test --testTimeout=0 --run",
     "cproj": "tsx src/index.ts"
   },

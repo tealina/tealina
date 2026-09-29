@@ -42,5 +42,8 @@
   },
   "devDependencies": {
     "axios": "^1.7.7"
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }

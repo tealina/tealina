@@ -18,10 +18,13 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf dist && vp pack",
     "test": "pnpm tsc ./index.ts --ignoreConfig --noEmit"
   },
   "devDependencies": {
     "@tealina/utility-types": "workspace:*"
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }

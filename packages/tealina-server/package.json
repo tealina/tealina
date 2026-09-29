@@ -15,5 +15,8 @@
   "scripts": {
     "test": "vp test --run",
     "build": "rm -rf dist && vp pack"
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }
