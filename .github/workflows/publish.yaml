@@ -15,16 +15,20 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: "pnpm"
+      - uses: actions/checkout@v4
 
-      - run: pnpm install --frozen-lockfile
+      # 这里原本是 pnpm/action-setup@v2 + version: 8，与仓库对不上：lockfile 是
+      # lockfileVersion '9.0'，packageManager 写的是 pnpm@12.5.1。
+      # setup-vp 按 packageManager 字段装包管理器，不再手写版本号。
+      - uses: voidzero-dev/setup-vp@v1.20.0
+        with:
+          node-version: '20'
+          cache: true
+          # 同 CI：action 自带的 install 不带 --frozen-lockfile，会先把 lockfile
+          # 改掉，让下一步的 --frozen-lockfile 失效。
+          run-install: false
+
+      - run: vp install --frozen-lockfile
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1
