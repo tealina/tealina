@@ -98,7 +98,7 @@ export function DetailContent(summary: OneApiSummary) {
             className="invisible group-hover:visible pl-2"
           />
         </div>
-        <Card className="mt-3 min-h-18" bodyStyle={{ padding: '10px' }}>
+        <Card className="mt-3 min-h-18" styles={{ body: { padding: '10px' } }}>
           <MarkdownView>{docItem.comment}</MarkdownView>
         </Card>
       </div>

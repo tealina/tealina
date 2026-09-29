@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { useAtomValue } from 'jotai'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -52,13 +52,18 @@ describe('test use menus hook', () => {
         </div>
       )
     }
-    const result = render(
-      <div>
-        <ApiMenus />
+    // `<ApiMenus>` suspends while the api doc loads. React only retries a
+    // boundary that first suspended inside an *awaited* act scope, so a bare
+    // `render` would leave the spinner up forever.
+    const result = await act(async () =>
+      render(
         <div>
-          <ContentSection />
-        </div>
-      </div>,
+          <ApiMenus />
+          <div>
+            <ContentSection />
+          </div>
+        </div>,
+      ),
     )
     const list = await result.findAllByText('health')
     const el = list.find(v => v.classList.contains('ant-menu-title-content'))

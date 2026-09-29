@@ -78,7 +78,7 @@ export function EntityTable({
     },
   ]
   return (
-    <Card bodyStyle={{ padding: 10 }}>
+    <Card styles={{ body: { padding: 10 } }}>
       <div className="text-lg">
         <div>
           {entity.comment && (
