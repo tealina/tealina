@@ -1,5 +1,5 @@
 import type { OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 /**

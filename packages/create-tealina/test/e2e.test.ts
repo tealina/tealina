@@ -361,8 +361,8 @@ const HOST_DEP: Record<Framework, Record<string, string>> = {
 const hostSourceTs: Record<Framework, Record<string, string>> = {
   express: {
     'src/index.ts': `import express from 'express'
-import { buildApiRouter } from './app/routes/api/index.js'
-import { VDOC_BASENAME, docRouter } from './app/routes/static/doc.js'
+import { buildApiRouter } from './routes/api/index.js'
+import { VDOC_BASENAME, docRouter } from './routes/static/doc.js'
 import { usersRouter } from './routes/users.js'
 
 const app = express()
@@ -382,8 +382,8 @@ export const usersRouter = Router().get('/', (_req, res) => {
   },
   koa: {
     'src/index.ts': `import Koa from 'koa'
-import { buildApiRouter } from './app/routes/api/index.js'
-import { docRouter } from './app/routes/static/docs.js'
+import { buildApiRouter } from './routes/api/index.js'
+import { docRouter } from './routes/static/docs.js'
 import { usersRouter } from './routes/users.js'
 
 const app = new Koa()
@@ -404,8 +404,8 @@ export const usersRouter = new Router().get('/users', ctx => {
   },
   fastify: {
     'src/index.ts': `import fastify from 'fastify'
-import { buildApiRouter } from './app/routes/api/index.js'
-import { VDOC_BASENAME, docRouter } from './app/routes/static/docs.js'
+import { buildApiRouter } from './routes/api/index.js'
+import { VDOC_BASENAME, docRouter } from './routes/static/docs.js'
 import { registerUsers } from './routes/users.js'
 
 const app = fastify()
@@ -437,8 +437,8 @@ export const registerUsers = async (app: FastifyInstance) => {
 const hostSourceJs: Record<Framework, Record<string, string>> = {
   express: {
     'src/index.js': `import express from 'express'
-import { buildApiRouter } from './app/routes/api/index.js'
-import { VDOC_BASENAME, docRouter } from './app/routes/static/doc.js'
+import { buildApiRouter } from './routes/api/index.js'
+import { VDOC_BASENAME, docRouter } from './routes/static/doc.js'
 import { usersRouter } from './routes/users.js'
 
 const app = express()
@@ -458,8 +458,8 @@ export const usersRouter = Router().get('/', (_req, res) => {
   },
   koa: {
     'src/index.js': `import Koa from 'koa'
-import { buildApiRouter } from './app/routes/api/index.js'
-import { docRouter } from './app/routes/static/docs.js'
+import { buildApiRouter } from './routes/api/index.js'
+import { docRouter } from './routes/static/docs.js'
 import { usersRouter } from './routes/users.js'
 
 const app = new Koa()
@@ -480,8 +480,8 @@ export const usersRouter = new Router().get('/users', ctx => {
   },
   fastify: {
     'src/index.js': `import fastify from 'fastify'
-import { buildApiRouter } from './app/routes/api/index.js'
-import { VDOC_BASENAME, docRouter } from './app/routes/static/docs.js'
+import { buildApiRouter } from './routes/api/index.js'
+import { VDOC_BASENAME, docRouter } from './routes/static/docs.js'
 import { registerUsers } from './routes/users.js'
 
 const app = fastify()
@@ -512,7 +512,7 @@ const hostSource: Record<Mode, Record<Framework, Record<string, string>>> = {
 const initEndpointsTs: Record<Framework, Record<string, string>> = {
   express: {
     'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
@@ -537,7 +537,7 @@ export default convention(handler)
   },
   koa: {
     'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
@@ -562,7 +562,7 @@ export default convention(handler)
   },
   fastify: {
     'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
@@ -596,7 +596,7 @@ export default convention(handler)
  */
 const initEndpointsJs: Record<Framework, Record<string, string>> = {
   express: {
-    'src/api-v1/get/health.js': `import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+    'src/api-v1/get/health.js': `import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 /**
@@ -625,7 +625,7 @@ export default convention(handler)
 `,
   },
   koa: {
-    'src/api-v1/get/health.js': `import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+    'src/api-v1/get/health.js': `import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 /**
@@ -654,7 +654,7 @@ export default convention(handler)
 `,
   },
   fastify: {
-    'src/api-v1/get/health.js': `import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+    'src/api-v1/get/health.js': `import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 /**

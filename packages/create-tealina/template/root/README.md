@@ -27,10 +27,12 @@ packages/server/
       get/index.ts       the route table for that method (generated — see below)
       post/login.ts  ->  POST /api/v1/login
       post/article.ts -> POST /api/v1/article
-    app/                 routes, middlewares, static + docs wiring
-      middlewares/auth/  openHandler marks a route public; verifyToken is the guard
+    routes/              the api router, the static assets, the API doc page
+    middlewares/auth/    openHandler marks a route public; verifyToken is the guard
     convention.ts        ties the handlers of one endpoint together, order-preserving
     config/env.ts        reads .env
+    app.ts               wires the routes onto the framework instance
+    index.ts             builds the app and starts listening
   docs/api-v1.json       generated API document (do not edit by hand)
 
 packages/web/            only when scaffolded with --web — see "The frontend" below
@@ -53,7 +55,7 @@ annotation** is what everything else is derived from:
 
 ```ts
 import type { OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 interface LoginPayload {
@@ -82,7 +84,7 @@ globals instead of an import — nothing to count `../` for, which matters becau
 writes stubs into directories that did not exist when the type file was written:
 
 ```js
-import { openHandler } from '../../app/middlewares/auth/openHandler.js'
+import { openHandler } from '../../middlewares/auth/openHandler.js'
 import { convention } from '../../convention.js'
 
 /**
@@ -166,7 +168,7 @@ then surprises you at runtime (a route the types say is public answering `401`, 
 handler reaching for `locals.userId` on a route anyone can call).
 
 The guard itself is `verifyToken` — `openHandler`'s neighbour in
-`src/app/middlewares/auth/`. It currently accepts any header value and sets `userId` to a
+`src/middlewares/auth/`. It currently accepts any header value and sets `userId` to a
 placeholder. Replace the `TODO` with your real token check. The 401 body is
 `{ "code": "Unauthorized", "message": "..." }`.
 

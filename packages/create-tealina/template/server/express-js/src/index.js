@@ -1,6 +1,6 @@
 import { PORT } from './config/env.js'
-import { buildApp } from './app/index.js'
-import { VDOC_BASENAME } from './app/routes/static/doc.js'
+import { buildApp } from './app.js'
+import { VDOC_BASENAME } from './routes/static/doc.js'
 
 const logAddress = () => {
   console.log(`Service started at http://localhost:${PORT}`)

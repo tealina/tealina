@@ -320,22 +320,22 @@ const mergePackageJson = (
  */
 const kMountSnippet: Record<ServerTemplate, string[]> = {
   express: [
-    "import { buildApiRouter } from './app/routes/api/index.js'",
-    "import { VDOC_BASENAME, docRouter } from './app/routes/static/doc.js'",
+    "import { buildApiRouter } from './routes/api/index.js'",
+    "import { VDOC_BASENAME, docRouter } from './routes/static/doc.js'",
     '',
     "app.use('/api', await buildApiRouter())",
     'app.use(VDOC_BASENAME, docRouter)',
   ],
   koa: [
-    "import { buildApiRouter } from './app/routes/api/index.js'",
-    "import { docRouter } from './app/routes/static/docs.js'",
+    "import { buildApiRouter } from './routes/api/index.js'",
+    "import { docRouter } from './routes/static/docs.js'",
     '',
     'app.use((await buildApiRouter()).routes())',
     'docRouter(app)',
   ],
   fastify: [
-    "import { buildApiRouter } from './app/routes/api/index.js'",
-    "import { VDOC_BASENAME, docRouter } from './app/routes/static/docs.js'",
+    "import { buildApiRouter } from './routes/api/index.js'",
+    "import { VDOC_BASENAME, docRouter } from './routes/static/docs.js'",
     '',
     "await fastify.register(buildApiRouter, { prefix: '/api' })",
     'fastify.register(docRouter, { prefix: VDOC_BASENAME })',

@@ -131,11 +131,8 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   // it is self-contained, while its neighbour `verifyToken` belongs to the running app
   // (it answers 401 itself), and this fixture is the contract layer, not the app.
   copyInto(
-    path.join(
-      templateDir,
-      `${tree}/src/app/middlewares/auth/openHandler.${ext}`,
-    ),
-    path.join(dest, `src/app/middlewares/auth/openHandler.${ext}`),
+    path.join(templateDir, `${tree}/src/middlewares/auth/openHandler.${ext}`),
+    path.join(dest, `src/middlewares/auth/openHandler.${ext}`),
   )
   if (options.convention != null) {
     fs.writeFileSync(

@@ -26,7 +26,7 @@ import { PROBE_JS, WIDENED_CONVENTION } from './probe.js'
  * It has already earned its keep — the express JavaScript tree type-checked in the
  * template's own gate and failed here, in a host, with TS2355 on every synchronous
  * middleware, because `@types/express-serve-static-core` changed `RequestHandler`'s return
- * to `unknown`. `setupApiHeaders` in `template/server/express-js/src/app/routes/api/index.js`
+ * to `unknown`. `setupApiHeaders` in `template/server/express-js/src/routes/api/index.js`
  * is that case, still written in the cast form that compiles.
  *
  * No install and no network, same as T1: `tsc` comes from this package's own devDependencies

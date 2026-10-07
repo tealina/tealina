@@ -1,6 +1,6 @@
 import { PORT } from './config/env.js'
-import { buildApp } from './app/index.js'
-import { VDOC_BASENAME } from './app/routes/static/docs.js'
+import { buildApp } from './app.js'
+import { VDOC_BASENAME } from './routes/static/docs.js'
 import type { AddressInfo } from 'node:net'
 
 const logAddress = (address: AddressInfo) => {
