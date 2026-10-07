@@ -4,12 +4,12 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vite-plus/test'
 import jsTemplate from '../template/common/js/tealina.config.js'
-import { PROBE_JS, PROBE_TS, WIDENED_CONVENTION } from './probe.js'
+import { PROBE_JS, PROBE_TS, WIDENED_ACCESS } from './probe.js'
 
 /**
  * T1 — the cheap "does it actually compile" gate.
  *
- * Copies the shipped contract subtree (types + convention + the marker the demos import
+ * Copies the shipped contract subtree (types + access + the guard it imports
  * + api-v1 demos) into a scratch project and type-checks it. No install and no network:
  * the compiler and the framework types both come from this package's own devDependencies,
  * so this runs in a couple of seconds and is safe to leave on by default.
@@ -81,8 +81,8 @@ const fixtureTsconfig = (mode: Mode) => ({
 })
 
 type BuildOptions = {
-  /** Replaces `src/convention.<ext>` after the tree has been copied. */
-  convention?: string
+  /** Replaces `src/access.<ext>` after the tree has been copied. */
+  access?: string
   /** Deletes the JS handlers' global aliases from `types/handler.d.ts`. */
   stripGlobals?: boolean
   /** Names the scratch directory, for a variant that differs only in how it is run. */
@@ -96,7 +96,7 @@ type BuildOptions = {
 const GLOBAL_NAMESPACE_MARKER = '// Aliases for JavaScript handlers.'
 
 function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
-  const variant = options.convention
+  const variant = options.access
     ? '-mut'
     : options.stripGlobals
       ? '-strip'
@@ -124,21 +124,17 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
     path.join(dest, 'src/api-v1'),
   )
   fs.copyFileSync(
-    path.join(templateDir, `${tree}/src/convention.${ext}`),
-    path.join(dest, `src/convention.${ext}`),
+    path.join(templateDir, `${tree}/src/access.${ext}`),
+    path.join(dest, `src/access.${ext}`),
   )
-  // The demos import the public-route marker from here. Only `openHandler` comes along:
-  // it is self-contained, while its neighbour `verifyToken` belongs to the running app
-  // (it answers 401 itself), and this fixture is the contract layer, not the app.
+  // `access` imports the guard, so the directory comes along with it. The guard's 401
+  // branch is app behaviour this fixture never runs; `tsc` only has to be able to read it.
   copyInto(
-    path.join(templateDir, `${tree}/src/middlewares/auth/openHandler.${ext}`),
-    path.join(dest, `src/middlewares/auth/openHandler.${ext}`),
+    path.join(templateDir, `${tree}/src/middlewares/auth`),
+    path.join(dest, 'src/middlewares/auth'),
   )
-  if (options.convention != null) {
-    fs.writeFileSync(
-      path.join(dest, `src/convention.${ext}`),
-      options.convention,
-    )
+  if (options.access != null) {
+    fs.writeFileSync(path.join(dest, `src/access.${ext}`), options.access)
   }
   // The stub `align` writes is a string, and nothing else compiles it: the e2e suite runs
   // `align` but never type-checks what came out, so a type name the generator gets wrong
@@ -246,7 +242,7 @@ describe('shipped contract layer type-checks', () => {
 
   for (const mode of ['ts', 'js'] as const) {
     for (const fw of FRAMEWORKS) {
-      it(`${fw} (${mode}): types + convention + api-v1 compile and project correctly`, () => {
+      it(`${fw} (${mode}): types + access + api-v1 compile and project correctly`, () => {
         const dest = buildFixture(fw, mode)
         const output = runTsc(dest)
         expect(output, `tsc reported:\n${output}`).toBe('')
@@ -259,11 +255,11 @@ describe('shipped contract layer type-checks', () => {
     // to catch — a projection that quietly becomes `never` — is invisible in the output
     // of the test above. So: break it on purpose, and insist the compiler notices.
     it(`${fw} (js): the probe still fails when the projection is broken`, () => {
-      const dest = buildFixture(fw, 'js', { convention: WIDENED_CONVENTION })
+      const dest = buildFixture(fw, 'js', { access: WIDENED_ACCESS })
       const output = runTsc(dest)
       expect(
         output,
-        'the JS probe compiled against a deliberately widened convention — it is no ' +
+        'the JS probe compiled against a deliberately widened access module — it is no ' +
           `longer able to detect a projection that degrades to \`never\`:\n${output}`,
       ).toContain('TS2322')
     })

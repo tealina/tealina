@@ -1,10 +1,10 @@
 import type { Middleware } from 'koa'
 
 /**
- * Guards every endpoint whose handler chain carries no `openHandler` marker
- * (see `src/routes/api/v1.ts`).
+ * The guard every `authedApi(handler)` chain carries as its first element, ahead of the
+ * endpoint's own middlewares.
  */
-const verifyToken: Middleware = async (ctx, next) => {
+export const verifyToken: Middleware = async (ctx, next) => {
   const { authorization } = ctx.headers
   if (authorization == null) {
     ctx.status = 401
@@ -20,5 +20,3 @@ const verifyToken: Middleware = async (ctx, next) => {
   ctx.state = { userId: 'xxx' }
   await next()
 }
-
-export { verifyToken }

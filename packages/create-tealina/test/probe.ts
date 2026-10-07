@@ -70,20 +70,23 @@ export const articleDoc = { id: 1 }
 `
 
 /**
- * `convention` rewritten to the shape the shipped one would have if someone annotated the
- * rest parameter instead of the whole tuple — the mistake this design is most exposed to,
- * and the one no compiler error points at. Returned as a plain array, the per-endpoint
- * tuple is lost: `LastElement` hands back the array itself, an array is not a
+ * `openApi` / `authedApi` rewritten to the shape the shipped pair would have if someone
+ * annotated the rest parameter instead of the whole tuple — the mistake this design is most
+ * exposed to, and the one no compiler error points at. Returned as a plain array, the
+ * per-endpoint tuple is lost: `LastElement` hands back the array itself, an array is not a
  * `HandlerAlias`, and so `ExtractApiType` degrades to `never`.
  *
- * Used only to prove the probe can still see that. It is the `convention` of a
- * *JavaScript* tree, so it only replaces a `.js` one.
+ * Used only to prove the probe can still see that. It is the `access` module of a
+ * JavaScript tree, so it only replaces a `.js` one.
  */
-export const WIDENED_CONVENTION = `/**
+export const WIDENED_ACCESS = `/**
  * @typedef {import('../types/handler.js').CustomHandlerType} CustomHandlerType
  * @typedef {(...handlers: CustomHandlerType[]) => CustomHandlerType[]} EnsureHandlerType
  */
 
 /** @type {EnsureHandlerType} */
-export const convention = (...handlers) => handlers
+export const openApi = (...handlers) => handlers
+
+/** @type {EnsureHandlerType} */
+export const authedApi = (...handlers) => handlers
 `

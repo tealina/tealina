@@ -1,10 +1,10 @@
 import type { RequestHandler } from 'express'
 
 /**
- * Guards every endpoint whose handler chain carries no `openHandler` marker
- * (see `src/routes/api/v1.ts`).
+ * The guard every `authedApi(handler)` chain carries as its first element, ahead of the
+ * endpoint's own middlewares.
  */
-const handler: RequestHandler = (req, res, next) => {
+export const verifyToken: RequestHandler = (req, res, next) => {
   const { authorization } = req.headers
   if (authorization == null) {
     res.status(401).json({
@@ -19,5 +19,3 @@ const handler: RequestHandler = (req, res, next) => {
   res.locals.userId = 'xxx'
   next()
 }
-
-export const verifyToken = handler

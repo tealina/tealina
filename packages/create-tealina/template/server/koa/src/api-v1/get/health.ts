@@ -1,6 +1,5 @@
 import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+import { openApi } from '../../access.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -11,4 +10,4 @@ const handler: ApiType = async ctx => {
   ctx.body = { isOk: true }
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)

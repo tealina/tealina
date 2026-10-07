@@ -698,7 +698,7 @@ const getHandlerSymbol = exportAssignment => {
       const last = unwrapParens(lastArgument)
       if (!ts.isIdentifier(last)) {
         throw (
-          'The handler passed to convention() must be an identifier: put the JSDoc ' +
+          "The exported call's handler must be an identifier: put the JSDoc " +
           'type cast on a const declaration, then pass that const.'
         )
       }

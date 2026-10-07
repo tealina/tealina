@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vite-plus/test'
 import { type ServerTemplate, kServerTemplates } from '../src/core.js'
 import { type Mode, initFiles, webHostFiles } from '../src/template-manifest.js'
-import { PROBE_JS, WIDENED_CONVENTION } from './probe.js'
+import { PROBE_JS, WIDENED_ACCESS } from './probe.js'
 
 /**
  * T5 — `init` against a project that already exists, in both modes.
@@ -497,12 +497,12 @@ describe('init into an existing project', () => {
   }
 
   // The JavaScript-only arm, and the reason it exists is that T1 can only ever prove the
-  // *template's* convention projects correctly. What `init` installs is a copy, in a
+  // *template's* copy projects correctly. What `init` installs is another one, in a
   // directory the test did not choose, beside a host that may already have its own idea of
-  // what `src/convention.js` is. So: break the installed copy, and insist the probe — which
+  // what `src/access.js` is. So: break the installed copy, and insist the probe — which
   // is checking types derived from that copy, through the host's own tsconfig — notices.
   for (const fw of kServerTemplates) {
-    it(`${fw} (js): the installed convention is what the projection reads`, () => {
+    it(`${fw} (js): the installed access module is what the projection reads`, () => {
       const { dir } = prepared(fw, 'js', true)
 
       // Control first, and it is not ceremony: the demo endpoints and the probe are written
@@ -514,18 +514,18 @@ describe('init into an existing project', () => {
         `the probe did not compile against the installed template:\n${clean}`,
       ).toBe('')
 
-      fs.writeFileSync(path.join(dir, 'src/convention.js'), WIDENED_CONVENTION)
+      fs.writeFileSync(path.join(dir, 'src/access.js'), WIDENED_ACCESS)
       const broken = runTsc(dir)
       // Named precisely, not just `toContain('TS2322')`: the failure has to be the probe
       // lines degrading to `never`, one per assertion in `PROBE_JS`. A diagnostic from
       // anywhere else in the fixture would satisfy the loose form and prove nothing about
-      // the installed convention.
+      // the copy `init` installed.
       const degraded = broken
         .split('\n')
         .filter(line => line.includes('probe.js') && line.includes("'never'"))
       expect(
         degraded.length,
-        'the probe compiled against a deliberately widened convention — the copy `init` ' +
+        'the probe compiled against a deliberately widened access module — the copy `init` ' +
           `installed is not the one the projection reads:\n${broken}`,
       ).toBe(PROBE_JS.match(/@type \{/g)?.length)
     })
@@ -838,7 +838,7 @@ describe('init --web', () => {
     // the package its types resolves to nothing, and what would land is a Vite app whose
     // client types nothing at all — the failure this feature exists to prevent.
     expect(res.status, `init --web exited ${res.status}:\n${output}`).toBe(0)
-    expect(fs.existsSync(path.join(hostDir, 'src/convention.ts'))).toBe(true)
+    expect(fs.existsSync(path.join(hostDir, 'src/access.ts'))).toBe(true)
     expect(output).toContain('--web skipped')
     expect(output).toContain('"./api/v1"')
     expect(fs.existsSync(path.join(root, 'web'))).toBe(false)

@@ -56,9 +56,11 @@ my-app/
     types/              the contract layer
     src/
       api-v1/           get/health.ts, post/login.ts, post/article.ts
-      app/              routes, middlewares, static + docs wiring
-        middlewares/auth/  openHandler + verifyToken — the whole public/authed decision
-      convention.ts     order-preserving handler combinator
+      routes/           the api router, the static assets, the API doc page
+      middlewares/auth/ verifyToken — the guard authedApi puts in front of a chain
+      access.ts         openApi / authedApi — the two ways a handler file ends
+      config/env.ts     reads .env
+      app.ts            wires the routes onto the framework instance
     tealina.config.ts   pre-configured
   packages/web/         only with --web
     src/
@@ -74,9 +76,10 @@ body and a typed response, so it demonstrates the whole path from handler annota
 frontend type.
 
 Every endpoint requires an `Authorization` header by default. An endpoint makes itself
-public where it is written, by carrying the `openHandler` marker in its handler chain —
-`convention(openHandler, handler)` instead of `convention(handler)`. The router holds no
-list of paths, so a new endpoint is private until you say otherwise.
+public where it is written, by ending its file in `openApi(handler)` instead of
+`authedApi(handler)` — the same call that annotates the handler installs (or withholds) the
+guard. The router holds no list of paths, so a new endpoint is private until you say
+otherwise.
 
 ## 🔌 Adding tealina to an existing project
 
@@ -88,8 +91,8 @@ pnpm create tealina init packages/api       # or a specific directory
 ```
 
 It reads that package's `package.json`, works out which framework it uses, and copies the
-convention in. That is the contract layer (`types/`), `convention.ts`, the two auth
-middlewares, and the routers that wire them together.
+convention in. That is the contract layer (`types/`), `access.ts`, the auth guard, and
+the routers that wire them together.
 
 **It never touches your source.** Files are only ever added, and `package.json` is only ever
 merged into — a dependency, script or key you already have is kept exactly as it is, whatever

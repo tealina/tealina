@@ -1,10 +1,10 @@
-import type { preValidationAsyncHookHandler } from 'fastify'
+import type { preHandlerAsyncHookHandler } from 'fastify'
 
 /**
- * Guards every endpoint whose handler chain carries no `openHandler` marker
- * (see `src/routes/api/v1.ts`).
+ * The guard every `authedApi(handler)` chain carries as its first element, ahead of the
+ * endpoint's own middlewares. It runs after validation, as a `preHandler`.
  */
-const verifyToken: preValidationAsyncHookHandler = async function (
+export const verifyToken: preHandlerAsyncHookHandler = async function (
   request,
   reply,
 ) {
@@ -21,5 +21,3 @@ const verifyToken: preValidationAsyncHookHandler = async function (
   //Assigns authorization context, readable as `request.locals.userId` in handlers
   request.locals = { userId: 'xxx' }
 }
-
-export { verifyToken }

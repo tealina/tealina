@@ -1,4 +1,4 @@
-import { convention } from '../../convention.js'
+import { authedApi } from '../../access.js'
 
 /**
  * Declare types with `@typedef` rather than inline in the handler's type: like the
@@ -20,4 +20,4 @@ const handler = async (request, reply) => {
   reply.send({ id: 1 })
 }
 
-export default convention(handler)
+export default authedApi(handler)

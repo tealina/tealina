@@ -28,8 +28,8 @@ packages/server/
       post/login.ts  ->  POST /api/v1/login
       post/article.ts -> POST /api/v1/article
     routes/              the api router, the static assets, the API doc page
-    middlewares/auth/    openHandler marks a route public; verifyToken is the guard
-    convention.ts        ties the handlers of one endpoint together, order-preserving
+    middlewares/auth/    verifyToken, the guard authedApi puts in front of a chain
+    access.ts            openApi / authedApi — the two ways a handler file ends
     config/env.ts        reads .env
     app.ts               wires the routes onto the framework instance
     index.ts             builds the app and starts listening
@@ -50,13 +50,12 @@ else about the layout changes.
 
 ## The convention
 
-A handler file's default export goes through `convention(...)`, and its **type
-annotation** is what everything else is derived from:
+A handler file's default export goes through `openApi(...)` or `authedApi(...)`, and its
+**type annotation** is what everything else is derived from:
 
 ```ts
 import type { OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+import { openApi } from '../../access.js'
 
 interface LoginPayload {
   account: string
@@ -69,10 +68,10 @@ const handler: ApiType = async (req, res) => {
   res.send({ token: 'JWT token' })
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)
 ```
 
-That `openHandler` argument is what makes the route public — see
+Which of the two you call decides whether the route is public — see
 [Public vs. authed endpoints](#public-vs-authed-endpoints).
 
 - Use `interface` (not `type`) for payload shapes: the doc generator reads the name off
@@ -84,8 +83,7 @@ globals instead of an import — nothing to count `../` for, which matters becau
 writes stubs into directories that did not exist when the type file was written:
 
 ```js
-import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+import { openApi } from '../../access.js'
 
 /**
  * @typedef {object} LoginPayload
@@ -98,7 +96,7 @@ const handler = async (req, res) => {
   res.send({ token: 'JWT token' })
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)
 ```
 
 `OpenAPI` and `AuthedAPI` mirror `OpenHandler` and `AuthedHandler` argument for
@@ -107,10 +105,10 @@ declared at the end of `types/handler.d.ts`, the one type file a handler already
 
 The type goes in a JSDoc block directly above the `const` — the same place the TypeScript
 tree puts `: ApiType`, and the form `align` writes for you. Two things it cannot be talked
-out of. It stays on the `const`, not inline in the `convention(...)` call: `convention` is
-how the generator finds the handler, and an inline annotation leaves it holding an
-expression instead of a name. And it stays a `const` — on a `function` declaration the
-`@type` tag *checks* the function rather than typing it.
+out of. It stays on the `const`, not inline in the `openApi(...)` call: that call is how the
+generator finds the handler, and an inline annotation leaves it holding an expression
+instead of a name. And it stays a `const` — on a `function` declaration the `@type` tag
+*checks* the function rather than typing it.
 
 The description has to share that block. A second JSDoc block above it is not attached to
 the declaration at all, so the endpoint would appear in the documentation with no
@@ -135,42 +133,44 @@ Run `align` whenever you add, rename or delete a handler file by hand.
 
 ## Public vs. authed endpoints
 
-**Every endpoint requires an `Authorization` header unless its own handler chain says
-otherwise.** The declaration lives in the handler file, not in the router: pass the
-`openHandler` marker to `convention` and the route is registered without the guard.
+**Every endpoint requires an `Authorization` header unless its own handler file ends in
+`openApi`.** The declaration lives in the handler file, not in the router, and the call you
+write is the whole of it:
 
 ```ts
 // src/api-v1/get/health.ts — public
-export default convention(openHandler, handler)
+export default openApi(handler)
 
 // src/api-v1/post/article.ts — guarded, which is what you get by default
-export default convention(handler)
+export default authedApi(handler)
 ```
 
-`openHandler` is itself an ordinary middleware — it does nothing and hands straight on to
-the next one (`next()` on express and koa, a resolved promise on fastify, where it is a
-preHandler). It is not stripped out before registration, so the chain you write is the
-chain that runs.
+`authedApi` is not a marker the router looks for: it puts `verifyToken` at the front of the
+chain at runtime, so the guard is the first element of the chain you wrote and is registered
+with the rest of it.
 
 Nothing else decides it, so a new endpoint is private until you say otherwise. `/article`
-omits the marker, which is why it answers `401` without a header:
+calls `authedApi`, which is why it answers `401` without a header:
 
 ```bash
 curl -i -X POST localhost:8000/api/v1/article    # 401
 curl -i -X POST localhost:8000/api/v1/article -H 'Authorization: anything'   # 200
 ```
 
-The marker and the type annotation are two halves of the same decision — a chain carrying
-`openHandler` should be declared `OpenHandler`, and a guarded one `AuthedHandler`
-(`OpenAPI` and `AuthedAPI` in the JavaScript tree). Change
-them together: **nothing checks that they agree**, and a mismatch compiles cleanly and
-then surprises you at runtime (a route the types say is public answering `401`, or a
-handler reaching for `locals.userId` on a route anyone can call).
+The two call names are also two handler types: a chain built with `openApi` is declared
+`OpenHandler`, one built with `authedApi` `AuthedHandler` (`OpenAPI` and `AuthedAPI` in the
+JavaScript tree). On express and koa that pairing is checked, so `openApi(anAuthedHandler)`
+does not compile and a handler reading `res.locals.userId` cannot end up on a route anyone
+can call. Two gaps are left, both measured rather than assumed:
 
-The guard itself is `verifyToken` — `openHandler`'s neighbour in
-`src/middlewares/auth/`. It currently accepts any header value and sets `userId` to a
-placeholder. Replace the `TODO` with your real token check. The 401 body is
-`{ "code": "Unauthorized", "message": "..." }`.
+- `authedApi(anOpenHandler)` compiles everywhere and installs the guard anyway. The route is
+  then stricter than its own types claim, which is the safe direction to be wrong in.
+- Fastify checks neither. `FastifyRequest` is module-augmented with `locals`, so both kinds
+  of handler resolve to the same request type there and the two calls accept the same set.
+
+The guard itself is the one file in `src/middlewares/auth/`. It currently accepts any header
+value and sets `userId` to a placeholder. Replace the `TODO` with your real token check. The
+401 body is `{ "code": "Unauthorized", "message": "..." }`.
 
 ## API documentation
 
@@ -222,7 +222,7 @@ pnpm -F web dev      # http://localhost:5173
 Two things worth knowing:
 
 - Resolving those types pulls the server's **source** in (`api-v1.d.ts` → `src/api-v1/`
-  → `convention.ts` → `express`/`fastify`/`koa` → `tealina/utility-types`). So the server's
+  → `access.ts` → `express`/`fastify`/`koa` → `tealina/utility-types`). So the server's
   own `tealina` and framework type packages must stay installed — the utility types the
   contract is built from arrive through `tealina`, which the server already has for the
   CLI. A `skipLibCheck` in the frontend will not paper over a break here, because this is

@@ -1,3 +1,8 @@
+// Side-effect import, so the `locals` augmentation travels with the alias that depends on
+// it. A program can read a handler type without listing this directory — the web project
+// compiles the contract through `server`'s exports, and the guard reads `request.locals` —
+// and this is the one file all of them are guaranteed to reach.
+import './fastify.js'
 // Taken from `tealina/utility-types` rather than from `@tealina/utility-types` directly,
 // so the scaffold installs one package to compile its contract instead of two.
 import type {

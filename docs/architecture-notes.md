@@ -25,7 +25,7 @@
 
 **一个不变量**：任何时候都不该出现第二份需要手工同步的真相。聚合用的 `index.ts` 是派生物（所以有 `-a` 重建它）；`alias.d.ts` 是唯一的框架接缝（所以 `handler.d.ts` 不随框架变）。
 
-**一个核心手法**：把「位置」编码进类型。handler 是**数组**而不是函数，`ExtractApiType` 靠 `LastElement` 取最后一元素来跳过中间件；`convention.ts` 的 `<const T extends [...Middleware[], CustomHandlerType]>` 元组泛型靠**最后一个位置**来校验类型。整套中间件机制都建立在「数组的位置有意义」这一条上。
+**一个核心手法**：把「位置」编码进类型。handler 是**数组**而不是函数，`ExtractApiType` 靠 `LastElement` 取最后一元素来跳过中间件；`access.ts` 的 `<const T extends [...Middleware[], OpenHandler<AnyPayload, any>]>`（fastify 那版末位退到 `CustomHandlerType`）元组泛型靠**最后一个位置**来校验类型。整套中间件机制都建立在「数组的位置有意义」这一条上。
 
 ---
 
@@ -46,7 +46,7 @@
 
 | 改什么 | 必须同时检查 | 失效方式 |
 |---|---|---|
-| handler 的形状 / 命名 | `types/handler.d.ts`、三个框架各自的 `types/alias.d.ts`、`types/api-v1.d.ts`、`convention.ts` 的元组泛型 | 类型层面**静默**：项目照样编译，只是契约不再是那份契约 |
+| handler 的形状 / 命名 | `types/handler.d.ts`、三个框架各自的 `types/alias.d.ts`、`types/api-v1.d.ts`、`access.ts` 的元组泛型 | 类型层面**静默**：项目照样编译，只是契约不再是那份契约 |
 | 响应包装（`WithExtra` 等） | `utility-types` **＋** `utils/parseDeclarationFile.js` 里识别 `__@ResponseFlagSymbol` 的**正则** | 类型层 ↔ 解析层之间是**字符串约定而非类型约定**，改名不会让任何编译失败，只会让文档生成悄悄退化 |
 | `MultiTarget` 各投影语义 | `handler.d.ts` 的投影点 | 未标记类型原样透传、**不支持嵌套**——一嵌套就静默退化成透传 |
 | api 目录名 / `v1` 标签 | `types/<basename>.d.ts`、`exports["./api/v1"].types`、三个 doc 路由的 `docs/api-v1.json`、vdoc 的 `baseURL`/`jsonURL`/`name`、`gdoc` 输出名、`convertToOpenApiJson` 的默认 `prefix` | 至少六处绑在 `v1` 上，改一处漏五处 |

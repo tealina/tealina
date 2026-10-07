@@ -14,16 +14,18 @@ frontend types are all derived from.
 
 Three demo endpoints ship with it: `GET /health` and `POST /login` (public),
 `POST /article` (authenticated, and the example of a request body with a typed
-response). Endpoints require a token by default; one becomes public by carrying the
-`openHandler` marker in its handler chain — `convention(openHandler, handler)` — so the
-decision lives with the endpoint rather than in a path table in the router.
+response). Endpoints require a token by default; one becomes public by ending its file in
+`openApi(handler)` instead of `authedApi(handler)`, so the decision — and the guard itself —
+lives with the endpoint rather than in a path table in the router. On express and koa the
+pair is also a type check: the guard reaches for `res.locals.userId`, and `openApi` refuses
+a handler declared `AuthedHandler`.
 
 `--js` scaffolds the same project as JavaScript, with the handler type in a JSDoc `@type`
 block above the declaration instead of a type annotation on it. It names the contract
-through a `Tealina.*` global namespace declared at the end of `types/handler.d.ts` — the
-one type file a handler already imports — so a stub that `v1` writes into a directory
-nobody has created yet can name its own API type without counting `../`. The TypeScript
-tree carries the namespace too and never writes it.
+through the `OpenAPI` / `AuthedAPI` / `EmptyObj` globals declared at the end of
+`types/handler.d.ts` — the one type file a handler already imports — so a stub that `v1`
+writes into a directory nobody has created yet can name its own API type without counting
+`../`. The TypeScript tree carries the globals too and never writes them.
 
 For that annotation to be accepted on an `async` handler, each framework's
 `HandlerAliasCore` carries a second call signature repeating the first. A JSDoc `@type` is

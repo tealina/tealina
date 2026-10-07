@@ -33,17 +33,16 @@ export default {
  * thing a generated file could not work out for itself: how many `../` it takes to reach
  * the contract from a directory nobody has written yet.
  *
- * The `@type` has to sit on the `const`, not inline in the `convention(...)` call:
- * `convention` is what the generator reads to find the handler, and it looks the name up
- * in the file's scope. An inline annotation leaves it holding an expression instead of a
- * name.
+ * The `@type` has to sit on the `const`, not inline in the `authedApi(...)` call:
+ * `authedApi` is what the generator reads to find the handler, and it looks the name up in
+ * the file's scope. An inline annotation leaves it holding an expression instead of a name.
  *
  * @param {TemplateContext} ctx
  * @returns {string}
  */
 function generateBasicCode({ relative2api }) {
   return [
-    `import { convention } from '${relative2api}/convention.js'`,
+    `import { authedApi } from '${relative2api}/access.js'`,
     '',
     '/**',
     ' * TODO: describe what it does',
@@ -54,8 +53,8 @@ function generateBasicCode({ relative2api }) {
     '}',
     '',
     '// A token is required by default. To make this route public, declare the handler',
-    '// as OpenAPI and pass the marker: convention(openHandler, handler)',
-    `export default convention(handler)`,
+    '// as OpenAPI and export openApi(handler) instead.',
+    `export default authedApi(handler)`,
     '',
   ].join('\n')
 }

@@ -18,7 +18,7 @@ export default defineConfig({
 function generateBasicCode({ relative2api }: TemplateContext) {
   return [
     `import type { AuthedHandler } from '${relative2api}/../types/handler.js'`,
-    `import { convention } from '${relative2api}/convention.js'`,
+    `import { authedApi } from '${relative2api}/access.js'`,
     '',
     `/** TODO: describe what it does */`,
     `const handler: AuthedHandler = async () => {`,
@@ -26,8 +26,8 @@ function generateBasicCode({ relative2api }: TemplateContext) {
     '}',
     '',
     '// A token is required by default. To make this route public, declare the handler',
-    '// as OpenHandler and pass the marker: convention(openHandler, handler)',
-    `export default convention(handler)`,
+    '// as OpenHandler and export openApi(handler) instead.',
+    `export default authedApi(handler)`,
     '',
   ].join('\n')
 }

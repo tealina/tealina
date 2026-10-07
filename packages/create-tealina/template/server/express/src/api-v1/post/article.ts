@@ -1,5 +1,5 @@
 import type { AuthedHandler } from '../../../types/handler.js'
-import { convention } from '../../convention.js'
+import { authedApi } from '../../access.js'
 
 /**
  * Use the 'interface' keyword to declare types
@@ -22,4 +22,4 @@ const handler: ApiType = async (req, res) => {
   res.send({ id: 1 })
 }
 
-export default convention(handler)
+export default authedApi(handler)

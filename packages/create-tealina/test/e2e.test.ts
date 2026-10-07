@@ -277,10 +277,10 @@ describeE2E('scaffolded project, end to end', () => {
         expect(await health.json()).toEqual({ isOk: true })
 
         // /health answering only proves the server booted — it is public because
-        // `waitForHealth` needs it to be. /login is the other public demo, and it is
-        // what actually pins the marker down: forget `openHandler` in its chain and the
-        // route quietly starts requiring a token. The body matters — all three login
-        // handlers read `body.account`, so omitting it yields a 500, not a 401.
+        // `waitForHealth` needs it to be. /login is the other public demo, and it is what
+        // actually pins the choice down: build it with `authedApi` instead and the route
+        // quietly starts requiring a token. The body matters — all three login handlers
+        // read `body.account`, so omitting it yields a 500, not a 401.
         const login = await fetch(`${base}/api/v1/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -506,14 +506,13 @@ const hostSource: Record<Mode, Record<Framework, Record<string, string>>> = {
 
 /**
  * Two endpoints written by hand *after* `init`, so nothing here depends on the demo files
- * `init` deliberately does not copy. `/health` carries the `openHandler` marker and is the
- * one readiness can poll; `/secret` says nothing and so requires a token.
+ * `init` deliberately does not copy. `/health` goes through `openApi` and is the one
+ * readiness can poll; `/secret` goes through `authedApi` and so requires a token.
  */
 const initEndpointsTs: Record<Framework, Record<string, string>> = {
   express: {
     'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+import { openApi } from '../../access.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -521,10 +520,10 @@ const handler: ApiType = async (_req, res) => {
   res.send({ isOk: true })
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)
 `,
     'src/api-v1/post/secret.ts': `import type { AuthedHandler } from '../../../types/handler.js'
-import { convention } from '../../convention.js'
+import { authedApi } from '../../access.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -532,13 +531,12 @@ const handler: ApiType = async (_req, res) => {
   res.send({ id: 1 })
 }
 
-export default convention(handler)
+export default authedApi(handler)
 `,
   },
   koa: {
     'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+import { openApi } from '../../access.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -546,10 +544,10 @@ const handler: ApiType = async ctx => {
   ctx.body = { isOk: true }
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)
 `,
     'src/api-v1/post/secret.ts': `import type { EmptyObj, AuthedHandler } from '../../../types/handler.js'
-import { convention } from '../../convention.js'
+import { authedApi } from '../../access.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -557,13 +555,12 @@ const handler: ApiType = async ctx => {
   ctx.body = { id: 1 }
 }
 
-export default convention(handler)
+export default authedApi(handler)
 `,
   },
   fastify: {
     'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+import { openApi } from '../../access.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -571,10 +568,10 @@ const handler: ApiType = async (_request, reply) => {
   reply.send({ isOk: true })
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)
 `,
     'src/api-v1/post/secret.ts': `import type { EmptyObj, AuthedHandler } from '../../../types/handler.js'
-import { convention } from '../../convention.js'
+import { authedApi } from '../../access.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -582,7 +579,7 @@ const handler: ApiType = async (_request, reply) => {
   reply.send({ id: 1 })
 }
 
-export default convention(handler)
+export default authedApi(handler)
 `,
   },
 }
@@ -596,8 +593,7 @@ export default convention(handler)
  */
 const initEndpointsJs: Record<Framework, Record<string, string>> = {
   express: {
-    'src/api-v1/get/health.js': `import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+    'src/api-v1/get/health.js': `import { openApi } from '../../access.js'
 
 /**
  * @typedef {import('../../../types/handler.js').OpenHandler<import('../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
@@ -608,9 +604,9 @@ const handler = async (_req, res) => {
   res.send({ isOk: true })
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)
 `,
-    'src/api-v1/post/secret.js': `import { convention } from '../../convention.js'
+    'src/api-v1/post/secret.js': `import { authedApi } from '../../access.js'
 
 /**
  * @typedef {import('../../../types/handler.js').AuthedHandler<import('../../../types/handler.js').EmptyObj, { id: number }>} ApiType
@@ -621,12 +617,11 @@ const handler = async (_req, res) => {
   res.send({ id: 1 })
 }
 
-export default convention(handler)
+export default authedApi(handler)
 `,
   },
   koa: {
-    'src/api-v1/get/health.js': `import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+    'src/api-v1/get/health.js': `import { openApi } from '../../access.js'
 
 /**
  * @typedef {import('../../../types/handler.js').OpenHandler<import('../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
@@ -637,9 +632,9 @@ const handler = async ctx => {
   ctx.body = { isOk: true }
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)
 `,
-    'src/api-v1/post/secret.js': `import { convention } from '../../convention.js'
+    'src/api-v1/post/secret.js': `import { authedApi } from '../../access.js'
 
 /**
  * @typedef {import('../../../types/handler.js').AuthedHandler<import('../../../types/handler.js').EmptyObj, { id: number }>} ApiType
@@ -650,12 +645,11 @@ const handler = async ctx => {
   ctx.body = { id: 1 }
 }
 
-export default convention(handler)
+export default authedApi(handler)
 `,
   },
   fastify: {
-    'src/api-v1/get/health.js': `import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+    'src/api-v1/get/health.js': `import { openApi } from '../../access.js'
 
 /**
  * @typedef {import('../../../types/handler.js').OpenHandler<import('../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
@@ -666,9 +660,9 @@ const handler = async (_request, reply) => {
   reply.send({ isOk: true })
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)
 `,
-    'src/api-v1/post/secret.js': `import { convention } from '../../convention.js'
+    'src/api-v1/post/secret.js': `import { authedApi } from '../../access.js'
 
 /**
  * @typedef {import('../../../types/handler.js').AuthedHandler<import('../../../types/handler.js').EmptyObj, { id: number }>} ApiType
@@ -679,7 +673,7 @@ const handler = async (_request, reply) => {
   reply.send({ id: 1 })
 }
 
-export default convention(handler)
+export default authedApi(handler)
 `,
   },
 }
@@ -809,8 +803,8 @@ describeE2E('init into an existing project, end to end', () => {
         must('pnpm', ['run', 'gdoc'], projectDir)
 
         // The same assertion the scaffold block makes, on the other half of the feature. It
-        // matters more here: `init` installed the convention *around* a host, so a projection
-        // reading the wrong `convention.<ext>` — the host's own, or the other mode's copy —
+        // matters more here: `init` installed its copy *around* a host, so a projection
+        // reading the wrong `access.<ext>` — the host's own, or the other mode's copy —
         // would produce a document that renders and lies. A `never` response is exactly what
         // that looks like, and it is not a compiler error anywhere.
         const docPath = path.join(projectDir, 'docs/api-v1.json')
@@ -844,7 +838,7 @@ describeE2E('init into an existing project, end to end', () => {
         expect(users.status).toBe(200)
         expect(await users.json()).toEqual([{ id: 1, owner: 'host' }])
 
-        // Public because its chain carries the `openHandler` marker. The readiness poll
+        // Public because it is built with `openApi`. The readiness poll
         // above already proved it answers; this pins down the body, which is what a handler
         // with a typed response actually produces.
         const health = await fetch(`${base}/api/v1/health`)

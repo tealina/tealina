@@ -35,6 +35,22 @@ export type EmptyObj = {}
 
 export type FullInfo = RawPayload & { response: unknown }
 
+/**
+ * What a handler chain's last element may be constrained to without constraining the payload
+ * the handler actually declares.
+ *
+ * Naming a real payload in that position is not neutral. The fields a payload type leaves
+ * unset come out `unknown`, `strictFunctionTypes` makes the constraint's own parameter the
+ * one that has to accept the handler's, and `unknown` does not accept `ArticlePayload` — so
+ * `OpenHandler` used bare rejects every handler that declares a body. The three fields are
+ * `any` for that reason, and required because `?` adds an `undefined` no handler's body
+ * accepts.
+ *
+ * `headers` is deliberately absent, which leaves `headers` and `locals` — the two things an
+ * `AuthedHandler` declares differently — as the whole of what separates the kinds.
+ */
+export type AnyPayload = { body: any; params: any; query: any }
+
 export type HTTPMethods = 'get' | 'post' | 'patch' | 'delete'
 
 // ---------------------------------------------------------------------------

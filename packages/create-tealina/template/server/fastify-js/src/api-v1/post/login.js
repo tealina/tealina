@@ -1,5 +1,4 @@
-import { openHandler } from '../../middlewares/auth/openHandler.js'
-import { convention } from '../../convention.js'
+import { openApi } from '../../access.js'
 
 /**
  * Declare types with `@typedef` rather than inline in the handler's type: like the
@@ -18,4 +17,4 @@ const handler = async (req, res) => {
   res.send({ token: 'JWT token' })
 }
 
-export default convention(openHandler, handler)
+export default openApi(handler)

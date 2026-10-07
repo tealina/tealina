@@ -24,7 +24,7 @@ Two consequences worth naming, because both are visible:
   same as a module that fails to resolve. It used to reach `exportSymbol.declarations` and
   surface as a `TypeError` instead.
 
-Fix: `convention()` looked through parentheses, and now does
+Fix: `gdoc`'s handler lookup looked through parentheses, and now does
 
 A JavaScript module cannot annotate a `const` and keep an `async` function in it — the
 annotation is read as the function's own signature, and the alias's call signature does not
@@ -34,7 +34,7 @@ return a promise. So the annotation goes on the expression:
 so every handler in a JavaScript project was reported as `Export default should be a function`.
 The lookup now steps inside the parentheses — at the exported call's last argument and at the
 declaration's initializer, both — and, when the argument is not a name, says what the fix is:
-the cast goes on a `const`, and the function passed to `convention()` must be that const.
+the cast goes on a `const`, and the handler passed to the exported call must be that const.
 
 For a TypeScript project this is an identity: nothing it writes puts a handler behind
 parentheses. The message for the case it does hit — a handler passed inline — is the visible
