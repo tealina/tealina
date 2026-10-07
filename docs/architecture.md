@@ -54,7 +54,7 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 - `genIndexProp`（`:25-30`）为每个 handler 文件生成一行 `health: import('./health.js'),`，`'user/:id'` 这类含 `/` 或 `:` 的键仍带引号
 - `genWithWrapper`（`:30-31`）把行排序后包成 `export default { ... }`，**排序保证输出确定**（同输入必出同字节，diff 干净）。
 
-于是 `src/api-v1/get/health.ts` 自动对应路由 `GET /health`；`src/api-v1/get/user/[id].ts` 对应 `GET /user/:id`。
+于是 `src/api/v1/get/health.ts` 自动对应路由 `GET /health`；`src/api/v1/get/user/[id].ts` 对应 `GET /user/:id`。
 
 **聚合文件全部是生成物，不是手写物。** 这正是 `-a`（align）存在的意义：磁盘上的文件树是唯一真相，聚合文件是它的投影。
 
@@ -88,9 +88,9 @@ handler 文件的两个结尾就是这两个函数，公开还是鉴权是**调�
 
 **`types/common.d.ts`**——用户可替换的业务类型（`AuthedLocals`、`AuthHeaders`、`JsonHeaders`）。名字比较通用，接进已有项目时存在撞名风险。整包那版另有 `ModelId`、`PageResult`（Prisma 查询形状），随整包一起退役了。
 
-**`types/api-v1.d.ts`**——契约的出口，链接到 index 聚合文件
+**`types/v1.d.ts`**——契约的出口，链接到 index 聚合文件
 ```ts
-import apis from '../src/api-v1/index.js'
+import apis from '../src/api/v1/index.js'
 export type ApiTypesForDoc = { [M in keyof RawApis]: ResolveApiTypeForDoc<...> }
 export type ApiTypesForClient = { [M in keyof RawApis]: ResolveApiTypeForClient<...> }
 ```
@@ -146,12 +146,12 @@ PickTarget<T,K> = T extends MultiTarget<infer M> ? M[K] : T  // :114-116
     ↓ openApi()/authedApi() 用 <const T extends [...]> 保住元组位置（后者另在运行时 unshift 守卫）
 
 生成的 import 图（CLI 写，codeGen.ts:20-33）
-  src/api-v1/index.ts      = { get: import('./get/index.js'), ... }
-  src/api-v1/get/index.ts  = { health: import('./health.js'), ... }
+  src/api/v1/index.ts      = { get: import('./get/index.js'), ... }
+  src/api/v1/get/index.ts  = { health: import('./health.js'), ... }
     ↓ 同一个对象，两条并行的解读路径
 
 【运行时】                                【类型】
-loadAPIs(apisV1)                          types/api-v1.d.ts
+loadAPIs(apisV1)                          types/v1.d.ts
   → Record<method, Record<url, fn>>         type RawApis = typeof apis
 transformToRouteOptions<CustomHandlerType[]>  ApiTypesForDoc    = ResolveApiTypeForDoc<...>
   → {url, method, handler}[]                  ApiTypesForClient = ResolveApiTypeForClient<...>
@@ -163,12 +163,12 @@ transformToRouteOptions<CustomHandlerType[]>  ApiTypesForDoc    = ResolveApiType
 
 【→ OpenAPI JSON】                              【→ 前端类型】
 gdoc                                           web/src/api/client.ts
- getApiTypeFilePath → types/api-v1.d.ts        import type {ApiTypesForClient} from 'server/api/v1'
- parseDeclarationFile 走 TS checker            （由 exports.types 映射到 types/api-v1.d.ts）
+ getApiTypeFilePath → types/v1.d.ts            import type {ApiTypesForClient} from 'server/api/v1'
+ parseDeclarationFile 走 TS checker            （由 exports.types 映射到 types/v1.d.ts）
  靠正则 /__@ResponseFlagSymbol/ 认出富响应      createAxiosRPC<ApiTypesForClient, AxiosRequestConfig>
  → ApiDoc（@tealina/doc-types）                 → createRPC<ToRPC<T,C>, C>
  convertToOpenApiJson(apiDoc, '/api/v1')        → PathToObject 把 'user/create' 嵌成对象
- → docs/api-v1.json                             → rpc.post.user.create({body}) : Promise<{...}>
+ → docs/v1.json                                 → rpc.post.user.create({body}) : Promise<{...}>
         ↓                                         运行时是 Proxy，makeContext 把 :params 代入 URL
  doc 路由 serve 它，@tealina/doc-ui 渲染          （:param 按最长键优先替换）
 ```
@@ -251,7 +251,7 @@ type Snapshot = {
 
 **b. align 的兜底生成是坏的（本文最值得注意的一条）。** `withTypeFile.ts:20` `calcTypeFileSnapshot` 在类型文件**已存在时返回 `[]`**（永不重写），缺失时用 `codeGen.ts:35-50` 的 `genTypeCode` 生成。但两者产出的**不是同一套类型**：
 
-| | 模板手写版 `api-v1.d.ts` | align 生成版 |
+| | 模板手写版 `v1.d.ts` | align 生成版 |
 |---|---|---|
 | 导入 | `ResolveApiTypeForDoc` / `ResolveApiTypeForClient` | `ResolveApiType` |
 | 导出 | `ApiTypesForDoc` / `ApiTypesForClient` | `ApiTypesRecord` |
@@ -266,7 +266,7 @@ type Snapshot = {
 
 1. **契约层单一来源。** `types/{handler,alias,common}.d.ts` 如今只有 `create-tealina/template/` 一份物理副本。但集成包一旦落地，只要它自带一份模板就会立刻变成两份，而这两份必须逐字节一致——否则两个入口产出的项目会以**不同的方式**通过类型检查，这类错误在类型层面是静默的。有没有办法让契约层只有一份物理副本：共享目录、构建期同步、还是抽成独立的 `@tealina/contracts` 包？（2026-09-22：没有变成两份——集成入口与绿地入口是同一个包，见 §9 追记。）
 2. **align 兜底生成该修还是该删。** 选项：让 `genTypeCode` 生成和模板一致的 `ApiTypesForDoc`/`ApiTypesForClient`；或者干脆不再生成、缺文件就报错引导用户。前者保持「自动修复」，后者更诚实。
-3. **api 目录名与 `v1` 标签的耦合**，比预想的更深。已确认绑在 `v1` 上的至少有六处：`types/api-v1.d.ts` 文件名（`withTypeFile.ts:37` 由 `<basename(apiDir)>.d.ts` 推出）、`exports["./api/v1"].types`、三个 doc 路由的 `path.resolve('docs/api-v1.json')`、vdoc 配置的 `baseURL:'/api/v1'`/`jsonURL:'./v1.json'`/`name:'v1'`、`gdoc` 的输出文件名（`gdoc.ts:44-47` `${basename(apiDir)}.json`）、以及 `convertToOpenApiJson` 的 base path（`genOpenApi.ts:34` 的默认参数 `prefix = '/api/v1'`——注意它从没被任何调用点显式传过，测试里都是单参数调用，所以改这个默认值就等于改所有输出的前缀）。要不要解开、解到什么程度？
+3. **api 目录名与 `v1` 标签的耦合**，比预想的更深。已确认绑在 `v1` 上的至少有六处：`types/v1.d.ts` 文件名（`withTypeFile.ts:37` 由 `<basename(apiDir)>.d.ts` 推出）、`exports["./api/v1"].types`、三个 doc 路由的 `path.resolve('docs/v1.json')`、vdoc 配置的 `baseURL:'/api/v1'`/`jsonURL:'./v1.json'`/`name:'v1'`、`gdoc` 的输出文件名（`gdoc.ts:44-47` `${basename(apiDir)}.json`）、以及 `convertToOpenApiJson` 的 base path（`genOpenApi.ts:34` 的默认参数 `prefix = '/api/v1'`——注意它从没被任何调用点显式传过，测试里都是单参数调用，所以改这个默认值就等于改所有输出的前缀）。要不要解开、解到什么程度？（2026-10-08：模版把 api 目录从 `src/api-v1` 改成 `src/api/v1`，六处一个没少——它们本来就都出自 `<basename(apiDir)>` 或硬编码的 `v1`——变的是前两处（`types/v1.d.ts`、`docs/v1.json`）现在与后四处拼成同一个字符串，模版自身因此不再自相矛盾。这一改顺带暴露了**第七处**，但它绑的不是 `v1` 而是 api 目录的**深度**：handler 模版拿到的 `relative2api` 是 `namePaths.length + 1` 个 `..`，那个 `+ 1` 就是「apiDir 占两段」的假设，目录下沉一层便少一个 `..`，而 config 修不了它（修它要知道 apiDir 的深度，那是 CLI 才知道的事）。该字段已换成 `fileDir`——见 §3 的 `TemplateContext` 与 `tealina` 的 major changeset。本文写于 2026-10-08 之前、出现 `src/api-v1/` 的段落（如 §9 第 2 条）记的是改名前的形态。）
 4. **`types/common.d.ts` 的名字太通用**（`ModelId`、`FindManyArgs`、`PageResult`），接进已有项目撞名风险实在。（2026-09-22：活跃的契约层只剩 `AuthedLocals`/`AuthHeaders`/`JsonHeaders`，撞名面小了一截。）
 5. **create-tealina 与新集成包能否共用一套模板**，以及 create-tealina 是否也该改成跑 align 而不是预置聚合文件。（2026-09-22：前半已不成立——只有一条入口了。后半仍待答。）
 6. **死代码清理**（`template-factory/`、`pathe`、`-d`、deno 分支）要不要单开一次。（2026-09-22：这些都在整包里，随归档一起冻结，接替的包没有它们——这一问不必再答。）

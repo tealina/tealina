@@ -12,7 +12,7 @@ Tealina requires a root API directory to generate route mappings. We recommend u
 // package.json
 {
   "scripts": {
-    "v1": "tealina src/api-v1"
+    "v1": "tealina src/api/v1"
   }
 }
 ```
@@ -21,7 +21,7 @@ Tealina requires a root API directory to generate route mappings. We recommend u
 
 The generation follows a specific file structure convention:
 
-- **First layer**: API version or prefix (e.g., `api-v1`)
+- **First layer**: API version or prefix (e.g., `api/v1`)
 - **Second layer**: HTTP methods (e.g., `get`, `post`, `put`)  
 - **Deeper layers**: Endpoint handler files (e.g., `health.ts`, `user/login.ts`)
 
@@ -29,7 +29,7 @@ Each method directory contains an `index.ts` that exports its routes, and the AP
 
 **Example structure:**
 ```
-api-v1/
+api/v1/
   |- get/
   |   |- health.ts
   |   |- index.ts
@@ -47,7 +47,7 @@ export default {
 }
 ```
 
-**api-v1/index.ts:**
+**api/v1/index.ts:**
 ```ts
 export default {
   get: import('./get/index.ts'),
@@ -71,7 +71,7 @@ pnpm v1 gtype
 
 ### Generate API Documentation (`gdoc`)
 
-Parses your exported API types (from `types/api-v1.ts`) to generate documentation. Your `ApiTypeRecord` should follow this structure:
+Parses your exported API types (from `types/v1.ts`) to generate documentation. Your `ApiTypeRecord` should follow this structure:
 
 ```ts
 export type ApiTypeRecord = {

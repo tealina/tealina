@@ -46,10 +46,10 @@
 
 | 改什么 | 必须同时检查 | 失效方式 |
 |---|---|---|
-| handler 的形状 / 命名 | `types/handler.d.ts`、三个框架各自的 `types/alias.d.ts`、`types/api-v1.d.ts`、`access.ts` 的元组泛型 | 类型层面**静默**：项目照样编译，只是契约不再是那份契约 |
+| handler 的形状 / 命名 | `types/handler.d.ts`、三个框架各自的 `types/alias.d.ts`、`types/v1.d.ts`、`access.ts` 的元组泛型 | 类型层面**静默**：项目照样编译，只是契约不再是那份契约 |
 | 响应包装（`WithExtra` 等） | `utility-types` **＋** `utils/parseDeclarationFile.js` 里识别 `__@ResponseFlagSymbol` 的**正则** | 类型层 ↔ 解析层之间是**字符串约定而非类型约定**，改名不会让任何编译失败，只会让文档生成悄悄退化 |
 | `MultiTarget` 各投影语义 | `handler.d.ts` 的投影点 | 未标记类型原样透传、**不支持嵌套**——一嵌套就静默退化成透传 |
-| api 目录名 / `v1` 标签 | `types/<basename>.d.ts`、`exports["./api/v1"].types`、三个 doc 路由的 `docs/api-v1.json`、vdoc 的 `baseURL`/`jsonURL`/`name`、`gdoc` 输出名、`convertToOpenApiJson` 的默认 `prefix` | 至少六处绑在 `v1` 上，改一处漏五处 |
+| api 目录名 / `v1` 标签 | `types/<basename>.d.ts`、`exports["./api/v1"].types`、三个 doc 路由的 `docs/v1.json`、vdoc 的 `baseURL`/`jsonURL`/`name`、`gdoc` 输出名、`convertToOpenApiJson` 的默认 `prefix` | 至少六处绑在 `v1` 上，改一处漏五处。**2026-10-08**：改 api 目录名还会踩到第七处，而它不在这张表里——handler 模版拿到的 `relative2api` 是 `namePaths.length + 1` 个 `..`，那个 `+ 1` 就是「apiDir 占两段」的隐藏假设（`src/api-v1` → `src/api/v1` 正好把它踩坏，且 config 自己修不了：它无从知道 apiDir 的深度）。该字段已换成 `TemplateContext.fileDir`，深度由 config 用 `posix.relative` 自算——见 `tealina` 的 major changeset |
 | 加包 / 改包名 | `create-tealina/template/versionMaps.json`、根 `pnpm-workspace.yaml` 的 `overrides` | `update-version-in-template.mjs` 对没有 `packages/<name>` 的 key **直接 throw**；漏改 overrides 则内部包解析不到 |
 | `tealina` 的构建配置 | bin shim 引用的 `dist/` **深路径** | 它是 tsdown 的 `unbundle` **1:1 不打包**模式，改成打包会打断 bin shim |
 | `create-tealina/template/**` | ——（**没有任何保护**，见第 5 节） | 见第 5 节。**2026-09-22：这行已过时**——T1/T5 会把模板拼成 fixture 真编译，见第 5 节追记 |

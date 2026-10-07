@@ -27,7 +27,7 @@ Two things the flag has to do that are not obvious:
 
 - **The page differs by which command wrote it.** `create --web` scaffolds a server that
   ships `GET /health`, so its page calls that route. `init --web` lands beside a server
-  whose route table starts empty — `src/api-v1/**` is demo content `init` deliberately does
+  whose route table starts empty — `src/api/v1/**` is demo content `init` deliberately does
   not copy — and a call to a route the contract does not have is a compile error, so the
   page it writes calls nothing. Same destination, two files.
 - **The root scripts change shape, and only with the flag.** `dev` / `build` / `start`

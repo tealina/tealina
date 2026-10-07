@@ -54,7 +54,7 @@ const docRouter = Router({ caseSensitive: true })
     res.send(html);
   })
   .get('/v1.json', (req, res) => {
-    res.sendFile(path.resolve('docs/api-v1.json'));
+    res.sendFile(path.resolve('docs/v1.json'));
   })
   .use(express.static(getAssetsPath()));
 
