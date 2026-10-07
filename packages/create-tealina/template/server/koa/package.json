@@ -7,7 +7,7 @@
   "main": "dist/index.js",
   "exports": {
     "./api/v1": {
-      "types": "./types/api-v1.d.ts"
+      "types": "./types/v1.d.ts"
     }
   },
   "engines": {
@@ -17,9 +17,9 @@
     "dev": "tsx watch src",
     "build": "tsc --project tsconfig.build.json",
     "start": "node dist/index.js",
-    "v1": "tealina src/api-v1",
-    "gdoc": "tealina src/api-v1 gdoc",
-    "align": "tealina src/api-v1 -a"
+    "v1": "tealina src/api/v1",
+    "gdoc": "tealina src/api/v1 gdoc",
+    "align": "tealina src/api/v1 -a"
   },
   "dependencies": {
     "@koa/bodyparser": "^6.0.0",

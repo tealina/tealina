@@ -50,7 +50,7 @@ export const exitIfHasDeprecated = (
       [
         '--api-dir is deprecated, update your package.json:',
         'before: "v1": "tealina --api-dir src/api-v1"',
-        'after:  "v1": "tealina src/api-v1"',
+        'after:  "v1": "tealina src/api/v1"',
       ].join('\n'),
     )
   }

@@ -14,7 +14,7 @@
  * `types/` and `src/`. Both callers place it there.
  */
 
-export const PROBE_TS = `import type { ApiTypesForClient, ApiTypesForDoc } from './types/api-v1.js'
+export const PROBE_TS = `import type { ApiTypesForClient, ApiTypesForDoc } from './types/v1.js'
 
 type Doc = ApiTypesForDoc['get']['health']
 export const docOk: Doc['response'] = { isOk: true }
@@ -52,8 +52,8 @@ export const articleDoc: ArticleDoc['response'] = { id: 1 }
  * dropped rather than transliterated — they would add lines that cannot fail.
  */
 export const PROBE_JS = `/**
- * @typedef {import('./types/api-v1.js').ApiTypesForDoc} ApiTypesForDoc
- * @typedef {import('./types/api-v1.js').ApiTypesForClient} ApiTypesForClient
+ * @typedef {import('./types/v1.js').ApiTypesForDoc} ApiTypesForDoc
+ * @typedef {import('./types/v1.js').ApiTypesForClient} ApiTypesForClient
  */
 
 /** @type {ApiTypesForDoc['get']['health']['response']} */

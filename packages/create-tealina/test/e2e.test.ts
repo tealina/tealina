@@ -193,7 +193,7 @@ describeE2E('scaffolded project, end to end', () => {
         expect(fs.existsSync(workspaceFile)).toBe(true)
         expect(
           fs.existsSync(
-            path.join(serverDir, `src/api-v1/post/article.${ext(mode)}`),
+            path.join(serverDir, `src/api/v1/post/article.${ext(mode)}`),
           ),
           'the demos were copied under the wrong extension',
         ).toBe(true)
@@ -234,7 +234,7 @@ describeE2E('scaffolded project, end to end', () => {
 
         // 4. the doc route reads this file off disk
         must('pnpm', ['-F', 'server', 'gdoc'], projectDir)
-        const doc = path.join(serverDir, 'docs/api-v1.json')
+        const doc = path.join(serverDir, 'docs/v1.json')
         expect(fs.existsSync(doc), `missing ${doc}`).toBe(true)
         const docJson = JSON.parse(fs.readFileSync(doc, 'utf-8'))
         expect(Object.keys(docJson.apis.post)).toEqual(
@@ -511,8 +511,8 @@ const hostSource: Record<Mode, Record<Framework, Record<string, string>>> = {
  */
 const initEndpointsTs: Record<Framework, Record<string, string>> = {
   express: {
-    'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openApi } from '../../access.js'
+    'src/api/v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
+import { openApi } from '../../../access.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -522,8 +522,8 @@ const handler: ApiType = async (_req, res) => {
 
 export default openApi(handler)
 `,
-    'src/api-v1/post/secret.ts': `import type { AuthedHandler } from '../../../types/handler.js'
-import { authedApi } from '../../access.js'
+    'src/api/v1/post/secret.ts': `import type { AuthedHandler } from '../../../../types/handler.js'
+import { authedApi } from '../../../access.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -535,8 +535,8 @@ export default authedApi(handler)
 `,
   },
   koa: {
-    'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openApi } from '../../access.js'
+    'src/api/v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
+import { openApi } from '../../../access.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -546,8 +546,8 @@ const handler: ApiType = async ctx => {
 
 export default openApi(handler)
 `,
-    'src/api-v1/post/secret.ts': `import type { EmptyObj, AuthedHandler } from '../../../types/handler.js'
-import { authedApi } from '../../access.js'
+    'src/api/v1/post/secret.ts': `import type { EmptyObj, AuthedHandler } from '../../../../types/handler.js'
+import { authedApi } from '../../../access.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -559,8 +559,8 @@ export default authedApi(handler)
 `,
   },
   fastify: {
-    'src/api-v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../types/handler.js'
-import { openApi } from '../../access.js'
+    'src/api/v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
+import { openApi } from '../../../access.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -570,8 +570,8 @@ const handler: ApiType = async (_request, reply) => {
 
 export default openApi(handler)
 `,
-    'src/api-v1/post/secret.ts': `import type { EmptyObj, AuthedHandler } from '../../../types/handler.js'
-import { authedApi } from '../../access.js'
+    'src/api/v1/post/secret.ts': `import type { EmptyObj, AuthedHandler } from '../../../../types/handler.js'
+import { authedApi } from '../../../access.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -593,10 +593,10 @@ export default authedApi(handler)
  */
 const initEndpointsJs: Record<Framework, Record<string, string>> = {
   express: {
-    'src/api-v1/get/health.js': `import { openApi } from '../../access.js'
+    'src/api/v1/get/health.js': `import { openApi } from '../../../access.js'
 
 /**
- * @typedef {import('../../../types/handler.js').OpenHandler<import('../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
+ * @typedef {import('../../../../types/handler.js').OpenHandler<import('../../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
  */
 
 /** @type {ApiType} */
@@ -606,10 +606,10 @@ const handler = async (_req, res) => {
 
 export default openApi(handler)
 `,
-    'src/api-v1/post/secret.js': `import { authedApi } from '../../access.js'
+    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access.js'
 
 /**
- * @typedef {import('../../../types/handler.js').AuthedHandler<import('../../../types/handler.js').EmptyObj, { id: number }>} ApiType
+ * @typedef {import('../../../../types/handler.js').AuthedHandler<import('../../../../types/handler.js').EmptyObj, { id: number }>} ApiType
  */
 
 /** @type {ApiType} */
@@ -621,10 +621,10 @@ export default authedApi(handler)
 `,
   },
   koa: {
-    'src/api-v1/get/health.js': `import { openApi } from '../../access.js'
+    'src/api/v1/get/health.js': `import { openApi } from '../../../access.js'
 
 /**
- * @typedef {import('../../../types/handler.js').OpenHandler<import('../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
+ * @typedef {import('../../../../types/handler.js').OpenHandler<import('../../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
  */
 
 /** @type {ApiType} */
@@ -634,10 +634,10 @@ const handler = async ctx => {
 
 export default openApi(handler)
 `,
-    'src/api-v1/post/secret.js': `import { authedApi } from '../../access.js'
+    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access.js'
 
 /**
- * @typedef {import('../../../types/handler.js').AuthedHandler<import('../../../types/handler.js').EmptyObj, { id: number }>} ApiType
+ * @typedef {import('../../../../types/handler.js').AuthedHandler<import('../../../../types/handler.js').EmptyObj, { id: number }>} ApiType
  */
 
 /** @type {ApiType} */
@@ -649,10 +649,10 @@ export default authedApi(handler)
 `,
   },
   fastify: {
-    'src/api-v1/get/health.js': `import { openApi } from '../../access.js'
+    'src/api/v1/get/health.js': `import { openApi } from '../../../access.js'
 
 /**
- * @typedef {import('../../../types/handler.js').OpenHandler<import('../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
+ * @typedef {import('../../../../types/handler.js').OpenHandler<import('../../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
  */
 
 /** @type {ApiType} */
@@ -662,10 +662,10 @@ const handler = async (_request, reply) => {
 
 export default openApi(handler)
 `,
-    'src/api-v1/post/secret.js': `import { authedApi } from '../../access.js'
+    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access.js'
 
 /**
- * @typedef {import('../../../types/handler.js').AuthedHandler<import('../../../types/handler.js').EmptyObj, { id: number }>} ApiType
+ * @typedef {import('../../../../types/handler.js').AuthedHandler<import('../../../../types/handler.js').EmptyObj, { id: number }>} ApiType
  */
 
 /** @type {ApiType} */
@@ -807,7 +807,7 @@ describeE2E('init into an existing project, end to end', () => {
         // reading the wrong `access.<ext>` — the host's own, or the other mode's copy —
         // would produce a document that renders and lies. A `never` response is exactly what
         // that looks like, and it is not a compiler error anywhere.
-        const docPath = path.join(projectDir, 'docs/api-v1.json')
+        const docPath = path.join(projectDir, 'docs/v1.json')
         expect(fs.existsSync(docPath), `missing ${docPath}`).toBe(true)
         const healthDoc = readDocResponse(
           JSON.parse(fs.readFileSync(docPath, 'utf-8')),
@@ -866,7 +866,7 @@ describeE2E('init into an existing project, end to end', () => {
         expect(authed.status).toBe(200)
         expect(await authed.json()).toEqual({ id: 1 })
 
-        // The doc page reads `docs/api-v1.json` off disk — the file `pnpm run gdoc` produced
+        // The doc page reads `docs/v1.json` off disk — the file `pnpm run gdoc` produced
         // through the script `init` merged in.
         expect((await fetch(`${base}/api-doc/index.html`)).status).toBe(200)
 
@@ -954,7 +954,7 @@ describeE2E('scaffolded project with a frontend, end to end', () => {
       //    server and the frontend stops building. Nothing on the web side is edited.
       const health = path.join(
         serverDir,
-        'src/api-v1/get',
+        'src/api/v1/get',
         `health.${ext(mode)}`,
       )
       const original = fs.readFileSync(health, 'utf-8')

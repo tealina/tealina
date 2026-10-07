@@ -36,7 +36,7 @@ const MODES: Mode[] = ['ts', 'js']
 const ext = (mode: Mode) => (mode === 'js' ? 'js' : 'ts')
 
 /** The one path in the set that is written rather than copied — see `kEmptyApiIndex`. */
-const generatedIndex = (mode: Mode) => `src/api-v1/index.${ext(mode)}`
+const generatedIndex = (mode: Mode) => `src/api/v1/index.${ext(mode)}`
 
 const exists = (rel: string) => fs.existsSync(path.join(templateRootDir, rel))
 
@@ -49,7 +49,7 @@ const read = (rel: string) =>
  * Comments and template literals are stripped first, and that is not tidiness:
  * `tealina.config.ts` is a code generator, so the import lines it *emits* are backtick
  * strings sitting in this file. A raw scan reads them as imports of the config itself, with
- * a `${relative2api}` in the specifier that no path resolver can evaluate. What they emit
+ * a `${fileDir}` in the specifier that no path resolver can evaluate. What they emit
  * is a different question — it lands in files `align` generates, not in the copied set.
  */
 const importsIn = (source: string) => {
@@ -323,7 +323,7 @@ describe('web manifest', () => {
       //
       // `create` scaffolds a server with `GET /health`, so its page can call a route and
       // show the projection working. `init` installs beside a server whose route table is
-      // empty — `src/api-v1/**` is demo content it does not copy — and a call to a route
+      // empty — `src/api/v1/**` is demo content it does not copy — and a call to a route
       // the contract does not have is a compile error. A page that named one anyway would
       // hand the user a frontend that does not build the moment it lands.
       //

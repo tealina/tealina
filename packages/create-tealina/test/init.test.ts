@@ -365,8 +365,8 @@ const prepared = (fw: ServerTemplate, mode: Mode, probe = false): Fixture => {
     // installed copy the projection is asserted against.
     const tree = mode === 'js' ? `server/${fw}-js` : `server/${fw}`
     fs.cpSync(
-      path.join(templateDir, tree, 'src/api-v1'),
-      path.join(dir, 'src/api-v1'),
+      path.join(templateDir, tree, 'src/api/v1'),
+      path.join(dir, 'src/api/v1'),
       {
         recursive: true,
       },
@@ -396,7 +396,7 @@ describe('init into an existing project', () => {
           .map(f => f.dest)
           .filter(dest => after[dest] == null)
         expect(missing).toEqual([])
-        expect(after[`src/api-v1/index.${ext(mode)}`]).toBe(
+        expect(after[`src/api/v1/index.${ext(mode)}`]).toBe(
           'export default {}\n',
         )
 
@@ -466,7 +466,7 @@ describe('init into an existing project', () => {
           mode === 'js' ? 'node src/index.js' : 'node dist/index.js',
         )
         for (const name of ['v1', 'gdoc', 'align']) {
-          expect(pkg.scripts[name], name).toContain('src/api-v1')
+          expect(pkg.scripts[name], name).toContain('src/api/v1')
           if (mode === 'js') {
             // There is no `tealina.config.ts` here for the commands to find by default.
             expect(pkg.scripts[name], name).toContain('tealina.config.js')
@@ -597,7 +597,7 @@ export const probe = async () => {
  * A host that publishes its contract (the one difference from the hosts above — they have
  * deliberately no `exports` at all), with `init --web` run against it.
  *
- * `probe` installs the template's demo endpoints over the empty `src/api-v1/index.<ext>`
+ * `probe` installs the template's demo endpoints over the empty `src/api/v1/index.<ext>`
  * that `init` writes, plus the reader above. It is the same move `prepared(..., probe)`
  * makes and for the same reason: the projection needs something to project, and the
  * mutation needs a call site to break.
@@ -615,7 +615,7 @@ const preparedWeb = (
   const hostDir = path.join(root, 'host')
   fs.rmSync(root, { recursive: true, force: true })
   writeHost(hostDir, fw, mode, {
-    exports: { './api/v1': { types: './types/api-v1.d.ts' } },
+    exports: { './api/v1': { types: './types/v1.d.ts' } },
   })
 
   const hostBefore = snapshot(hostDir)
@@ -629,9 +629,9 @@ const preparedWeb = (
       path.join(
         templateDir,
         mode === 'js' ? `server/${fw}-js` : `server/${fw}`,
-        'src/api-v1',
+        'src/api/v1',
       ),
-      path.join(hostDir, 'src/api-v1'),
+      path.join(hostDir, 'src/api/v1'),
       { recursive: true },
     )
     write(path.join(webDir, `src/probe.${ext(mode)}`), kWebProbe[mode])
@@ -747,7 +747,7 @@ describe('init --web', () => {
         expect(
           fs
             .readFileSync(
-              path.join(hostDir, 'src/api-v1', `index.${ext(mode)}`),
+              path.join(hostDir, 'src/api/v1', `index.${ext(mode)}`),
               'utf-8',
             )
             .trim(),
@@ -775,7 +775,7 @@ describe('init --web', () => {
         // nothing on the client side mentions `isOk` except the line reading it.
         const health = path.join(
           hostDir,
-          'src/api-v1/get',
+          'src/api/v1/get',
           `health.${ext(mode)}`,
         )
         const original = fs.readFileSync(health, 'utf-8')
@@ -803,7 +803,7 @@ describe('init --web', () => {
     const hostDir = path.join(root, 'host')
     fs.rmSync(root, { recursive: true, force: true })
     writeHost(hostDir, 'express', 'ts', {
-      exports: { './api/v1': { types: './types/api-v1.d.ts' } },
+      exports: { './api/v1': { types: './types/v1.d.ts' } },
     })
     // Someone's own frontend, already beside the host.
     write(path.join(root, 'web/package.json'), '{\n  "name": "web"\n}\n')

@@ -16,7 +16,7 @@ import { base } from './api/client'
  * const isOk = health.isOk   // the server's boolean, not a copy of it
  * ```
  *
- * There is nothing to call yet. `src/api-v1/index.ts` is the route table and it starts
+ * There is nothing to call yet. `src/api/v1/index.ts` is the route table and it starts
  * empty — a demo endpoint dropped into a project that already has routes is a route nobody
  * asked for. Write one (`npm run v1 get/health && npm run align`) and the call above
  * compiles; name a route the server does not have and it does not, which is the point of

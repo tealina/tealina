@@ -6,7 +6,7 @@
     // The two options that make this a JavaScript project rather than an unbuilt
     // TypeScript one: `.js` files are read, and they are checked rather than ignored.
     // Without `allowJs` the compiler does not even resolve `./x.js`, so every import in
-    // `types/api-v1.d.ts` silently resolves to `any` and the whole projection collapses.
+    // `types/v1.d.ts` silently resolves to `any` and the whole projection collapses.
     "allowJs": true,
     "checkJs": true,
     // TypeScript 6 stops auto-including every `@types/*` package — the list is empty

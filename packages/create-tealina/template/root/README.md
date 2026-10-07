@@ -22,7 +22,7 @@ Change the port by copying `.env.example` to `.env` and editing `PORT`.
 packages/server/
   types/                 the contract layer — see "The contract layer" below
   src/
-    api-v1/              one directory per HTTP method, one file per endpoint
+    api/v1/              one directory per HTTP method, one file per endpoint
       get/health.ts  ->  GET  /api/v1/health
       get/index.ts       the route table for that method (generated — see below)
       post/login.ts  ->  POST /api/v1/login
@@ -33,7 +33,7 @@ packages/server/
     config/env.ts        reads .env
     app.ts               wires the routes onto the framework instance
     index.ts             builds the app and starts listening
-  docs/api-v1.json       generated API document (do not edit by hand)
+  docs/v1.json       generated API document (do not edit by hand)
 
 packages/web/            only when scaffolded with --web — see "The frontend" below
   index.html
@@ -54,8 +54,8 @@ A handler file's default export goes through `openApi(...)` or `authedApi(...)`,
 **type annotation** is what everything else is derived from:
 
 ```ts
-import type { OpenHandler } from '../../../types/handler.js'
-import { openApi } from '../../access.js'
+import type { OpenHandler } from '../../../../types/handler.js'
+import { openApi } from '../../../access.js'
 
 interface LoginPayload {
   account: string
@@ -83,7 +83,7 @@ globals instead of an import — nothing to count `../` for, which matters becau
 writes stubs into directories that did not exist when the type file was written:
 
 ```js
-import { openApi } from '../../access.js'
+import { openApi } from '../../../access.js'
 
 /**
  * @typedef {object} LoginPayload
@@ -119,7 +119,7 @@ description — and a block separated by a blank line is not read either.
 The method name and the filename are the method and the path:
 
 ```bash
-pnpm -F server v1 post/user     # creates src/api-v1/post/user.ts
+pnpm -F server v1 post/user     # creates src/api/v1/post/user.ts
 ```
 
 Then edit the generated stub. The `get/index.ts` and `post/index.ts` files are
@@ -138,10 +138,10 @@ Run `align` whenever you add, rename or delete a handler file by hand.
 write is the whole of it:
 
 ```ts
-// src/api-v1/get/health.ts — public
+// src/api/v1/get/health.ts — public
 export default openApi(handler)
 
-// src/api-v1/post/article.ts — guarded, which is what you get by default
+// src/api/v1/post/article.ts — guarded, which is what you get by default
 export default authedApi(handler)
 ```
 
@@ -175,7 +175,7 @@ value and sets `userId` to a placeholder. Replace the `TODO` with your real toke
 ## API documentation
 
 ```bash
-pnpm -F server gdoc    # regenerates docs/api-v1.json, served at /api-doc/index.html
+pnpm -F server gdoc    # regenerates docs/v1.json, served at /api-doc/index.html
 ```
 
 The document is **not** checked in — it is produced by the command above, and the docs
@@ -221,7 +221,7 @@ pnpm -F web dev      # http://localhost:5173
 
 Two things worth knowing:
 
-- Resolving those types pulls the server's **source** in (`api-v1.d.ts` → `src/api-v1/`
+- Resolving those types pulls the server's **source** in (`v1.d.ts` → `src/api/v1/`
   → `access.ts` → `express`/`fastify`/`koa` → `tealina/utility-types`). So the server's
   own `tealina` and framework type packages must stay installed — the utility types the
   contract is built from arrive through `tealina`, which the server already has for the
@@ -279,13 +279,13 @@ argument; `packages/web/js` in the scaffold's template is the worked example.
   they are inert in a TypeScript project.
 - `alias.d.ts` — the one framework-specific file. This is where express/koa/fastify
   request and response types get bound to the generic handler shape.
-- `api-v1.d.ts` — the exit point. `ApiTypesForDoc` **must** stay the first export in
+- `v1.d.ts` — the exit point. `ApiTypesForDoc` **must** stay the first export in
   this file; the doc generator picks it up by position. Also referenced by the
   `exports["./api/v1"]` entry in `package.json`.
 - `common.d.ts` — shared payload/header/locals shapes.
 
-Keep the `v1` name: the api directory, `types/api-v1.d.ts`, the `exports` key,
-`docs/api-v1.json`, the docs route's `baseURL` and the router prefix are all pinned to
+Keep the `v1` name: the api directory, `types/v1.d.ts`, the `exports` key,
+`docs/v1.json`, the docs route's `baseURL` and the router prefix are all pinned to
 it. Renaming the api directory is not supported.
 
 ## Commands

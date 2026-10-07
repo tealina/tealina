@@ -21,11 +21,9 @@ export const withoutSuffix = (x: string) => x.replace(extname(x), '')
 export const parseCreateInfo = (
   method: string,
   fullPathArr: string[],
+  fileDir: string,
 ): TemplateContext => {
   const dirPathArr = fullPathArr.slice(0, -1)
-  const relativeDotStr = Array(fullPathArr.length + 1)
-    .fill('..')
-    .join('/')
   const dir = dirPathArr.at(-1) ?? ''
   const filename = fullPathArr.at(-1) ?? ''
   return {
@@ -33,7 +31,7 @@ export const parseCreateInfo = (
     dir,
     filename,
     Filename: capitalize(filename),
-    relative2api: relativeDotStr,
+    fileDir,
     method,
   }
 }

@@ -13,7 +13,7 @@ import {
   unique,
   waitAll,
 } from 'fp-lite'
-import { basename, join } from 'pathe'
+import { basename, dirname, join } from 'pathe'
 import type { RawOptions } from '.'
 import type {
   ApiTemplateType,
@@ -238,7 +238,7 @@ const toApiFileSnapshot = ({
   group: 'api',
   action: 'create',
   filePath,
-  code: generateFn(parseCreationInfo(kind, namePaths)),
+  code: generateFn(parseCreationInfo(kind, namePaths, dirname(filePath))),
 })
 
 const toApiTestSnapshot =
@@ -250,7 +250,7 @@ const toApiTestSnapshot =
     code: genSuite({
       method: kind,
       route: namePaths.join('/'),
-      relative2ancestor: Array(namePaths.length).fill('..').join('/'),
+      fileDir: dirname(testFileSummary.filePath),
     }),
   })
 
@@ -258,13 +258,12 @@ const toTestHelperSnapshot = ({
   testHelperInfo: { filePath },
   testTemplate,
   options: { apiDir, typesDir },
-  seeds: [{ namePaths }],
 }: FullContext): Snapshot => ({
   group: 'test',
   action: 'create',
   filePath,
   code: testTemplate?.genHelper?.({
-    relative2ancestor: Array(namePaths.length).fill('..').join('/'),
+    fileDir: dirname(filePath),
     typesDirName: basename(typesDir),
     apiDirName: basename(apiDir),
   }),

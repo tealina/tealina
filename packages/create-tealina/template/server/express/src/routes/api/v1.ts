@@ -1,7 +1,7 @@
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
 import { Router } from 'express'
 import type { CustomHandlerType } from '../../../types/handler.js'
-import apisV1 from '../../api-v1/index.js'
+import apisV1 from '../../api/v1/index.js'
 
 type HttpMethod = keyof Pick<
   Router,

@@ -55,7 +55,7 @@ my-app/
   packages/server/
     types/              the contract layer
     src/
-      api-v1/           get/health.ts, post/login.ts, post/article.ts
+      api/v1/           get/health.ts, post/login.ts, post/article.ts
       routes/           the api router, the static assets, the API doc page
       middlewares/auth/ verifyToken — the guard authedApi puts in front of a chain
       access.ts         openApi / authedApi — the two ways a handler file ends
@@ -114,7 +114,7 @@ What it does not do, and why:
   middleware chain ends.
 - **No install, no `gdoc`.** The target may be one package of a workspace; installing from
   inside it is the wrong thing to run.
-- **No demo endpoints.** `src/api-v1/` starts empty, so no route you did not write is served.
+- **No demo endpoints.** `src/api/v1/` starts empty, so no route you did not write is served.
   The first `align` fills in the index.
 - **No error or not-found handler.** The scaffold ships neither, so an unknown route and a
   thrown error are answered by the framework's own default — express's `finalhandler`, koa's

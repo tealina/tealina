@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vite-plus/test'
+import tsTemplate from '../template/common/tealina.config.js'
 import jsTemplate from '../template/common/js/tealina.config.js'
 import { PROBE_JS, PROBE_TS, WIDENED_ACCESS } from './probe.js'
 
@@ -10,7 +11,7 @@ import { PROBE_JS, PROBE_TS, WIDENED_ACCESS } from './probe.js'
  * T1 — the cheap "does it actually compile" gate.
  *
  * Copies the shipped contract subtree (types + access + the guard it imports
- * + api-v1 demos) into a scratch project and type-checks it. No install and no network:
+ * + api/v1 demos) into a scratch project and type-checks it. No install and no network:
  * the compiler and the framework types both come from this package's own devDependencies,
  * so this runs in a couple of seconds and is safe to leave on by default.
  *
@@ -120,8 +121,8 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   const tree = mode === 'js' ? `server/${fw}-js` : `server/${fw}`
   const ext = mode === 'js' ? 'js' : 'ts'
   copyInto(
-    path.join(templateDir, `${tree}/src/api-v1`),
-    path.join(dest, 'src/api-v1'),
+    path.join(templateDir, `${tree}/src/api/v1`),
+    path.join(dest, 'src/api/v1'),
   )
   fs.copyFileSync(
     path.join(templateDir, `${tree}/src/access.${ext}`),
@@ -138,28 +139,32 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   }
   // The stub `align` writes is a string, and nothing else compiles it: the e2e suite runs
   // `align` but never type-checks what came out, so a type name the generator gets wrong
-  // would ship unnoticed. It goes next to the hand-written handlers, at the same depth, so
-  // the `../..` it is handed here is the one it gets in a real project.
-  if (mode === 'js') {
-    const [entry] = jsTemplate.template?.handlers ?? []
-    if (typeof entry?.generateFn !== 'function') {
-      throw new Error(
-        'the JS template config no longer exposes template.handlers[0].generateFn — ' +
-          'the generated stub has stopped being compiled by anything',
-      )
-    }
-    // The shipped stub reads only `relative2api`, but `TemplateContext` is what the
-    // generator hands a real config, so the rest is filled in rather than cast away.
-    fs.writeFileSync(
-      path.join(dest, 'src/api-v1/post/generated.js'),
-      entry.generateFn({
-        filename: 'generated',
-        Filename: 'Generated',
-        relative2api: '../..',
-        method: 'post',
-      }),
+  // would ship unnoticed. It goes next to the hand-written handlers, and it is handed that
+  // directory the way the CLI hands it — the stub's imports are resolved from there, so a
+  // generator that assumes a depth instead of measuring one fails here.
+  //
+  // Both configs are compiled, not only the one this fixture's mode ships. They work their
+  // paths out separately, in two trees that share no code, so a depth one of them gets
+  // wrong is a stub that only breaks in a project nobody ran this on.
+  const [entry] =
+    (mode === 'js' ? jsTemplate : tsTemplate).template?.handlers ?? []
+  if (typeof entry?.generateFn !== 'function') {
+    throw new Error(
+      `the ${mode} template config no longer exposes template.handlers[0].generateFn — ` +
+        'the generated stub has stopped being compiled by anything',
     )
   }
+  // The shipped stubs read only `fileDir`, but `TemplateContext` is what the generator
+  // hands a real config, so the rest is filled in rather than cast away.
+  fs.writeFileSync(
+    path.join(dest, `src/api/v1/post/generated.${ext}`),
+    entry.generateFn({
+      filename: 'generated',
+      Filename: 'Generated',
+      fileDir: 'src/api/v1/post',
+      method: 'post',
+    }),
+  )
   if (options.stripGlobals) {
     const contract = path.join(dest, 'types/handler.d.ts')
     const src = fs.readFileSync(contract, 'utf-8')
@@ -242,7 +247,7 @@ describe('shipped contract layer type-checks', () => {
 
   for (const mode of ['ts', 'js'] as const) {
     for (const fw of FRAMEWORKS) {
-      it(`${fw} (${mode}): types + access + api-v1 compile and project correctly`, () => {
+      it(`${fw} (${mode}): types + access + api/v1 compile and project correctly`, () => {
         const dest = buildFixture(fw, mode)
         const output = runTsc(dest)
         expect(output, `tsc reported:\n${output}`).toBe('')

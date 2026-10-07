@@ -1,5 +1,5 @@
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
-import apisV1 from '../../api-v1/index.js'
+import apisV1 from '../../api/v1/index.js'
 
 /**
  * `transformToRouteOptions` reads a handler tuple back as a homogeneous array, so the

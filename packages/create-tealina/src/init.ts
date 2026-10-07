@@ -33,12 +33,12 @@ export class InitAbort extends Error {}
 
 /** The one file `init` writes rather than copies. */
 const apiIndex = (mode: Mode) =>
-  `src/api-v1/index${mode === 'js' ? '.js' : '.ts'}`
+  `src/api/v1/index${mode === 'js' ? '.js' : '.ts'}`
 
 /**
  * Deliberately empty. A demo endpoint dropped into a project that already has routes is a
  * route nobody asked for, and it can collide with a real path. This exists so
- * `types/api-v1.d.ts`'s `import apis from '../src/api-v1/index.js'` resolves — with an
+ * `types/v1.d.ts`'s `import apis from '../src/api/v1/index.js'` resolves — with an
  * empty record `ApiTypesForDoc` degrades to `{}`, not to `never`. The first `align`
  * overwrites it.
  */
@@ -305,7 +305,7 @@ const mergePackageJson = (
   // that has none seals every other deep import the package used to allow, which is a
   // breaking change to hand someone in the middle of installing a router.
   if (pkg.exports != null && pkg.exports['./api/v1'] == null) {
-    pkg.exports['./api/v1'] = { types: './types/api-v1.d.ts' }
+    pkg.exports['./api/v1'] = { types: './types/v1.d.ts' }
     report.exportsEntry = true
   }
 
@@ -422,7 +422,7 @@ const planWeb = (targetDir: string, pkg: PackageJson, mode: Mode): WebPlan => {
         'this package does not publish its API types, so the frontend would have ' +
         'nothing to import. Adding `exports` where there is none seals every other ' +
         'deep import the package allows, so it is yours to add:\n' +
-        '    "exports": { "./api/v1": { "types": "./types/api-v1.d.ts" } }\n' +
+        '    "exports": { "./api/v1": { "types": "./types/v1.d.ts" } }\n' +
         '  Add that, then re-run with --web.',
     }
   }
@@ -640,7 +640,7 @@ export const runInit = async () => {
     console.log(
       '  exports: left alone. Add this yourself if a frontend should import the types ' +
         '(adding `exports` where there is none seals your other deep imports):\n' +
-        '    "exports": { "./api/v1": { "types": "./types/api-v1.d.ts" } }',
+        '    "exports": { "./api/v1": { "types": "./types/v1.d.ts" } }',
     )
   }
 
@@ -668,13 +668,13 @@ export const runInit = async () => {
       `  ${yellow('!')} this project already has ${otherModeFiles.length} files from the ` +
         `${otherMode === 'js' ? 'JavaScript' : 'TypeScript'} install. The two trees do not ` +
         'collide — they use different paths — but they are two copies of one convention ' +
-        'and only one of them is ever loaded. The router imports api-v1/index.js, which ' +
+        'and only one of them is ever loaded. The router imports api/v1/index.js, which ' +
         `plain node reads as the .js file and tsx reads as the .ts one. Delete the tree ` +
         'you are not running, or you will be editing a handler that is never called.',
     )
   }
   console.log(
-    '  src/api-v1/ starts empty: no demo endpoints were added, so no route you did ' +
+    '  src/api/v1/ starts empty: no demo endpoints were added, so no route you did ' +
       'not write is being served.',
   )
   for (const note of notes) console.log(`  ${yellow('!')} ${note}`)

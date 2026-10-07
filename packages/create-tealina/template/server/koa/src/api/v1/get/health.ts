@@ -1,0 +1,13 @@
+import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
+import { openApi } from '../../../access.js'
+
+type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
+
+/**
+ *  Check server is ok
+ */
+const handler: ApiType = async ctx => {
+  ctx.body = { isOk: true }
+}
+
+export default openApi(handler)

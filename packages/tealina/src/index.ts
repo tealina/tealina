@@ -114,8 +114,13 @@ export interface TemplateContext {
   filename: string
   /** Capitalized filename */
   Filename: string
-  /** Relative path to API directory */
-  relative2api: string
+  /**
+   * The directory the file will be written into, spelled the way `apiDir` is — e.g.
+   * `src/api/v1/post` for the handler `tealina src/api/v1 post/order` writes. The file
+   * does not exist yet, so this is all the generator can say about where it lands; a stub
+   * measures its own import specifiers from it.
+   */
+  fileDir: string
   /** HTTP method (lowercase) */
   method: string
 }
@@ -125,11 +130,13 @@ type CodeGenerateFuntion = (ctx: TemplateContext) => string
 export type GenTestSuiteFnType = (ctx: {
   method: string
   route: string
-  relative2ancestor: string
+  /** The directory the test file will be written into, as in `TemplateContext.fileDir`. */
+  fileDir: string
 }) => string
 
 export type GenTestHelperFnType = (ctx: {
-  relative2ancestor: string
+  /** The directory the helper will be written into, as in `TemplateContext.fileDir`. */
+  fileDir: string
   apiDirName: string
   typesDirName: string
 }) => string

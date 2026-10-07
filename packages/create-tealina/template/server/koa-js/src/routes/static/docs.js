@@ -32,7 +32,7 @@ const vDocCofig = {
 const docRouter = app => {
   const router = new Router({ prefix: VDOC_BASENAME })
   router.get('/v1.json', async ctx => {
-    const buffer = await readFile(path.resolve('docs/api-v1.json'))
+    const buffer = await readFile(path.resolve('docs/v1.json'))
     ctx.type = 'application/json'
     ctx.body = buffer
   })

@@ -56,7 +56,7 @@ const kCommonShared = [
   '.env.example',
   'docs/.gitkeep',
   'public/index.html',
-  'types/api-v1.d.ts',
+  'types/v1.d.ts',
   'types/common.d.ts',
   'types/handler.d.ts',
 ] as const
@@ -94,12 +94,12 @@ export const commonFiles = (mode: Mode): TemplateFile[] => [
 /** Value-level files, named without their extension. */
 const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
   express: [
-    'src/api-v1/get/health',
-    'src/api-v1/get/index',
-    'src/api-v1/index',
-    'src/api-v1/post/article',
-    'src/api-v1/post/index',
-    'src/api-v1/post/login',
+    'src/api/v1/get/health',
+    'src/api/v1/get/index',
+    'src/api/v1/index',
+    'src/api/v1/post/article',
+    'src/api/v1/post/index',
+    'src/api/v1/post/login',
     'src/app',
     'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
@@ -110,12 +110,12 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
     'src/index',
   ],
   koa: [
-    'src/api-v1/get/health',
-    'src/api-v1/get/index',
-    'src/api-v1/index',
-    'src/api-v1/post/article',
-    'src/api-v1/post/index',
-    'src/api-v1/post/login',
+    'src/api/v1/get/health',
+    'src/api/v1/get/index',
+    'src/api/v1/index',
+    'src/api/v1/post/article',
+    'src/api/v1/post/index',
+    'src/api/v1/post/login',
     'src/app',
     'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
@@ -126,12 +126,12 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
     'src/index',
   ],
   fastify: [
-    'src/api-v1/get/health',
-    'src/api-v1/get/index',
-    'src/api-v1/index',
-    'src/api-v1/post/article',
-    'src/api-v1/post/index',
-    'src/api-v1/post/login',
+    'src/api/v1/get/health',
+    'src/api/v1/get/index',
+    'src/api/v1/index',
+    'src/api/v1/post/article',
+    'src/api/v1/post/index',
+    'src/api/v1/post/login',
     'src/app',
     'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
@@ -233,7 +233,7 @@ const webTreeOf = (mode: Mode) => (mode === 'js' ? 'web/js' : 'web')
  *
  * `create` scaffolds a server that ships `GET /health`, so its frontend can call a route
  * and show the projection working end to end. `init` installs beside a server that is
- * whatever it is: `src/api-v1/**` is demo content this command deliberately does not copy,
+ * whatever it is: `src/api/v1/**` is demo content this command deliberately does not copy,
  * so a host's route table is empty until its owner writes a handler — and a call to a route
  * the contract does not have is a compile error. The installed frontend would not build.
  *
@@ -301,7 +301,7 @@ const bareOf = (dest: string) =>
 const kInitFromCommon: ReadonlySet<string> = new Set([
   'docs/.gitkeep',
   'tealina.config',
-  'types/api-v1.d.ts',
+  'types/v1.d.ts',
   'types/common.d.ts',
   'types/handler.d.ts',
 ])
@@ -311,7 +311,7 @@ const kInitFromCommon: ReadonlySet<string> = new Set([
  *
  * - `src/index` and `src/app` are the scaffold's boot and app assembly. This
  *   feature never edits the host's, so it must not drop a competing pair next to them.
- * - `src/api-v1/**` is demo content, and `package.json` is merged rather than copied.
+ * - `src/api/v1/**` is demo content, and `package.json` is merged rather than copied.
  * - `src/routes/static/assets` serves the scaffold's placeholder page.
  */
 const kInitFromFramework: Record<ServerTemplate, ReadonlySet<string>> = {

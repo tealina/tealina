@@ -1,11 +1,17 @@
 /**
  * No `defineConfig` import: it is an identity function whose only job is to give a
- * TypeScript config a contextual type. `@type` does the same job here, and doing it this
- * way leaves the config with no runtime import at all.
+ * TypeScript config a contextual type. `@type` does the same job here. The only runtime
+ * import left is `node:path`, which this config really uses — to measure the generated
+ * stub's own directory rather than assume what depth it sits at.
  *
  * @typedef {import('tealina').TealinaConfig} TealinaConfig
  * @typedef {import('tealina').TemplateContext} TemplateContext
  */
+
+import { posix } from 'node:path'
+
+/** Where `access.js` lives. This is this project's own layout, not something the CLI knows. */
+const accessDir = 'src'
 
 /** @type {TealinaConfig} */
 export default {
@@ -29,9 +35,8 @@ export default {
  * assignable to every framework's `HandlerAliasCore`, so this single file is correct
  * for express, fastify and koa alike.
  *
- * `AuthedAPI` is one of the globals declared in `types/handler.d.ts`, which is the one
- * thing a generated file could not work out for itself: how many `../` it takes to reach
- * the contract from a directory nobody has written yet.
+ * `AuthedAPI` is one of the globals declared in `types/handler.d.ts` — no import reaches
+ * the contract from here, which is the whole reason the globals exist.
  *
  * The `@type` has to sit on the `const`, not inline in the `authedApi(...)` call:
  * `authedApi` is what the generator reads to find the handler, and it looks the name up in
@@ -40,9 +45,9 @@ export default {
  * @param {TemplateContext} ctx
  * @returns {string}
  */
-function generateBasicCode({ relative2api }) {
+function generateBasicCode({ fileDir }) {
   return [
-    `import { authedApi } from '${relative2api}/access.js'`,
+    `import { authedApi } from '${posix.relative(fileDir, accessDir)}/access.js'`,
     '',
     '/**',
     ' * TODO: describe what it does',
