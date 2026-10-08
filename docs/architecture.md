@@ -71,7 +71,7 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 **`types/alias.d.ts`**（每框架一份）——**框架适配的接缝**
 `handler.d.ts:13` `import type { HandlerAliasCore } from './alias.js'`。三个框架的 `alias.d.ts` 各自定义同名的 `HandlerAliasCore`，把框架自己的上下文类型（koa 的 `ExtendableContext`、express 的 `Request`/`Response`、fastify 的请求对象）代入同一个泛型签名。**换框架只换这一个文件**，上层 `handler.d.ts` 一字不动。这是整套设计的关节所在。
 
-**`src/access.ts`**（每框架一份）——中间件契约的执行者，也是公开/鉴权的唯一出口
+**`src/access/index.ts`**（每框架一份；同目录下 `verifyToken.ts` 是它装上的守卫）——中间件契约的执行者，也是公开/鉴权的唯一出口
 ```ts
 // koa；express 把 Middleware 换成 RequestHandler
 type OpenApiType = <const T extends [...Middleware[], OpenHandler<AnyPayload, any>]>(...h: T) => T
@@ -82,7 +82,7 @@ export const authedApi: AuthedApiType = (...handlers) => {
   return handlers
 }
 ```
-handler 文件的两个结尾就是这两个函数，公开还是鉴权是**调哪一个**：`openApi` 原样返回，`authedApi` 在运行时把 `verifyToken` 插到链首——路由器不再认标记，只照链注册。**全部价值仍在那两个 `<const T extends ...>` 元组泛型**：它保住每个元素在元组里的**位置**（`LastElement<T>` 才能据此揪出最后一个 handler），并禁止非 handler 占据末位。所以 `handler` 在 `transformToRouteOptions` 里是函数数组而非单个函数——fastify 适配器才要 `preHandler: handler.slice(0,-1)` / `handler: handler.at(-1)!` 这样切分，而 express / koa 直接把整个数组摊开交给框架（express 的 `(url, ...handlers)` 与 koa 的 `router[method](url, ...handler)` 本就接受这个形状）。**这条契约的守卫在 `access.ts`，不在 `@tealina/server`。**
+handler 文件的两个结尾就是这两个函数，公开还是鉴权是**调哪一个**：`openApi` 原样返回，`authedApi` 在运行时把 `verifyToken` 插到链首——路由器不再认标记，只照链注册。**全部价值仍在那两个 `<const T extends ...>` 元组泛型**：它保住每个元素在元组里的**位置**（`LastElement<T>` 才能据此揪出最后一个 handler），并禁止非 handler 占据末位。所以 `handler` 在 `transformToRouteOptions` 里是函数数组而非单个函数——fastify 适配器才要 `preHandler: handler.slice(0,-1)` / `handler: handler.at(-1)!` 这样切分，而 express / koa 直接把整个数组摊开交给框架（express 的 `(url, ...handlers)` 与 koa 的 `router[method](url, ...handler)` 本就接受这个形状）。**这条契约的守卫在 `access/`，不在 `@tealina/server`。**
 
 约束里写 `AnyPayload` 而不是真的 payload 类型：payload 没声明的字段会成 `unknown`，`strictFunctionTypes` 又让约束**自己的**参数去接受 handler 的，而 `unknown` 接不住 `ArticlePayload`，`OpenHandler` 裸用会拒掉每个带 body 的 handler。fastify 那版没有 `OpenHandler`/`AuthedHandler` 之分，退到 `CustomHandlerType`：`FastifyRequest` 被模块增强塞了 `locals`（`types/fastify.d.ts`），两类 handler 的请求类型因此重合。实测：`openApi(authedHandler)` 在 express / koa（ts 与 js 两棵树）编译不过，`authedApi(openHandler)` 三个框架都放行（装了守卫，比类型声称的更严），fastify 两边都不查。
 
