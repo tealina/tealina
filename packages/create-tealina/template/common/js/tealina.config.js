@@ -10,8 +10,9 @@
 
 import { posix } from 'node:path'
 
-/** Where `access.js` lives. This is this project's own layout, not something the CLI knows. */
-const accessDir = 'src'
+/** The directory the access module lives in. This is this project's own layout, not
+ * something the CLI knows. */
+const accessDir = 'src/access'
 
 /** @type {TealinaConfig} */
 export default {
@@ -47,7 +48,7 @@ export default {
  */
 function generateBasicCode({ fileDir }) {
   return [
-    `import { authedApi } from '${posix.relative(fileDir, accessDir)}/access.js'`,
+    `import { authedApi } from '${posix.relative(fileDir, accessDir)}/index.js'`,
     '',
     '/**',
     ' * TODO: describe what it does',

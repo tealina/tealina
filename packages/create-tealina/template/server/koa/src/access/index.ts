@@ -3,8 +3,8 @@ import type {
   AnyPayload,
   AuthedHandler,
   OpenHandler,
-} from '../types/handler.js'
-import { verifyToken } from './middlewares/auth/verifyToken.js'
+} from '../../types/handler.js'
+import { verifyToken } from './verifyToken.js'
 
 type OpenApiType = <
   const T extends [...Middleware[], OpenHandler<AnyPayload, any>],

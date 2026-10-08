@@ -499,8 +499,8 @@ describe('init into an existing project', () => {
   // The JavaScript-only arm, and the reason it exists is that T1 can only ever prove the
   // *template's* copy projects correctly. What `init` installs is another one, in a
   // directory the test did not choose, beside a host that may already have its own idea of
-  // what `src/access.js` is. So: break the installed copy, and insist the probe — which
-  // is checking types derived from that copy, through the host's own tsconfig — notices.
+  // what `src/access/index.js` is. So: break the installed copy, and insist the probe —
+  // which checks types derived from that copy, through the host's own tsconfig — notices.
   for (const fw of kServerTemplates) {
     it(`${fw} (js): the installed access module is what the projection reads`, () => {
       const { dir } = prepared(fw, 'js', true)
@@ -514,7 +514,7 @@ describe('init into an existing project', () => {
         `the probe did not compile against the installed template:\n${clean}`,
       ).toBe('')
 
-      fs.writeFileSync(path.join(dir, 'src/access.js'), WIDENED_ACCESS)
+      fs.writeFileSync(path.join(dir, 'src/access/index.js'), WIDENED_ACCESS)
       const broken = runTsc(dir)
       // Named precisely, not just `toContain('TS2322')`: the failure has to be the probe
       // lines degrading to `never`, one per assertion in `PROBE_JS`. A diagnostic from
@@ -838,7 +838,7 @@ describe('init --web', () => {
     // the package its types resolves to nothing, and what would land is a Vite app whose
     // client types nothing at all — the failure this feature exists to prevent.
     expect(res.status, `init --web exited ${res.status}:\n${output}`).toBe(0)
-    expect(fs.existsSync(path.join(hostDir, 'src/access.ts'))).toBe(true)
+    expect(fs.existsSync(path.join(hostDir, 'src/access/index.ts'))).toBe(true)
     expect(output).toContain('--web skipped')
     expect(output).toContain('"./api/v1"')
     expect(fs.existsSync(path.join(root, 'web'))).toBe(false)

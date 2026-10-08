@@ -28,8 +28,9 @@ packages/server/
       post/login.ts  ->  POST /api/v1/login
       post/article.ts -> POST /api/v1/article
     routes/              the api router, the static assets, the API doc page
-    middlewares/auth/    verifyToken, the guard authedApi puts in front of a chain
-    access.ts            openApi / authedApi — the two ways a handler file ends
+    access/              how a handler says whether its route is public or guarded
+      index.ts           openApi / authedApi — the two ways a handler file ends
+      verifyToken.ts     the guard authedApi puts in front of a chain
     config/env.ts        reads .env
     app.ts               wires the routes onto the framework instance
     index.ts             builds the app and starts listening
@@ -55,7 +56,7 @@ A handler file's default export goes through `openApi(...)` or `authedApi(...)`,
 
 ```ts
 import type { OpenHandler } from '../../../../types/handler.js'
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 interface LoginPayload {
   account: string
@@ -83,7 +84,7 @@ globals instead of an import — nothing to count `../` for, which matters becau
 writes stubs into directories that did not exist when the type file was written:
 
 ```js
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 /**
  * @typedef {object} LoginPayload
@@ -168,9 +169,9 @@ can call. Two gaps are left, both measured rather than assumed:
 - Fastify checks neither. `FastifyRequest` is module-augmented with `locals`, so both kinds
   of handler resolve to the same request type there and the two calls accept the same set.
 
-The guard itself is the one file in `src/middlewares/auth/`. It currently accepts any header
-value and sets `userId` to a placeholder. Replace the `TODO` with your real token check. The
-401 body is `{ "code": "Unauthorized", "message": "..." }`.
+The guard itself is `src/access/verifyToken.ts`. It currently accepts any header value and
+sets `userId` to a placeholder. Replace the `TODO` with your real token check. The 401 body
+is `{ "code": "Unauthorized", "message": "..." }`.
 
 ## API documentation
 
@@ -222,7 +223,7 @@ pnpm -F web dev      # http://localhost:5173
 Two things worth knowing:
 
 - Resolving those types pulls the server's **source** in (`v1.d.ts` → `src/api/v1/`
-  → `access.ts` → `express`/`fastify`/`koa` → `tealina/utility-types`). So the server's
+  → `access/` → `express`/`fastify`/`koa` → `tealina/utility-types`). So the server's
   own `tealina` and framework type packages must stay installed — the utility types the
   contract is built from arrive through `tealina`, which the server already has for the
   CLI. A `skipLibCheck` in the frontend will not paper over a break here, because this is

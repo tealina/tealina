@@ -82,7 +82,7 @@ const fixtureTsconfig = (mode: Mode) => ({
 })
 
 type BuildOptions = {
-  /** Replaces `src/access.<ext>` after the tree has been copied. */
+  /** Replaces `src/access/index.<ext>` after the tree has been copied. */
   access?: string
   /** Deletes the JS handlers' global aliases from `types/handler.d.ts`. */
   stripGlobals?: boolean
@@ -124,18 +124,15 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
     path.join(templateDir, `${tree}/src/api/v1`),
     path.join(dest, 'src/api/v1'),
   )
-  fs.copyFileSync(
-    path.join(templateDir, `${tree}/src/access.${ext}`),
-    path.join(dest, `src/access.${ext}`),
-  )
-  // `access` imports the guard, so the directory comes along with it. The guard's 401
-  // branch is app behaviour this fixture never runs; `tsc` only has to be able to read it.
+  // The whole module, guard and all: `access/index` imports `verifyToken`, which is the
+  // point of the two sitting together. The guard's 401 branch is app behaviour this fixture
+  // never runs; `tsc` only has to be able to read it.
   copyInto(
-    path.join(templateDir, `${tree}/src/middlewares/auth`),
-    path.join(dest, 'src/middlewares/auth'),
+    path.join(templateDir, `${tree}/src/access`),
+    path.join(dest, 'src/access'),
   )
   if (options.access != null) {
-    fs.writeFileSync(path.join(dest, `src/access.${ext}`), options.access)
+    fs.writeFileSync(path.join(dest, `src/access/index.${ext}`), options.access)
   }
   // The stub `align` writes is a string, and nothing else compiles it: the e2e suite runs
   // `align` but never type-checks what came out, so a type name the generator gets wrong

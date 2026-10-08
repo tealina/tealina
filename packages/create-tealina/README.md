@@ -57,8 +57,7 @@ my-app/
     src/
       api/v1/           get/health.ts, post/login.ts, post/article.ts
       routes/           the api router, the static assets, the API doc page
-      middlewares/auth/ verifyToken — the guard authedApi puts in front of a chain
-      access.ts         openApi / authedApi — the two ways a handler file ends
+      access/           openApi / authedApi, and verifyToken — the guard authedApi installs
       config/env.ts     reads .env
       app.ts            wires the routes onto the framework instance
     tealina.config.ts   pre-configured
@@ -91,8 +90,9 @@ pnpm create tealina init packages/api       # or a specific directory
 ```
 
 It reads that package's `package.json`, works out which framework it uses, and copies the
-convention in. That is the contract layer (`types/`), `access.ts`, the auth guard, and
-the routers that wire them together.
+convention in. That is the contract layer (`types/`), the access module — `openApi`,
+`authedApi`, and the guard they install — and the routers that mount it onto your
+framework.
 
 **It never touches your source.** Files are only ever added, and `package.json` is only ever
 merged into — a dependency, script or key you already have is kept exactly as it is, whatever

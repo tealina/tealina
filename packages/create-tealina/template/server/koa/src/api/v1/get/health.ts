@@ -1,5 +1,5 @@
 import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 

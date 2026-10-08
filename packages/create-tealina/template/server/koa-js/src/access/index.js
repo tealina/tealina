@@ -1,4 +1,4 @@
-import { verifyToken } from './middlewares/auth/verifyToken.js'
+import { verifyToken } from './verifyToken.js'
 
 /**
  * The two ways a handler file ends, and between them the whole public/authed decision:
@@ -6,7 +6,7 @@ import { verifyToken } from './middlewares/auth/verifyToken.js'
  * call that annotates the handler is the call that decides whether a token is required.
  * A third way applies the same shape: prepend another middleware instead of `verifyToken`.
  *
- * `openApi` refuses an `AuthedHandler` — a handler reading `res.locals.userId` cannot go on
+ * `openApi` refuses an `AuthedHandler` — a handler reading `ctx.state.userId` cannot go on
  * a route anyone can call. The converse is not caught: `authedApi(openHandler)` compiles and
  * installs the guard anyway, so the route is stricter than its own types claim.
  *
@@ -16,10 +16,10 @@ import { verifyToken } from './middlewares/auth/verifyToken.js'
  * and every response then projects to `never` with no diagnostic. `authedApi` prepends the
  * guard rather than appending it, so the handler keeps the last position `ExtractApiType` reads.
  *
- * @typedef {import('express').RequestHandler} RequestHandler
- * @typedef {import('../types/handler.js').AnyPayload} AnyPayload
- * @typedef {[...RequestHandler[], import('../types/handler.js').OpenHandler<AnyPayload, any>]} OpenApiArgs
- * @typedef {[...RequestHandler[], import('../types/handler.js').AuthedHandler<AnyPayload, any>]} AuthedApiArgs
+ * @typedef {import('koa').Middleware} Middleware
+ * @typedef {import('../../types/handler.js').AnyPayload} AnyPayload
+ * @typedef {[...Middleware[], import('../../types/handler.js').OpenHandler<AnyPayload, any>]} OpenApiArgs
+ * @typedef {[...Middleware[], import('../../types/handler.js').AuthedHandler<AnyPayload, any>]} AuthedApiArgs
  */
 
 /**

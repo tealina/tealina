@@ -1,4 +1,4 @@
-import { verifyToken } from './middlewares/auth/verifyToken.js'
+import { verifyToken } from './verifyToken.js'
 
 /**
  * The two ways a handler file ends, and between them the whole public/authed decision:
@@ -21,7 +21,7 @@ import { verifyToken } from './middlewares/auth/verifyToken.js'
  * reads.
  *
  * @typedef {import('fastify').preHandlerHookHandler | import('fastify').preHandlerAsyncHookHandler} PreHanlder
- * @typedef {[...PreHanlder[], import('../types/handler.js').CustomHandlerType]} ApiArgs
+ * @typedef {[...PreHanlder[], import('../../types/handler.js').CustomHandlerType]} ApiArgs
  */
 
 /**

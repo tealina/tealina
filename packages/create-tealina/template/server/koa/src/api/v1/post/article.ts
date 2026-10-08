@@ -1,5 +1,5 @@
 import type { AuthedHandler } from '../../../../types/handler.js'
-import { authedApi } from '../../../access.js'
+import { authedApi } from '../../../access/index.js'
 
 /**
  * Use the 'interface' keyword to declare types

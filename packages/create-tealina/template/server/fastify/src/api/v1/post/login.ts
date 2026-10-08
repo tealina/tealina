@@ -1,5 +1,5 @@
 import type { OpenHandler } from '../../../../types/handler.js'
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 /**
  * Use the 'interface' keyword to declare types

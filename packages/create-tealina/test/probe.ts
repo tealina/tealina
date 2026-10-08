@@ -76,11 +76,12 @@ export const articleDoc = { id: 1 }
  * per-endpoint tuple is lost: `LastElement` hands back the array itself, an array is not a
  * `HandlerAlias`, and so `ExtractApiType` degrades to `never`.
  *
- * Used only to prove the probe can still see that. It is the `access` module of a
- * JavaScript tree, so it only replaces a `.js` one.
+ * Used only to prove the probe can still see that. It is `src/access/index.js` of a
+ * JavaScript tree, so it only replaces a `.js` one and its specifiers are written from
+ * that directory.
  */
 export const WIDENED_ACCESS = `/**
- * @typedef {import('../types/handler.js').CustomHandlerType} CustomHandlerType
+ * @typedef {import('../../types/handler.js').CustomHandlerType} CustomHandlerType
  * @typedef {(...handlers: CustomHandlerType[]) => CustomHandlerType[]} EnsureHandlerType
  */
 

@@ -1,4 +1,4 @@
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 /**
  *  Check server is ok

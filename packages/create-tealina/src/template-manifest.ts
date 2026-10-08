@@ -101,12 +101,12 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
     'src/api/v1/post/index',
     'src/api/v1/post/login',
     'src/app',
-    'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
     'src/routes/api/v1',
     'src/routes/static/assets',
     'src/routes/static/doc',
-    'src/access',
+    'src/access/index',
+    'src/access/verifyToken',
     'src/index',
   ],
   koa: [
@@ -117,12 +117,12 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
     'src/api/v1/post/index',
     'src/api/v1/post/login',
     'src/app',
-    'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
     'src/routes/api/v1',
     'src/routes/static/assets',
     'src/routes/static/docs',
-    'src/access',
+    'src/access/index',
+    'src/access/verifyToken',
     'src/index',
   ],
   fastify: [
@@ -133,12 +133,12 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
     'src/api/v1/post/index',
     'src/api/v1/post/login',
     'src/app',
-    'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
     'src/routes/api/v1',
     'src/routes/static/assets',
     'src/routes/static/docs',
-    'src/access',
+    'src/access/index',
+    'src/access/verifyToken',
     'src/index',
   ],
 }
@@ -284,8 +284,9 @@ export const webHostFiles = (mode: Mode): TemplateFile[] =>
 // ---------------------------------------------------------------------------
 
 /**
- * Destinations without the mode's extension — `src/access` names `access.ts` and
- * `access.js` alike, and the `.d.ts` files keep theirs because it is part of the name.
+ * Destinations without the mode's extension — `src/access/verifyToken` names
+ * `verifyToken.ts` and `verifyToken.js` alike, and the `.d.ts` files keep theirs because it
+ * is part of the name.
  *
  * The selection below is therefore mode-independent, which is the honest model: *which*
  * files `init` takes has nothing to do with the mode, only what they are called does.
@@ -316,27 +317,27 @@ const kInitFromCommon: ReadonlySet<string> = new Set([
  */
 const kInitFromFramework: Record<ServerTemplate, ReadonlySet<string>> = {
   express: new Set([
-    'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
     'src/routes/api/v1',
     'src/routes/static/doc',
-    'src/access',
+    'src/access/index',
+    'src/access/verifyToken',
     'types/alias.d.ts',
   ]),
   koa: new Set([
-    'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
     'src/routes/api/v1',
     'src/routes/static/docs',
-    'src/access',
+    'src/access/index',
+    'src/access/verifyToken',
     'types/alias.d.ts',
   ]),
   fastify: new Set([
-    'src/middlewares/auth/verifyToken',
     'src/routes/api/index',
     'src/routes/api/v1',
     'src/routes/static/docs',
-    'src/access',
+    'src/access/index',
+    'src/access/verifyToken',
     'types/alias.d.ts',
     'types/fastify.d.ts',
   ]),

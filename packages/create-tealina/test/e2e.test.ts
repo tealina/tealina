@@ -512,7 +512,7 @@ const hostSource: Record<Mode, Record<Framework, Record<string, string>>> = {
 const initEndpointsTs: Record<Framework, Record<string, string>> = {
   express: {
     'src/api/v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -523,7 +523,7 @@ const handler: ApiType = async (_req, res) => {
 export default openApi(handler)
 `,
     'src/api/v1/post/secret.ts': `import type { AuthedHandler } from '../../../../types/handler.js'
-import { authedApi } from '../../../access.js'
+import { authedApi } from '../../../access/index.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -536,7 +536,7 @@ export default authedApi(handler)
   },
   koa: {
     'src/api/v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -547,7 +547,7 @@ const handler: ApiType = async ctx => {
 export default openApi(handler)
 `,
     'src/api/v1/post/secret.ts': `import type { EmptyObj, AuthedHandler } from '../../../../types/handler.js'
-import { authedApi } from '../../../access.js'
+import { authedApi } from '../../../access/index.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -560,7 +560,7 @@ export default authedApi(handler)
   },
   fastify: {
     'src/api/v1/get/health.ts': `import type { EmptyObj, OpenHandler } from '../../../../types/handler.js'
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 type ApiType = OpenHandler<EmptyObj, { isOk: boolean }>
 
@@ -571,7 +571,7 @@ const handler: ApiType = async (_request, reply) => {
 export default openApi(handler)
 `,
     'src/api/v1/post/secret.ts': `import type { EmptyObj, AuthedHandler } from '../../../../types/handler.js'
-import { authedApi } from '../../../access.js'
+import { authedApi } from '../../../access/index.js'
 
 type ApiType = AuthedHandler<EmptyObj, { id: number }>
 
@@ -593,7 +593,7 @@ export default authedApi(handler)
  */
 const initEndpointsJs: Record<Framework, Record<string, string>> = {
   express: {
-    'src/api/v1/get/health.js': `import { openApi } from '../../../access.js'
+    'src/api/v1/get/health.js': `import { openApi } from '../../../access/index.js'
 
 /**
  * @typedef {import('../../../../types/handler.js').OpenHandler<import('../../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
@@ -606,7 +606,7 @@ const handler = async (_req, res) => {
 
 export default openApi(handler)
 `,
-    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access.js'
+    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access/index.js'
 
 /**
  * @typedef {import('../../../../types/handler.js').AuthedHandler<import('../../../../types/handler.js').EmptyObj, { id: number }>} ApiType
@@ -621,7 +621,7 @@ export default authedApi(handler)
 `,
   },
   koa: {
-    'src/api/v1/get/health.js': `import { openApi } from '../../../access.js'
+    'src/api/v1/get/health.js': `import { openApi } from '../../../access/index.js'
 
 /**
  * @typedef {import('../../../../types/handler.js').OpenHandler<import('../../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
@@ -634,7 +634,7 @@ const handler = async ctx => {
 
 export default openApi(handler)
 `,
-    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access.js'
+    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access/index.js'
 
 /**
  * @typedef {import('../../../../types/handler.js').AuthedHandler<import('../../../../types/handler.js').EmptyObj, { id: number }>} ApiType
@@ -649,7 +649,7 @@ export default authedApi(handler)
 `,
   },
   fastify: {
-    'src/api/v1/get/health.js': `import { openApi } from '../../../access.js'
+    'src/api/v1/get/health.js': `import { openApi } from '../../../access/index.js'
 
 /**
  * @typedef {import('../../../../types/handler.js').OpenHandler<import('../../../../types/handler.js').EmptyObj, { isOk: boolean }>} ApiType
@@ -662,7 +662,7 @@ const handler = async (_request, reply) => {
 
 export default openApi(handler)
 `,
-    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access.js'
+    'src/api/v1/post/secret.js': `import { authedApi } from '../../../access/index.js'
 
 /**
  * @typedef {import('../../../../types/handler.js').AuthedHandler<import('../../../../types/handler.js').EmptyObj, { id: number }>} ApiType
@@ -804,8 +804,8 @@ describeE2E('init into an existing project, end to end', () => {
 
         // The same assertion the scaffold block makes, on the other half of the feature. It
         // matters more here: `init` installed its copy *around* a host, so a projection
-        // reading the wrong `access.<ext>` — the host's own, or the other mode's copy —
-        // would produce a document that renders and lies. A `never` response is exactly what
+        // reading the wrong `access/index.<ext>` — the host's own, or the other mode's copy
+        // — would produce a document that renders and lies. A `never` response is exactly what
         // that looks like, and it is not a compiler error anywhere.
         const docPath = path.join(projectDir, 'docs/v1.json')
         expect(fs.existsSync(docPath), `missing ${docPath}`).toBe(true)

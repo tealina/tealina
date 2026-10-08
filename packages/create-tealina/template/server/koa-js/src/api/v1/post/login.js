@@ -1,4 +1,4 @@
-import { openApi } from '../../../access.js'
+import { openApi } from '../../../access/index.js'
 
 /**
  * Declare types with `@typedef` rather than inline in the handler's type: like the

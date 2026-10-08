@@ -2,8 +2,9 @@ import { posix } from 'node:path'
 import { defineConfig, TemplateContext } from 'tealina'
 
 const typesDir = 'types'
-/** Where `access.ts` lives. This is this project's own layout, not something the CLI knows. */
-const accessDir = 'src'
+/** The directory the access module lives in. This is this project's own layout, not
+ * something the CLI knows. */
+const accessDir = 'src/access'
 
 export default defineConfig({
   typesDir,
@@ -28,7 +29,7 @@ function generateBasicCode({ fileDir }: TemplateContext) {
   const from = (dir: string) => posix.relative(fileDir, dir)
   return [
     `import type { AuthedHandler } from '${from(typesDir)}/handler.js'`,
-    `import { authedApi } from '${from(accessDir)}/access.js'`,
+    `import { authedApi } from '${from(accessDir)}/index.js'`,
     '',
     `/** TODO: describe what it does */`,
     `const handler: AuthedHandler = async () => {`,

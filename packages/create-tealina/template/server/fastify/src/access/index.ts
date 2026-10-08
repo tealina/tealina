@@ -1,6 +1,6 @@
 import type { preHandlerAsyncHookHandler, preHandlerHookHandler } from 'fastify'
-import type { CustomHandlerType } from '../types/handler.js'
-import { verifyToken } from './middlewares/auth/verifyToken.js'
+import type { CustomHandlerType } from '../../types/handler.js'
+import { verifyToken } from './verifyToken.js'
 
 type PreHanlder = preHandlerHookHandler | preHandlerAsyncHookHandler
 
