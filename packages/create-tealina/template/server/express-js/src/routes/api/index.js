@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { buildV1Router } from './v1.js'
+import apisV1 from '../../api/v1/index.js'
+import { buildRouter } from './router.js'
 
 const setupApiHeaders = /** @type {import('express').RequestHandler} */ (
   (_req, res, next) => {
@@ -10,9 +11,9 @@ const setupApiHeaders = /** @type {import('express').RequestHandler} */ (
 )
 
 export const buildApiRouter = async () => {
-  const v1ApiRouter = await buildV1Router()
+  const v1ApiRouter = await buildRouter(apisV1)
   return Router({ caseSensitive: true })
     .use(setupApiHeaders)
     .use('/v1', v1ApiRouter)
-  // .use('/v2', v2ApiRouter)
+  // .use('/v2', await buildRouter(apisV2))
 }

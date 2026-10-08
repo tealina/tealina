@@ -102,7 +102,7 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
     'src/api/v1/post/login',
     'src/app',
     'src/routes/api/index',
-    'src/routes/api/v1',
+    'src/routes/api/router',
     'src/routes/static/assets',
     'src/routes/static/doc',
     'src/access/index',
@@ -118,7 +118,7 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
     'src/api/v1/post/login',
     'src/app',
     'src/routes/api/index',
-    'src/routes/api/v1',
+    'src/routes/api/router',
     'src/routes/static/assets',
     'src/routes/static/docs',
     'src/access/index',
@@ -134,7 +134,7 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
     'src/api/v1/post/login',
     'src/app',
     'src/routes/api/index',
-    'src/routes/api/v1',
+    'src/routes/api/router',
     'src/routes/static/assets',
     'src/routes/static/docs',
     'src/access/index',
@@ -318,7 +318,7 @@ const kInitFromCommon: ReadonlySet<string> = new Set([
 const kInitFromFramework: Record<ServerTemplate, ReadonlySet<string>> = {
   express: new Set([
     'src/routes/api/index',
-    'src/routes/api/v1',
+    'src/routes/api/router',
     'src/routes/static/doc',
     'src/access/index',
     'src/access/verifyToken',
@@ -326,7 +326,7 @@ const kInitFromFramework: Record<ServerTemplate, ReadonlySet<string>> = {
   ]),
   koa: new Set([
     'src/routes/api/index',
-    'src/routes/api/v1',
+    'src/routes/api/router',
     'src/routes/static/docs',
     'src/access/index',
     'src/access/verifyToken',
@@ -334,7 +334,7 @@ const kInitFromFramework: Record<ServerTemplate, ReadonlySet<string>> = {
   ]),
   fastify: new Set([
     'src/routes/api/index',
-    'src/routes/api/v1',
+    'src/routes/api/router',
     'src/routes/static/docs',
     'src/access/index',
     'src/access/verifyToken',

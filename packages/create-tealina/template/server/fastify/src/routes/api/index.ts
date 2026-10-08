@@ -1,7 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify'
-import { buildV1Router } from './v1.js'
+import apisV1 from '../../api/v1/index.js'
+import { buildRouter } from './router.js'
 
 export const buildApiRouter: FastifyPluginAsync = async (fastify, _option) => {
-  await fastify.register(buildV1Router, { prefix: '/v1' })
-  // await fastify.register(buildV2Router, { prefix: '/v2' });
+  await fastify.register(buildRouter(apisV1), { prefix: '/v1' })
+  // await fastify.register(buildRouter(apisV2), { prefix: '/v2' });
 }
