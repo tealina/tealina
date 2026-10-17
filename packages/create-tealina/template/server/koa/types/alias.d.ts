@@ -18,20 +18,4 @@ export interface HandlerAliasCore<
     },
     next: () => Promise<any>,
   ): void
-  // The same signature, a second time, so that this is an overload set. A
-  // JavaScript handler annotated with a JSDoc `@type` above its declaration is
-  // otherwise checked against the alias as one signature, which makes that
-  // signature the function's own — and an `async` handler is then rejected
-  // outright, because `void` is not the global `Promise` (TS1065). Repeating
-  // the signature verbatim is the point: anything narrower, such as
-  // `Promise<void>`, is also one signature of an overload set, and would reject
-  // the sync handlers this contract accepts today.
-  (
-    ctx: ExtendableContext & {
-      request: T
-    } & { body: ExtractResponse<R> } & {
-      state: TLocals
-    },
-    next: () => Promise<any>,
-  ): void
 }

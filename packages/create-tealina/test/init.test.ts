@@ -417,7 +417,7 @@ describe('init into an existing project', () => {
         if (mode === 'js') {
           // A `.ts` source would be a file nothing in this project runs and nothing
           // checks: the host's compiler is configured for `.js`, and node never loads it.
-          // `.d.ts` stays — it is a type file in both modes, and the two share one copy.
+          // `.d.ts` stays — it is a type file, and the JavaScript tree ships its own copy.
           const strays = Object.keys(after).filter(
             rel =>
               before[rel] == null &&

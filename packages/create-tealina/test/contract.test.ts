@@ -15,7 +15,7 @@ import { PROBE_JS, PROBE_TS, WIDENED_ACCESS } from './probe.js'
  * the compiler and the framework types both come from this package's own devDependencies,
  * so this runs in a couple of seconds and is safe to leave on by default.
  *
- * The compiler is the one the *template* pins (`typescript: ~5.8.3` in
+ * The compiler is the one the *template* pins (`typescript: ~6.0.3` in
  * `template/server/<fw>/package.json`), not whatever the repo root happens to have, and
  * that is the point: everything the JavaScript trees rely on — `@typedef` with `<const T>`,
  * a JSDoc `@type` above a `const` being accepted for an `async` arrow — is compiler
@@ -86,6 +86,8 @@ type BuildOptions = {
   access?: string
   /** Deletes the JS handlers' global aliases from `types/handler.d.ts`. */
   stripGlobals?: boolean
+  /** Strips the JavaScript tree's repeated call signature from `types/alias.d.ts`. */
+  dropOverload?: boolean
   /** Names the scratch directory, for a variant that differs only in how it is run. */
   key?: string
 }
@@ -101,9 +103,11 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
     ? '-mut'
     : options.stripGlobals
       ? '-strip'
-      : options.key
-        ? `-${options.key}`
-        : ''
+      : options.dropOverload
+        ? '-no-overload'
+        : options.key
+          ? `-${options.key}`
+          : ''
   const dest = path.join(fixtureRoot, `${fw}-${mode}${variant}`)
   fs.rmSync(dest, { recursive: true, force: true })
   fs.mkdirSync(path.join(dest, 'src'), { recursive: true })
@@ -111,15 +115,34 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   const copyInto = (src: string, destDir: string) =>
     fs.cpSync(src, destDir, { recursive: true })
 
+  // The contract layer's shared half comes from the TypeScript tree; `alias.d.ts` comes
+  // from the mode's own tree, because the JavaScript copy carries a second call
+  // signature. The mode only decides the extension of the *value* files below.
+  const tree = mode === 'js' ? `server/${fw}-js` : `server/${fw}`
+  const ext = mode === 'js' ? 'js' : 'ts'
   copyInto(path.join(templateDir, 'common/types'), path.join(dest, 'types'))
   copyInto(
     path.join(templateDir, `server/${fw}/types`),
     path.join(dest, 'types'),
   )
-  // The type files are shared with the TypeScript tree, so this one line covers both
-  // modes' `types/`: the mode only decides the extension of the *value* files below.
-  const tree = mode === 'js' ? `server/${fw}-js` : `server/${fw}`
-  const ext = mode === 'js' ? 'js' : 'ts'
+  if (mode === 'js') {
+    // The JavaScript `alias.d.ts` lands over the TypeScript one copied above.
+    copyInto(path.join(templateDir, `${tree}/types`), path.join(dest, 'types'))
+  }
+  if (options.dropOverload) {
+    const alias = path.join(dest, 'types/alias.d.ts')
+    const src = fs.readFileSync(alias, 'utf-8')
+    const marker = '  // The same signature, a second time'
+    const start = src.indexOf(marker)
+    const end = src.lastIndexOf('\n}')
+    if (start < 0 || end < start) {
+      throw new Error(
+        "the JavaScript tree's types/alias.d.ts no longer carries the repeated " +
+          'signature, so this variant would quietly test nothing',
+      )
+    }
+    fs.writeFileSync(alias, src.slice(0, start) + src.slice(end))
+  }
   copyInto(
     path.join(templateDir, `${tree}/src/api/v1`),
     path.join(dest, 'src/api/v1'),
@@ -283,6 +306,23 @@ describe('shipped contract layer type-checks', () => {
           'types/handler.d.ts — the types they name are resolving to something, so ' +
           `this fixture can no longer tell a real handler type from \`any\`:\n${output}`,
       ).toContain('TS2304')
+    })
+  }
+
+  for (const fw of FRAMEWORKS) {
+    // Third self-check, for the JavaScript tree's one difference from the TypeScript
+    // tree. Its `types/alias.d.ts` repeats the call signature; strip the repetition and
+    // every async handler has to be rejected. If this passes, the file the manifest ships
+    // is no longer the thing keeping the JS tree compiling.
+    it(`${fw} (js): the async handlers stop compiling without the repeated signature`, () => {
+      const dest = buildFixture(fw, 'js', { dropOverload: true })
+      const output = runTsc(dest)
+      expect(
+        output,
+        'the JS handlers compiled with the second call signature removed from ' +
+          'types/alias.d.ts — the single-signature alias is accepted, so this fixture ' +
+          `can no longer tell whether the repetition does anything:\n${output}`,
+      ).toContain('TS1065')
     })
   }
 

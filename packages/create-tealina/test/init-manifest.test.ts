@@ -148,9 +148,9 @@ describe('init manifest', () => {
     // that.
     //
     // The union across modes is the honest form of the question. A file is dead weight if
-    // *no* mode names it; a file named by the other mode only is a file the two trees
-    // share on purpose (the contract layer, which is why `post` for an `express` file is
-    // listed under the TypeScript tree and still shipped to JavaScript projects).
+    // *no* mode names it. A file named by one mode only still ships — the JavaScript
+    // tree's `alias.d.ts` is exactly that — so the union, not an intersection, is what
+    // this walk has to compare against.
     const named = new Set(
       MODES.flatMap(mode => [
         ...kServerTemplates.flatMap(fw =>
@@ -198,7 +198,7 @@ describe('init manifest', () => {
         // A JavaScript tree that shipped a `.ts` file would hand the host a source file
         // their compiler is not configured for; a TypeScript tree that shipped `.js`
         // would hand them one nothing type-checks. The contract layer is the exception —
-        // `.d.ts` is a type file in both modes, and the two modes share one copy of it.
+        // `.d.ts` is a type file in both modes, whatever tree it comes from.
         const wrong = files
           .map(f => f.dest)
           .filter(dest => {

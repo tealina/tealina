@@ -556,10 +556,12 @@ export const runInit = async () => {
   // only one of them is ever loaded — silently. Worth a line, because the failure mode is
   // editing the wrong copy of a handler and watching nothing change.
   //
-  // Subtracting `dests` is what keeps the count honest. The contract layer is one file
+  // Subtracting `dests` is what keeps the count honest. Most of the contract layer is
   // shared by both modes, so a project that already had the TypeScript install lists
   // `types/handler.d.ts` and friends in the other mode's set too — counting those would
   // report a conflict on the files this very run just wrote, correctly, in place.
+  // `types/alias.d.ts` is the exception: each tree spells it differently, so installing
+  // the other mode over this one stops at that file unless `--skip-existing` says not to.
   const otherMode: Mode = mode === 'js' ? 'ts' : 'js'
   const ownDests = new Set(dests)
   const otherModeFiles = initFiles(server, otherMode)
@@ -666,12 +668,20 @@ export const runInit = async () => {
   if (otherModeFiles.length > 0) {
     console.log(
       `  ${yellow('!')} this project already has ${otherModeFiles.length} files from the ` +
-        `${otherMode === 'js' ? 'JavaScript' : 'TypeScript'} install. The two trees do not ` +
-        'collide — they use different paths — but they are two copies of one convention ' +
-        'and only one of them is ever loaded. The router imports api/v1/index.js, which ' +
-        `plain node reads as the .js file and tsx reads as the .ts one. Delete the tree ` +
-        'you are not running, or you will be editing a handler that is never called.',
+        `${otherMode === 'js' ? 'JavaScript' : 'TypeScript'} install. The two trees write ` +
+        'different source files, so they can sit together — but they are two copies of ' +
+        'one convention and only one of them is ever loaded. The router imports ' +
+        'api/v1/index.js, which plain node reads as the .js file and tsx reads as the .ts ' +
+        'one. Delete the tree you are not running, or you will be editing a handler that ' +
+        'is never called.',
     )
+    if (mode === 'js' && otherMode === 'ts') {
+      console.log(
+        `  ${yellow('!')} types/alias.d.ts belongs to the TypeScript install. Replace it ` +
+          'with the JavaScript copy if this tree is the one you run: it needs the repeated ' +
+          'call signature, or every async handler fails to compile (TS1065).',
+      )
+    }
   }
   console.log(
     '  src/api/v1/ starts empty: no demo endpoints were added, so no route you did ' +

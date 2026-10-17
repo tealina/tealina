@@ -27,14 +27,15 @@ through the `OpenAPI` / `AuthedAPI` / `EmptyObj` globals declared at the end of
 writes into a directory nobody has created yet can name its own API type without counting
 `../`. The TypeScript tree carries the globals too and never writes them.
 
-For that annotation to be accepted on an `async` handler, each framework's
-`HandlerAliasCore` carries a second call signature repeating the first. A JSDoc `@type` is
+For that annotation to be accepted on an `async` handler, the JavaScript tree's
+`types/alias.d.ts` carries a second call signature repeating the first. A JSDoc `@type` is
 checked as the function's own signature rather than as an assignment to it, so with a
 single signature the handler's return type becomes express's `unknown`, koa's `void` or
 fastify's `R | void | Promise<R | void>` — none of which is the global `Promise`, and
 `async` is then a compile error. Repeating the signature verbatim rather than narrowing it
 to `Promise<void>` is the point: the contract still accepts the synchronous handlers it
-accepted before.
+accepted before. The TypeScript tree keeps one signature — its handlers are annotated on
+the declaration, which is not the path that check reads.
 
 No error handler and no not-found handler ship with it, on any of the three frameworks.
 An unknown route and a thrown error are answered by the framework's own default — express's

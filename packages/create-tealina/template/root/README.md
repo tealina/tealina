@@ -279,7 +279,9 @@ argument; `packages/web/js` in the scaffold's template is the worked example.
   globals, which is how the JavaScript tree's handlers name these two without an import;
   they are inert in a TypeScript project.
 - `alias.d.ts` — the one framework-specific file. This is where express/koa/fastify
-  request and response types get bound to the generic handler shape.
+  request and response types get bound to the generic handler shape. A JavaScript
+  project's copy repeats the call signature, which is what keeps a checked `.js`
+  handler's `async` form from being rejected (TS1065); the TypeScript copy has one.
 - `v1.d.ts` — the exit point. `ApiTypesForDoc` **must** stay the first export in
   this file; the doc generator picks it up by position. Also referenced by the
   `exports["./api/v1"]` entry in `package.json`.

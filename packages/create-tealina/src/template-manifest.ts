@@ -10,8 +10,8 @@ import type { ServerTemplate } from './core.js'
  * is written down once here and `init` selects from it.
  *
  * A `{src, dest}` pair rather than a bare path, because the two are not always the same
- * string: a JavaScript project's config sits in a sibling directory, and the type files are
- * shared with the TypeScript tree rather than copied into it.
+ * string: a JavaScript project's config sits in a sibling directory, and most of the type
+ * files are shared with the TypeScript tree rather than copied into it.
  */
 export interface TemplateFile {
   /** Relative to `templateRootDir`. */
@@ -147,16 +147,27 @@ const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
 const kFrameworkStaticFiles = ['package.json'] as const
 
 /**
- * Each framework's half of the contract layer. Shared with the TypeScript tree instead of
- * being copied into the JavaScript one: this is the file the whole projection hangs off —
- * get it wrong and every response silently widens — so two copies of it would be two
- * things to keep in step, with the drift showing up as a wrong document rather than as an
- * error. `common/types/**` is shared the same way, one level up.
+ * The one type file the two trees spell differently.
+ *
+ * `alias.d.ts` binds the framework's request and response types to the generic handler
+ * shape, and the JavaScript copy repeats each call signature verbatim. A checked `.js`
+ * handler annotated with a JSDoc `@type` is otherwise checked against a single signature,
+ * and an `async` handler is then rejected because the alias's return type is not the
+ * global `Promise` (TS1065). TypeScript handlers annotate the arrow directly, never take
+ * that path, and need one signature only.
+ *
+ * Everything else in the contract layer is shared: get it wrong and every response
+ * silently widens, so two copies would be two things to keep in step, with the drift
+ * showing up as a wrong document rather than as an error. `common/types/**` is shared the
+ * same way, one level up.
  */
-const kFrameworkTypeFiles: Record<ServerTemplate, readonly string[]> = {
-  express: ['types/alias.d.ts'],
-  koa: ['types/alias.d.ts'],
-  fastify: ['types/alias.d.ts', 'types/fastify.d.ts'],
+const kAliasFile = 'types/alias.d.ts'
+
+/** Type files every mode copies from the TypeScript tree. */
+const kSharedTypeFiles: Record<ServerTemplate, readonly string[]> = {
+  express: [],
+  koa: [],
+  fastify: ['types/fastify.d.ts'],
 }
 
 export const frameworkFiles = (
@@ -171,10 +182,11 @@ export const frameworkFiles = (
     const dest = `${bare}${extOf(mode)}`
     return { src: `${treeOf(fw, mode)}/${dest}`, dest }
   }),
-  ...kFrameworkTypeFiles[fw].map(dest => ({
+  ...kSharedTypeFiles[fw].map(dest => ({
     src: `server/${fw}/${dest}`,
     dest,
   })),
+  { src: `${treeOf(fw, mode)}/${kAliasFile}`, dest: kAliasFile },
 ]
 
 /** What `create` copies into the server package, in the order it copies it. */
