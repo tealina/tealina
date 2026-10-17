@@ -1,6 +1,6 @@
 import { existsSync, rmSync } from 'node:fs'
 import path from 'node:path'
-import { afterAll, beforeAll, test } from 'vite-plus/test'
+import { afterAll, beforeAll, expect, test, vi } from 'vite-plus/test'
 import { cli } from '../../src/commands/index.js'
 
 const mockDir = 'test/gdoc/mock'
@@ -18,8 +18,8 @@ beforeAll(cleanOutput)
 
 afterAll(cleanOutput)
 
-test('actual run gdoc', () => {
-  // The return value is unused: `parse` is here for its registration side effect.
+const runGdoc = (...extra: string[]) => {
+  // The parse call is here for its registration side effect; the run is what matters.
   cli.parse(
     [
       '',
@@ -34,10 +34,59 @@ test('actual run gdoc', () => {
       path.join(mockDir, 'tsconfig.json'),
       '--config-path',
       path.join(mockDir, 'tealina.config.mjs'),
+      ...extra,
     ],
     { run: false },
   )
-  // console.log(cli.matchedCommand)
-  // expect(cli.matchedCommandName).eq('gdoc')
   return cli.runMatchedCommand()
+}
+
+test('actual run gdoc', () => {
+  return runGdoc()
+})
+
+test('--check passes when the document is current', async () => {
+  await runGdoc()
+  const originalExit = process.exitCode
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+  try {
+    await runGdoc('--check', '--json')
+    expect(process.exitCode).eq(originalExit)
+    expect(JSON.parse(String(log.mock.lastCall?.[0]))).toEqual({
+      ok: true,
+      changed: [],
+    })
+  } finally {
+    log.mockRestore()
+    process.exitCode = originalExit
+  }
+})
+
+test('--json reports the file a normal run wrote', async () => {
+  cleanOutput()
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+  try {
+    await runGdoc('--json')
+    const body = JSON.parse(String(log.mock.lastCall?.[0]))
+    expect(body).contains({ ok: true })
+    expect(body.changed).toEqual([{ action: 'create', file: output }])
+    expect(existsSync(output)).eq(true)
+  } finally {
+    log.mockRestore()
+  }
+})
+
+test('--check fails without writing when the document is missing', async () => {
+  cleanOutput()
+  const originalExit = process.exitCode
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+  try {
+    await runGdoc('--check', '--json')
+    expect(process.exitCode).eq(1)
+    expect(existsSync(output)).eq(false)
+    expect(JSON.parse(String(log.mock.lastCall?.[0]))).contains({ ok: false })
+  } finally {
+    log.mockRestore()
+    process.exitCode = originalExit
+  }
 })

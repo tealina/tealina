@@ -3,10 +3,10 @@
 "@tealina/server": patch
 ---
 
-Declare Node 20 as the floor
+Declare Node 22 as the floor
 
-`@tealina/server` was built with `target: 'es2022'`. It is `node20` now, matching the other
-Node-side packages and the `engines.node: ">=20.19"` they declare. Its output is
+`@tealina/server` was built with `target: 'es2022'`. It is `node22` now, matching the other
+Node-side packages and the `engines.node: ">=22"` they declare. Its output is
 byte-identical — the source uses no syntax that sits between the two — so this states the
 real floor rather than changing the artifact.
 

@@ -17,7 +17,7 @@ export default defineConfig({
     // bin shim 引用的是 `.mjs`，与上面 `fixedExtension` 的默认值一致；写出来是因为
     // 同仓库另外两个包都把它设成了 false。
     fixedExtension: true,
-    target: 'node20',
+    target: 'node22',
     outDir: 'dist',
     // 显式关掉：这个选项一旦打开，tsdown 会改写 package.json，为 `unbundle` 出来的
     // 每一个文件补一条 `exports` 子路径——等于把 `commands/*`、`utils/*` 这 18 个

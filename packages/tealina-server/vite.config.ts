@@ -5,7 +5,7 @@ export default defineConfig({
     entry: { index: 'src/index.ts' },
     dts: true,
     // 与其余 Node 侧包一致，下限同 `engines.node`。
-    target: 'node20',
+    target: 'node22',
     outDir: 'dist',
     // 这个包没有 `"type": "module"`，所以 `dist/index.js` 在 Node 眼里就是 CommonJS，
     // `main` 也指着它——改格式对使用者是破坏性变更。

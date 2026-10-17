@@ -25,8 +25,10 @@ A scaffold template has two parts:
 1. the manifest that names the files it writes — [`src/template-manifest.ts`](./packages/create-tealina/src/template-manifest.ts)
 2. the files themselves — [`template/`](./packages/create-tealina/template)
 
-The retired full-kit scaffold built its file list by walking directories instead; it is kept
-at [`archive/create-tealina`](./archive/create-tealina) for reference only.
+A server or web template file is one the manifest names; a file added under
+`template/server/` or `template/web/` but not to the manifest never ships. `template/root/`
+is copied wholesale, so everything in it is shipped as-is. The retired full-kit scaffold
+built every list by walking directories; that approach was dropped along with the package.
 
 ## Debugging
 

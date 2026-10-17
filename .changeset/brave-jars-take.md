@@ -17,7 +17,5 @@ run can be fully non-interactive, and a `template-manifest.ts` that names every 
 scaffold writes instead of walking directories. It runs `gdoc` for you after the install,
 so the document the API doc page reads exists the first time you open it.
 
-The database path has no equivalent here. The old scaffold is kept at
-`archive/create-tealina` in the repository as a frozen reference — not built, not tested,
-not published from there, and a snapshot rather than a branch. `2.2.6` was its last
-release; this changelog continues from there.
+The database path has no equivalent here. The old scaffold is not part of this repository.
+`2.2.6` was its last release; this changelog continues from there.

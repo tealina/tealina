@@ -8,6 +8,7 @@
     "build": "pnpm recursive exec -- npm run build",
     "release": "pnpm changeset version && pnpm up-temp-versions && pnpm build && pnpm changeset publish",
     "test": "pnpm recursive exec -- npm run test",
+    "verify": "vp run -r build && vp check && vp test",
     "preinstall": "npx only-allow pnpm",
     "prepare": "vp config --no-agent",
     "dev:ui": "concurrently 'pnpm -C playground/doc-factory dev' 'pnpm -F @tealina/doc-ui-src dev'",
@@ -20,7 +21,7 @@
     "tealina-monorepo": "link:."
   },
   "devDependencies": {
-    "@types/node": "^20.19.4",
+    "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "catalog:",
     "concurrently": "^9.2.0",
     "dotenv-cli": "^10.0.0",
@@ -32,6 +33,6 @@
   },
   "packageManager": "pnpm@12.5.1",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22"
   }
 }

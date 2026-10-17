@@ -10,7 +10,7 @@ export default defineConfig({
       core: 'src/core/index.ts',
     },
     dts: true,
-    // 浏览器包（模板的 web 项目 import 它），下限是 es6 而不是 node20。
+    // 浏览器包（模板的 web 项目 import 它），下限是 es6 而不是 node22。
     target: 'es6',
     outDir: 'dist',
     format: 'esm',

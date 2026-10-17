@@ -11,7 +11,7 @@
     }
   },
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "node --watch src/index.js",
@@ -34,7 +34,7 @@
     "@types/koa-mount": "^4.0.5",
     "@types/koa-static": "^4.0.4",
     "@types/koa__router": "12.0.4",
-    "@types/node": "^20.19.4",
+    "@types/node": "^22.0.0",
     "tealina": "^2.2.2",
     "typescript": "~6.0.3"
   },

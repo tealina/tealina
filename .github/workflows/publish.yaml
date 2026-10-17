@@ -22,7 +22,7 @@ jobs:
       # setup-vp 按 packageManager 字段装包管理器，不再手写版本号。
       - uses: voidzero-dev/setup-vp@v1.20.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: true
           # 同 CI：action 自带的 install 不带 --frozen-lockfile，会先把 lockfile
           # 改掉，让下一步的 --frozen-lockfile 失效。

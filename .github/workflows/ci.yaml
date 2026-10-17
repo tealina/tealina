@@ -21,9 +21,10 @@ jobs:
       # 版本要写精确版本号：官方文档明确说 `v1` 这个 tag 不再更新（停在 v1.15.0）。
       - uses: voidzero-dev/setup-vp@v1.20.0
         with:
-          # 与各包 engines.node ">=20.19"、pack 的 target 'node20' 对齐 —— 在声明的
-          # 下限上验证，而不是在最新 LTS 上。
-          node-version: '20'
+          # 与各包 engines.node ">=22"、pack 的 target 'node22' 对齐。
+          # vite-plus-core 0.3.3 的 tsdown 在构建期使用 Promise.withResolvers，
+          # 那是 Node 22 才有的 API，所以构建环境必须从 22 起步。
+          node-version: '22'
           cache: true
           # 关掉 action 自带的 install（它默认带，且不带 --frozen-lockfile），
           # 否则它会先把 lockfile 改掉，下一行的 --frozen-lockfile 就形同虚设。

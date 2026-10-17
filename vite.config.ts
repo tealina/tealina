@@ -31,7 +31,6 @@ export default defineConfig({
     // ——— 对应 biome.json 的 files.includes + formatter.includes ———
     // dist / temp / node_modules / coverage 已在 .gitignore 里，不必重复
     ignorePatterns: [
-      'archive/**', // files.includes: "!**/archive"
       '**/build/**', // "!**/build"
       '**/assets/**', // formatter.includes: "!**/assets"
       '**/static/**', // "!**/static"
@@ -61,11 +60,10 @@ export default defineConfig({
     // packages/* 里，根目录的 `vp install` 从不碰它，而它自己那份 node_modules
     // 是指向仓库 store 的相对链接、store 一升级就全变成死链——于是每个
     // `import express` 都是 TS2307，handler 参数跟着退化成隐式 any。在仓库里跑
-    // `pnpm install` 修不好（pnpm 会向上找到根 workspace 文件去装整个仓库，
-    // archive/README.md 记过这个坑），所以它会一直是这个状态。
+    // `pnpm install` 修不好（pnpm 会向上找到根 workspace 文件去装整个仓库），
+    // 所以它会一直是这个状态。
     ignorePatterns: [
       'temp-*/**', // linter.includes: ["!temp-*"]
-      'archive/**',
       'packages/create-tealina/template/**',
       'playground/**',
     ],

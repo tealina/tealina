@@ -11,7 +11,7 @@ import { deleteApis } from './dapi'
 import { pickOption4gdoc, startGenerateDoc } from './gdoc'
 import { generatePureTypes, pickOption4gtype } from './gtype'
 import { pickOption4align, syncApiByFile } from './sapi'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 
 export interface RawOptions {
   apiDir: string
@@ -26,6 +26,10 @@ export interface RawOptions {
   namespace: string
   align: boolean
   deleteApi: boolean
+  /** Compare generated output with disk and exit non-zero on drift; never writes. */
+  check: boolean
+  /** Machine-readable output: one JSON object on stdout, errors on stderr. */
+  json: boolean
 }
 
 const kDefaultGtypeInput = './prisma/schema.prisma'
@@ -81,6 +85,11 @@ cli
     '-a,--align',
     'Align APIs, update all related files according to files in --api-dir',
   )
+  .option(
+    '--check',
+    'With --align or gdoc: compare generated output with disk, write nothing, exit 1 on drift',
+  )
+  .option('--json', 'Machine-readable output (one JSON object on stdout)')
   .option('-d,--delete-api', 'Delete APIs')
   .option(
     '-i,--input <path>',
@@ -106,5 +115,10 @@ cli
   .action(distribuite)
 
 cli.help()
-cli.version('2.0.0')
+// The package is built with `unbundle`, so this file sits at `dist/commands/index.mjs`
+// and `../../package.json` is the package root in both the source and built trees.
+const { version } = JSON.parse(
+  readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
+) as { version: string }
+cli.version(version)
 export { cli }

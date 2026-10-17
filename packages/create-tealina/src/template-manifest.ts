@@ -54,6 +54,7 @@ const commonTreeOf = (mode: Mode) => (mode === 'js' ? 'common/js' : 'common')
  */
 const kCommonShared = [
   '.env.example',
+  'AGENTS.md',
   'docs/.gitkeep',
   'public/index.html',
   'types/v1.d.ts',
@@ -312,6 +313,7 @@ const bareOf = (dest: string) =>
  * and `public/` are the host's own choices of port, module settings and build.
  */
 const kInitFromCommon: ReadonlySet<string> = new Set([
+  'AGENTS.md',
   'docs/.gitkeep',
   'tealina.config',
   'types/v1.d.ts',

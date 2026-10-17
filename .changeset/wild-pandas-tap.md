@@ -24,6 +24,6 @@ Two side effects worth knowing:
   '@tealina/utility-types'`. tsdown inlines workspace types into the declaration, and here
   that is a fix: the package is only a `devDependency` of this one, so an outside consumer
   never had it installed and the import could not resolve.
-- `target` is `node20` now, matching the rest of the repo. Under plain `tsc` there was no
+- `target` is `node22` now, matching the rest of the repo. Under plain `tsc` there was no
   way to write that: `target` only takes ES versions, which is why these packages were
   stuck on `ES2022`.

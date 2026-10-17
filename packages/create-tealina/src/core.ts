@@ -26,16 +26,13 @@ export const templateRootDir = path.resolve(
 )
 
 // ---------------------------------------------------------------------------
-// Copied from the retired full-kit scaffold, now in archive/create-tealina.
-// Neither ships an `exports` map, so nothing there can be imported — these
-// have to be duplicated. The archive is a frozen snapshot, not maintained:
-// fix bugs here, not there.
+// Copied from the retired full-kit scaffold, which is no longer part of this
+// repository. Neither package ships an `exports` map, so these helpers cannot
+// be imported from anywhere — they have to be duplicated here.
 //
 // `mayCopyCommonDir` was the one helper deliberately not carried over:
-// `create` copies from template-manifest.ts now, which names the files
-// instead of walking a directory, so a wholesale `common/` copy no longer
-// exists on this side. The archived package still walks directories and
-// keeps its own copy.
+// `create` copies from template-manifest.ts, which names the files instead of
+// walking a directory, so a wholesale `common/` copy does not exist.
 // ---------------------------------------------------------------------------
 
 const copy = (src: string, dest: string) =>

@@ -202,7 +202,7 @@ describe('init manifest', () => {
         const wrong = files
           .map(f => f.dest)
           .filter(dest => {
-            // `.d.ts` is a type file in both modes; `.json`, `.html` and the
+            // `.d.ts` is a type file in both modes; `.json`, `.html`, `.md` and the
             // extensionless placeholders (`docs/.gitkeep`) are not source and carry no
             // mode at all. `index.html` is in the same position as a `.d.ts`: one
             // spelling, both trees, because nothing type-checks it either way.
@@ -211,6 +211,7 @@ describe('init manifest', () => {
               ext === '' ||
               ext === '.json' ||
               ext === '.html' ||
+              ext === '.md' ||
               dest.endsWith('.d.ts')
             ) {
               return false
@@ -287,6 +288,7 @@ describe('web manifest', () => {
             ext === '' ||
             ext === '.json' ||
             ext === '.html' ||
+            ext === '.md' ||
             dest.endsWith('.d.ts')
           ) {
             return false

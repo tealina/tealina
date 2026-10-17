@@ -23,6 +23,6 @@
     "test": "vp test --run"
   },
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22"
   }
 }

@@ -15,7 +15,7 @@ The output is deliberately the same. `src/` still mirrors 1:1 into `dist/` (tsdo
 Two things worth knowing, since the next package to move will meet them:
 
 - The `rollup.esbuild` block this replaces never did anything. `builder: 'mkdist'` hands
-  its entry to `mkdist` and never forwards `rollup`, so `target: 'node20'` and
+  its entry to `mkdist` and never forwards `rollup`, so `target: 'node22'` and
   `minify: true` were inert — `dist/index.mjs` was 304 readable bytes, not minified. The
   replacement is not expected to shrink anything: `target` is set explicitly now, and
   minification is deliberately left off because the CLI's `--verbose` prints execution

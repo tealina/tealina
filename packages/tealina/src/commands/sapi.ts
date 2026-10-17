@@ -1,3 +1,4 @@
+import consola from 'consola'
 import {
   asyncFlow,
   asyncPipe,
@@ -178,7 +179,10 @@ const calcSnapshots = (info: FileTreeInfo): Snapshot[] =>
   )
 
 export type AlignOption = FileTreeInfo['options'] &
-  Pick<FullOptions, 'suffix' | 'sourceExt'>
+  Pick<FullOptions, 'suffix' | 'sourceExt'> &
+  // Absent means "write the files", which is what every caller that is not the CLI
+  // means. Only the CLI sets these, from flags that default to false.
+  Partial<Pick<FullOptions, 'check' | 'json'>>
 
 const collectContext = (options: AlignOption): Promise<FileTreeInfo> =>
   asyncPipe(
@@ -194,15 +198,61 @@ const collectContext = (options: AlignOption): Promise<FileTreeInfo> =>
   )
 
 const pickOption4align = (full: FullOptions): AlignOption => {
-  const x = pickFn(full, 'apiDir', 'typesDir', 'suffix', 'sourceExt')
+  const x = pickFn(
+    full,
+    'apiDir',
+    'typesDir',
+    'suffix',
+    'sourceExt',
+    'check',
+    'json',
+  )
   return x
 }
 
-const syncApiByFile = asyncFlow(
-  collectContext,
-  calcSnapshots,
-  effectFiles,
-  logResults,
-)
+/**
+ * `--check` is the same snapshot calculation as a normal run, stopped before `effectFiles`.
+ * A caller — CI or an agent — gets a non-zero exit code and the list of files that would
+ * change, without the disk being touched.
+ */
+const syncApiByFile = async (options: AlignOption) => {
+  const snapshots = calcSnapshots(await collectContext(options))
+  if (!options.check) {
+    const applied = effectFiles(snapshots)
+    if (options.json) {
+      console.log(
+        JSON.stringify({
+          ok: true,
+          changed: applied.map(v => ({ action: v.action, file: v.filePath })),
+        }),
+      )
+      return applied
+    }
+    return logResults(applied)
+  }
+
+  if (snapshots.length === 0) {
+    if (options.json) {
+      console.log(JSON.stringify({ ok: true, changed: [] }))
+    } else {
+      consola.success('Generated files are up to date')
+    }
+    return snapshots
+  }
+
+  if (options.json) {
+    console.log(
+      JSON.stringify({
+        ok: false,
+        changed: snapshots.map(v => ({ action: v.action, file: v.filePath })),
+      }),
+    )
+  } else {
+    logResults(snapshots)
+    consola.error(`Found ${snapshots.length} generated file(s) out of date.`)
+  }
+  process.exitCode = 1
+  return snapshots
+}
 
 export { calcSnapshots, pickOption4align, syncApiByFile }

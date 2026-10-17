@@ -38,6 +38,23 @@ const memoObj = {}
 /**@type {ts.TypeChecker} */
 let checker
 
+/**
+ * The ref tables are keyed by TypeScript's per-program type ids, so entries from one
+ * program mean nothing in the next and can collide with its ids. `gdoc --check` runs the
+ * generator twice in one process (once to write, once to compare), and a second run has to
+ * produce the same document as the first.
+ */
+const resetRefs = () => {
+  for (const table of [Refs, EnumRefs, TupleRefs, memoObj]) {
+    for (const key of Object.keys(table)) Reflect.deleteProperty(table, key)
+  }
+  ParsingTupleIds.length = 0
+  ParsingEntityIds.length = 0
+  for (const key of Object.keys(RecursiveTupleIds)) {
+    Reflect.deleteProperty(RecursiveTupleIds, key)
+  }
+}
+
 const kReponseFlagPattern = /__@ResponseFlagSymbol/
 
 /**
@@ -810,6 +827,7 @@ const parseTsConfig = tsconfigPath => {
  * ref https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API
  */
 export const parseDeclarationFile = ({ entries, tsconfigPath }) => {
+  resetRefs()
   const program = ts.createProgram(entries, parseTsConfig(tsconfigPath).options)
   checker = program.getTypeChecker()
   const sourceFiles = program.getSourceFiles()

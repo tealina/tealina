@@ -23,7 +23,7 @@ export default defineConfig({
     entry: { index: 'src/index.ts' },
     format: 'esm',
     platform: 'node',
-    target: 'node20',
+    target: 'node22',
     minify: true,
     // 显式关掉：这个包没写 `types`，tsdown 会退到读 tsconfig 的
     // `compilerOptions.declaration`——现在恰好没开，但哪天开了就会开始吐 `.d.mts`。
