@@ -1,24 +1,16 @@
 import { verifyToken } from './verifyToken.js'
 
 /**
- * The two ways a handler file ends, and between them the whole public/authed decision:
- * `authedApi` builds the chain with the guard in it, `openApi` builds it without.
- * A third way applies the same shape: prepend another middleware instead of `verifyToken`.
+ * The two ways a handler file ends: `authedApi` builds the chain with the guard,
+ * `openApi` without. The call that annotates the handler decides whether a token is required.
  *
- * Fastify is where that pair stops being a type check as well. `FastifyRequest` is
- * module-augmented with `locals?: AuthedLocals` (see `types/fastify.d.ts`), so the
- * intersection in `HandlerAliasCore` leaves `AuthedLocals` on every handler's request and
- * an `OpenHandler` cannot be told from an `AuthedHandler` on that field. Neither can
- * `headers`, which the constraint has to leave permissive for the same reason a payload is.
- * `CustomHandlerType` is what remains: it accepts both, so the two live in one `ApiArgs`
- * here, and `openApi(authedHandler)` compiles where express and koa reject it.
+ * Every request here carries `locals?: AuthedLocals` (`types/fastify.d.ts`), so neither type
+ * can tell the two apart and both share `ApiArgs`; `openApi(authedHandler)` compiles.
  *
- * The names below are the shipped declarations, not lookalikes: the projection matches
- * `HandlerAlias` itself, and a restated alias would silently widen every response to
- * `unknown`. The tuple is load-bearing the same way — `@param {...T}` collapses it to `T[]`,
- * and every response then projects to `never` with no diagnostic. `authedApi` prepends the
- * guard rather than appending it, so the handler keeps the last position `ExtractApiType`
- * reads.
+ * `@param {...T}` would collapse the tuple to `T[]` and project every response to `never`,
+ * so `@param {T}` must carry it. The names below are the shipped declarations, not
+ * lookalikes; a restated alias would widen every response to `unknown`. The guard is
+ * prepended so the handler keeps the last position `ExtractApiType` reads.
  *
  * @typedef {import('fastify').preHandlerHookHandler | import('fastify').preHandlerAsyncHookHandler} PreHanlder
  * @typedef {[...PreHanlder[], import('../../types/handler.js').CustomHandlerType]} ApiArgs
@@ -37,8 +29,7 @@ export const openApi = (...handlers) => handlers
  * @returns {T}
  */
 export const authedApi = (...handlers) => {
-  // In place so the return type stays `T`: `[verifyToken, ...handlers]` is `[guard, ...T]`,
-  // which `=> T` rejects (TS2322).
+  // In place: spreading would yield `[guard, ...T]`, which `=> T` rejects.
   handlers.unshift(verifyToken)
   return handlers
 }
