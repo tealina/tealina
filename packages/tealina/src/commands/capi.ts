@@ -130,11 +130,16 @@ const prepareKindArgsByModel = async (
   opt: RawOptions,
   tempConfig: ApiTemplateType[],
 ): Promise<Seeds[]> => {
-  const { templateAlias } = opt
+  const { templateAlias, input } = opt
   if (templateAlias == null) {
     throw new Error('Missing template alias')
   }
-  const nameGroup = await extraModelNames(opt.input)
+  if (input == null) {
+    throw new Error(
+      'Batch creation by model needs -i/--input (the prisma schema)',
+    )
+  }
+  const nameGroup = await extraModelNames(input)
   const rawNames = nameGroup.get('model') ?? []
   return parseByAlias(rawNames.map(unCapitalize), tempConfig, templateAlias)
 }

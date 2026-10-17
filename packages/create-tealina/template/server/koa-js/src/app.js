@@ -1,28 +1,17 @@
-import bodyParser from '@koa/bodyparser'
 import Koa from 'koa'
-import { buildApiRouter } from './routes/api/index.js'
+import { mount } from 'api-v1/mount'
 import { buildAssetsRouter } from './routes/static/assets.js'
-import { docRouter } from './routes/static/docs.js'
 
 /**
- * The order of route registration is important
+ * The api version package installs the body parser, the routes and the documentation
+ * page. This host adds what is its own: the static assets.
  *
- * `koa` is shipped with `export =`, so `import('koa')` here is the application instance
- * itself — the type the TypeScript tree spells `Koa` off its default import.
- *
- * @param {import('koa')} app
+ * The order of route registration is important.
  */
-const buildAppRouter = async app => {
-  const apiRouter = await buildApiRouter()
-  app.use(apiRouter.routes())
-  docRouter(app)
-  buildAssetsRouter(app)
-}
-
 const buildApp = async () => {
   const app = new Koa()
-  app.use(bodyParser())
-  await buildAppRouter(app)
+  await mount(app)
+  buildAssetsRouter(app)
   return app
 }
 

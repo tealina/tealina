@@ -2,11 +2,11 @@
 "create-tealina": minor
 ---
 
-Initial release. A minimal tealina scaffold: no database, no Prisma, one `server`
-workspace package instead of four. The default output has no frontend either — the
-contract is published through `server`'s `exports["./api/v1"]`, so the types are ready
-for whatever client you bring. `--web` writes a minimal Vite one if you would rather
-not start from nothing; without it the output is the server alone.
+Initial release. A minimal tealina scaffold: no database, no Prisma, three backend
+workspace packages (`core`, `api-v1`, `server`) instead of four. The default output has no
+frontend either — the contract is published through `api-v1`'s `exports["./api"]`, so the
+types are ready for whatever client you bring. `--web` writes a minimal Vite one if you
+would rather not start from nothing; without it the output is the backend alone.
 
 Keeps the core idea unchanged — the directory tree is the route table, and each
 handler's type annotation is the single source of truth that routes, API docs and
@@ -23,9 +23,10 @@ a handler declared `AuthedHandler`.
 `--js` scaffolds the same project as JavaScript, with the handler type in a JSDoc `@type`
 block above the declaration instead of a type annotation on it. It names the contract
 through the `OpenAPI` / `AuthedAPI` / `EmptyObj` globals declared at the end of
-`types/handler.d.ts` — the one type file a handler already imports — so a stub that `v1`
-writes into a directory nobody has created yet can name its own API type without counting
-`../`. The TypeScript tree carries the globals too and never writes them.
+`types/handler.d.ts` — the one type file a handler already imports — so a stub that
+`create` writes into a directory nobody has created yet can name its own API type without
+counting a relative path depth. The TypeScript tree carries the globals too and never
+writes them.
 
 For that annotation to be accepted on an `async` handler, the JavaScript tree's
 `types/alias.d.ts` carries a second call signature repeating the first. A JSDoc `@type` is

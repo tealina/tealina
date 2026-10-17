@@ -1,29 +1,30 @@
 import { writeFileSync } from 'node:fs'
-import { readdir, readFile, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { readdir, readFile } from 'node:fs/promises'
 
-// Every template package that declares a workspace dependency. The `-js` trees and the
-// web app are here for the same reason as the TypeScript trees: a version left behind in
-// any of them is a scaffold that installs a different CLI than the one that generated it.
-const TEMP_LIST = [
-  'packages/create-tealina/template/server/express/package.json',
-  'packages/create-tealina/template/server/express-js/package.json',
-  'packages/create-tealina/template/server/fastify/package.json',
-  'packages/create-tealina/template/server/fastify-js/package.json',
-  'packages/create-tealina/template/server/koa/package.json',
-  'packages/create-tealina/template/server/koa-js/package.json',
-  'packages/create-tealina/template/web/package.json',
-]
+// Every template package that declares a workspace dependency. The backend is one
+// manifest per package per tree, the `-js` trees included: a version left behind in any of
+// them is a scaffold that installs a different CLI than the one that generated it.
+const TEMPLATE_TREES = ['core', 'api-v1', 'server']
 
-const updateTeamplateDependance = updates =>
-  TEMP_LIST.map(dest => updatePackageContent(updates, dest))
+const templatePackagePaths = async () => {
+  const base = 'packages/create-tealina/template'
+  const out = [`${base}/web/package.json`]
+  for (const tree of TEMPLATE_TREES) {
+    const dir = `${base}/${tree}`
+    for (const rel of await readdir(dir, { recursive: true })) {
+      if (rel === 'package.json' || rel.endsWith('/package.json')) {
+        out.push(`${dir}/${rel}`)
+      }
+    }
+  }
+  return out
+}
+
+const updateTeamplateDependance = (paths, updates) =>
+  paths.map(dest => updatePackageContent(updates, dest))
 
 const readJsonFile = dest =>
   readFile(dest, { encoding: 'utf-8' }).then(v => JSON.parse(v.toString()))
-const writeJson = (dest, data) =>
-  writeFileSync(dest, `${JSON.stringify(data, null, 2)}\n`, {
-    encoding: 'utf-8',
-  })
 const formatLog = (dest, result) => {
   console.log('  -', dest)
   console.log('  ', result)
@@ -91,51 +92,17 @@ const latestDocUI = async () => {
   }
 }
 
-// Every scaffold that ships a versionMaps.json must be listed here, otherwise its
-// template versions freeze at whatever was last committed by hand.
-const kVersionMapPaths = ['packages/create-tealina/template/versionMaps.json']
-
-const updateVersionMap = async (kVersionMapPath, subPkgMaps) => {
-  const versionMaps = await readJsonFile(kVersionMapPath)
-  for (const key in versionMaps) {
-    const project = versionMaps[key]
-    for (const depKey in project) {
-      const depend = project[depKey]
-      for (const pkgName of Object.keys(depend)) {
-        const latest = subPkgMaps.get(pkgName)
-        if (latest == null) throw new Error(`sub pkg not found,${pkgName}`)
-        depend[pkgName] = `^${latest.version}`
-      }
-    }
-  }
-  writeJson(kVersionMapPath, versionMaps)
-  return versionMaps
-}
-
 const workflow = async () => {
-  const pkgsDir = 'packages'
-  const packagesNames = await readdir(pkgsDir)
-  const subPkgMaps = new Map()
-  for (const subPkg of packagesNames) {
-    const subDir = join(pkgsDir, subPkg)
-    const sta = await stat(subDir)
-    if (!sta.isDirectory()) continue
-    const pkgJson = await readJsonFile(join(pkgsDir, subPkg, 'package.json'))
-    subPkgMaps.set(pkgJson.name, pkgJson)
-  }
-  for (const kVersionMapPath of kVersionMapPaths) {
-    const versionMaps = await updateVersionMap(kVersionMapPath, subPkgMaps)
-    console.log('Template dependancies version updated =>\n', kVersionMapPath)
-    console.log(versionMaps)
-  }
-  console.log('Updating workspace dependency versions in templates:')
+  console.log(`Updating workspace dependency versions in template packages:`)
   const updates = await Promise.all([
     latestTealina(),
     latestTealinaServer(),
     latestTealinaClient(),
     latestDocUI(),
   ])
-  await Promise.all(updateTeamplateDependance(updates))
+  await Promise.all(
+    updateTeamplateDependance(await templatePackagePaths(), updates),
+  )
 }
 
 workflow()

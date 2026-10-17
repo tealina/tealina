@@ -2,15 +2,17 @@ import chalk from 'chalk'
 import consola from 'consola'
 import { isEmpty, pickFn } from 'fp-lite'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import path from 'node:path'
-import { basename, join, normalize } from 'pathe'
+import { join, normalize } from 'pathe'
 import { parseDeclarationFile } from '../utils/parseDeclarationFile'
 import { getApiTypeFilePath } from '../utils/withTypeFile'
 import type { FullOptions } from './capi'
 import { CustomOutputFn, GdocContext } from '..'
 
 type GdocOptions = Required<
-  Pick<FullOptions, 'apiDir' | 'output' | 'input' | 'tsconfigPath' | 'typesDir'>
+  Pick<
+    FullOptions,
+    'apiDir' | 'apiBaseURL' | 'output' | 'tsconfigPath' | 'typesDir'
+  >
 > &
   Pick<FullOptions, 'gdoc' | 'check' | 'json'>
 
@@ -19,9 +21,9 @@ export const pickOption4gdoc = (full: FullOptions) => {
     full,
     'gdoc',
     'apiDir',
+    'apiBaseURL',
     'typesDir',
     'output',
-    'input',
     'tsconfigPath',
     'check',
     'json',
@@ -43,8 +45,10 @@ export const startGenerateDoc = async (options: GdocOptions) => {
       'Generate document fail! Make sure you type file is correct',
     )
   }
-  const defaultOutputs: CustomOutputFn = (apiDoc, context) => {
-    const filePath = `${join(outputDir, basename(context.apiDir))}.json`
+  // One filename for the same reason the type file has one: a directory rename must not
+  // move a document the server's doc route already serves.
+  const defaultOutputs: CustomOutputFn = apiDoc => {
+    const filePath = join(outputDir, 'api.json')
     return { content: JSON.stringify(apiDoc, null, 2), filePath }
   }
   // Copy rather than mutate `options.gdoc.customOutputs`: `--check` and a normal run can
@@ -55,8 +59,9 @@ export const startGenerateDoc = async (options: GdocOptions) => {
     outputs.push(defaultOutputs)
   }
   const context: GdocContext = {
-    apiDir: path.basename(options.apiDir),
+    apiDir: options.apiDir,
     outputDir,
+    baseURL: options.apiBaseURL,
   }
   const rendered = outputs.map(fn => fn(result, context))
   const actionOf = (filePath: string) =>

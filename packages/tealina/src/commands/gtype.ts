@@ -452,7 +452,10 @@ const pickOption4gtype = (full: FullOptions): GtypeOption => {
   const x = pickFn(full, 'gtype', 'output', 'input', 'namespace')
   const gtype = x.gtype ?? {}
   const output = x.output ?? gtype.output ?? 'types/pure.d.ts'
-  return { ...x, output, gtype }
+  if (x.input == null) {
+    throw new Error('gtype needs -i/--input (the prisma schema)')
+  }
+  return { ...x, input: x.input, output, gtype }
 }
 const generatePureTypes = async (option: GtypeOption) => {
   const lines = await loopParse(option.input, option.gtype)

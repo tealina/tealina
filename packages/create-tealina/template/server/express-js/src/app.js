@@ -1,27 +1,18 @@
-import express, { Router } from 'express'
-import { buildApiRouter } from './routes/api/index.js'
+import express from 'express'
+import { mount } from 'api-v1/mount'
 import { staticAssetsRouter } from './routes/static/assets.js'
-import { VDOC_BASENAME, docRouter } from './routes/static/doc.js'
 
 /**
- * The order of route registration is important
- * @param {import('express').Router} apiRouter
+ * The api version package installs the body parsers, the routes and the documentation
+ * page. This host adds what is its own: the static assets.
+ *
+ * The order of route registration is important.
  */
-const buildAppRouter = apiRouter =>
-  Router()
-    .use(express.urlencoded({ extended: true }))
-    .use(express.json())
-    .use('/api', apiRouter)
-    .use(VDOC_BASENAME, docRouter)
-    .use(staticAssetsRouter)
-
-/** @param {import('express').Router} appRouter */
-const createExpressApp = appRouter => express().use(appRouter)
-
 const buildApp = async () => {
-  const apiRouter = await buildApiRouter()
-  const appRouter = buildAppRouter(apiRouter)
-  return createExpressApp(appRouter)
+  const app = express()
+  await mount(app)
+  app.use(staticAssetsRouter)
+  return app
 }
 
 export { buildApp }

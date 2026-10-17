@@ -32,9 +32,9 @@ const createHandler =
  * @example
  * ```ts
  * import { createFetchClient } from '@tealina/client'
- * import type { ApiTypesRecord } from 'server/api/v1'
+ * import type { ApiTypesForClient } from 'api-v1/api'
  *
- * const req = createFetchClient<ApiTypesRecord, RequestInit>(async (url, config) => {
+ * const req = createFetchClient<ApiTypesForClient, RequestInit>(async (url, config) => {
  *    const response = await fetch(url, config)
  *    const data = await response.json()
  *    return data

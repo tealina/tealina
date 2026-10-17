@@ -1,6 +1,6 @@
 import express, { Router } from 'express'
-import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 export const staticAssetsRouter = Router().use(
-  express.static(path.resolve('public')),
+  express.static(fileURLToPath(new URL('../../../public', import.meta.url))),
 )

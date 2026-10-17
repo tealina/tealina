@@ -66,21 +66,30 @@ export const mergeInlineOptions = (
   config: TealinaConfig,
   inlineOption: InlineOptions,
 ) => {
+  if (config.apiDir == null || config.apiDir === '') {
+    throw new Error(
+      'tealina.config must set "apiDir" — the directory whose tree is the route table ' +
+        '(for example `apiDir: "src/api"`).',
+    )
+  }
+  if (config.apiBaseURL == null || config.apiBaseURL === '') {
+    throw new Error(
+      'tealina.config must set "apiBaseURL" — the URL prefix the routes answer under ' +
+        '(for example `apiBaseURL: "/api/v1"`).',
+    )
+  }
   return {
     ...config,
+    apiDir: normalize(config.apiDir),
     typesDir: normalize(config.typesDir),
     testDir: config.testDir ? normalize(config.testDir) : void 0,
     suffix: config.suffix ?? '.js',
     sourceExt: config.sourceExt ?? '.ts',
     ...inlineOption,
-    apiDir: normalize(inlineOption.apiDir),
     route: inlineOption.route ?? '',
   }
 }
-type InlineOptions = RawOptions & {
-  apiDir: string
-  route?: string
-}
+type InlineOptions = RawOptions
 
 export interface TsConfig {
   compilerOptions?: {

@@ -14,7 +14,7 @@ export const calcTypeFileSnapshot = ({
   suffix,
 }: {
   typeFileInfo: TypeFileInfo
-  options: Omit<DirInfo, 'testDir'>
+  options: Omit<DirInfo, 'testDir'> & { handlerImport?: string }
   suffix: string
 }): Snapshot[] => {
   if (typeFileInfo.isExists) return []
@@ -33,8 +33,17 @@ export interface DirInfo {
   apiDir: string
 }
 
+/**
+ * The contract type file, under one name in every project.
+ *
+ * It used to be `<basename(apiDir)>.d.ts`, which made the api directory's name an input
+ * to a public filename. The name is fixed now: the package export is `./api`, and moving
+ * the directory changes nothing a frontend sees.
+ */
+export const kApiTypeFileName = 'api.d.ts'
+
 export const getApiTypeFilePath = (dirInfo: Omit<DirInfo, 'testDir'>) =>
-  path.join(dirInfo.typesDir, `${path.basename(dirInfo.apiDir)}.d.ts`)
+  path.join(dirInfo.typesDir, kApiTypeFileName)
 
 export const collectTypeFileInfo = async (
   dirInfo: Omit<DirInfo, 'testDir'>,

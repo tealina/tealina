@@ -1,6 +1,6 @@
 import { PORT } from './config/env.js'
 import { buildApp } from './app.js'
-import { VDOC_BASENAME } from './routes/static/docs.js'
+import { VDOC_BASENAME } from 'api-v1/mount'
 
 /** @param {import('node:net').AddressInfo} address */
 const logAddress = address => {
@@ -18,7 +18,6 @@ const handleError = e => {
 const startServer = async () => {
   const app = await buildApp()
   const server = app.listen(PORT)
-  // `address()` is `string | AddressInfo | null`; this one is listening on a port.
   logAddress(/** @type {import('node:net').AddressInfo} */ (server.address()))
 }
 

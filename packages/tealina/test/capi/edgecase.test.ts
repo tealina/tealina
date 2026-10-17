@@ -13,7 +13,7 @@ describe('test capi edgecase', () => {
     const { cli } = parseCommandArgs('', dirInfo)
 
     await cli.runMatchedCommand().catch((e: any) => {
-      expect(String(e)).includes('Route is required')
+      expect(String(e)).includes('needs a route')
     })
   })
 

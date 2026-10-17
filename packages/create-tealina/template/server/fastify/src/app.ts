@@ -1,20 +1,17 @@
-import Fastify, { type FastifyPluginAsync } from 'fastify'
-import { buildApiRouter } from './routes/api/index.js'
-import { docRouter, VDOC_BASENAME } from './routes/static/docs.js'
+import Fastify from 'fastify'
+import { mount } from 'api-v1/mount'
 import { buildAssetsRouter } from './routes/static/assets.js'
 
 /**
- * The order of route registration is important
+ * The api version package installs the routes and the documentation page. This host adds
+ * what is its own: the static assets.
+ *
+ * The order of route registration is important.
  */
-const buildAppRouter: FastifyPluginAsync = async (fastify, _option) => {
-  fastify.register(buildAssetsRouter)
-  fastify.register(docRouter, { prefix: VDOC_BASENAME })
-  await fastify.register(buildApiRouter, { prefix: '/api' })
-}
-
 const buildApp = async () => {
   const fastify = Fastify({ logger: true })
-  await fastify.register(buildAppRouter)
+  await mount(fastify)
+  await fastify.register(buildAssetsRouter)
   return fastify
 }
 

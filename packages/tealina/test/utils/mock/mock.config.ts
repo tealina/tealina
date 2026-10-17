@@ -6,6 +6,8 @@ export default defineConfig({
     handlers: [],
   },
   typesDir: '../types/pure.d.ts',
+  apiDir: 'src/api',
+  apiBaseURL: '/api',
   gdoc: {
     customOutputs: [prop => ({ content: '', filePath: '' })],
   },

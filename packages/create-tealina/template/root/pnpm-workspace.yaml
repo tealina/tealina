@@ -1,4 +1,5 @@
 packages:
+  - 'backend/*'
   - 'packages/*'
 
 # esbuild (pulled in by tsx) needs its postinstall to fetch the platform binary.

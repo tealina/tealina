@@ -1,19 +1,19 @@
 # tealina
 
 > Tealina turns a directory tree plus handler type annotations into routes, client types, and
-> API documentation. The tree under `src/api/v1/` is the route table; the handler's type is
+> API documentation. The tree under `src/api/` is the route table; the handler's type is
 > the single source of truth. No framework is taken over: one mount line is the whole
 > integration for Express, Fastify, or Koa.
 
 ## Start
 
 - [README](./README.md): what the project is, how to scaffold, and the AI-assistant entry points.
-- [Scaffold README](./packages/create-tealina/README.md): `create` and `init`, flags, and what a
-  generated project contains.
+- [Scaffold README](./packages/create-tealina/README.md): `create`, its flags, and the three
+  backend packages a generated project contains.
 - [AGENTS.md](./AGENTS.md): instructions for changing this repository, including the
   constraints that fail silently.
-- [Generated project instructions](./packages/create-tealina/template/common/AGENTS.md): the
-  same file a scaffolded project receives.
+- [Generated project instructions](./packages/create-tealina/template/common/api-v1/AGENTS.md):
+  the file a scaffolded API package receives.
 
 ## Understand
 

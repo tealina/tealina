@@ -12,12 +12,12 @@ Use this when changing `types/handler.d.ts`, a framework's `types/alias.d.ts`,
 ## What counts as the contract
 
 ```
-packages/utility-types/index.ts                       # WithExtra, MultiTarget, PickTarget, …
-template/common/types/handler.d.ts                    # OpenHandler, AuthedHandler, ExtractApiType
-template/common/types/common.d.ts                     # AuthedLocals, AuthHeaders, JsonHeaders
-template/server/<fw>[-js]/types/alias.d.ts            # per-framework HandlerAliasCore
-template/server/<fw>[-js]/src/access/index.ts|js      # openApi / authedApi
-template/common/types/v1.d.ts                         # ApiTypesForDoc / ApiTypesForClient
+packages/utility-types/index.ts                          # WithExtra, MultiTarget, PickTarget, …
+template/common/core/types/handler.d.ts                  # OpenHandler, AuthedHandler, ExtractApiType
+template/common/core/types/common.d.ts                   # AuthedLocals, AuthHeaders, JsonHeaders
+template/core/<fw>[-js]/types/alias.d.ts                 # per-framework HandlerAliasCore
+template/core/<fw>[-js]/src/access/index.ts|js           # openApi / authedApi
+template/common/api-v1/types/api.d.ts                    # ApiTypesForDoc / ApiTypesForClient
 ```
 
 ## Steps
@@ -37,7 +37,7 @@ template/common/types/v1.d.ts                         # ApiTypesForDoc / ApiType
 5. Update the templates' barrels and demo handlers if the public shape changed. Run `align`
    mentally: the generated barrel shape must still type-check.
 6. Update `docs/architecture.md` and, if the convention changed, the template's
-   `packages/create-tealina/template/common/AGENTS.md`.
+   `packages/create-tealina/template/common/api-v1/AGENTS.md`.
 7. Verify:
 
    ```bash
@@ -46,7 +46,8 @@ template/common/types/v1.d.ts                         # ApiTypesForDoc / ApiType
    TEALINA_E2E=1 pnpm -F create-tealina test
    ```
 
-   T1 compiles a fixture assembled from the templates; T5 compiles a host after `init`.
+   T1 compiles a fixture assembled from the templates (the `core` seam is rebuilt with
+   `paths`); T3 builds a real scaffold in all six trees.
 8. Add a changeset. Use `major` for anything an existing user would have to change, `minor`
    for a new capability, `patch` for a bug fix.
 

@@ -1,8 +1,19 @@
 # tealina project
 
-A minimal Node API server where the **directory layout is the route table** and the
+A typed Node API server where the **directory layout is the route table** and each
 **handler's type annotation is the single source of truth** — the router, the API
-documentation, and the frontend's client types are all derived from it.
+documentation and the frontend's client types are all derived from it.
+
+The backend is three workspace packages with one job each:
+
+| Package | Owns |
+| --- | --- |
+| `backend/core` | the contract layer — handler types, the framework binding, `openApi`/`authedApi` |
+| `backend/api-v1` | one API version — the route tree, its docs, and the router that mounts them |
+| `backend/server` | the host — the framework instance, the port, static assets |
+
+`packages/web` is optional (`--web`): a minimal Vite frontend that reads the API types
+rather than restating them.
 
 ## Quick start
 
@@ -12,51 +23,67 @@ pnpm dev
 
 - Service: http://localhost:8000
 - API documentation: http://localhost:8000/api-doc/index.html
-- Frontend (only if you scaffolded with `--web`): http://localhost:5173
+- Frontend (only with `--web`): http://localhost:5173
 
-Change the port by copying `.env.example` to `.env` and editing `PORT`.
+Change the port by copying `backend/server/.env.example` to `backend/server/.env` and
+editing `PORT`.
 
 ## Layout
 
 ```
-packages/server/
-  types/                 the contract layer — see "The contract layer" below
-  src/
-    api/v1/              one directory per HTTP method, one file per endpoint
-      get/health.ts  ->  GET  /api/v1/health
-      get/index.ts       the route table for that method (generated — see below)
-      post/login.ts  ->  POST /api/v1/login
-      post/article.ts -> POST /api/v1/article
-    routes/              the api router, the static assets, the API doc page
-    access/              how a handler says whether its route is public or guarded
-      index.ts           openApi / authedApi — the two ways a handler file ends
-      verifyToken.ts     the guard authedApi puts in front of a chain
-    config/env.ts        reads .env
-    app.ts               wires the routes onto the framework instance
-    index.ts             builds the app and starts listening
-  docs/v1.json       generated API document (do not edit by hand)
+backend/
+  core/
+    types/
+      handler.d.ts        OpenHandler / AuthedHandler and the projections
+      common.d.ts         shared payload / header / locals shapes
+      alias.d.ts          binds express/fastify/koa's request and response to the handlers
+    src/access/
+      index.ts            openApi / authedApi — the two ways a handler file ends
+      verifyToken.ts      the guard authedApi puts in front of a chain
 
-packages/web/            only when scaffolded with --web — see "The frontend" below
-  index.html
-  vite.config.ts         dev server on 5173, proxying /api to the server
+  api-v1/
+    src/
+      api/                one directory per HTTP method, one file per endpoint
+        get/health.ts  ->  GET  /api/v1/health
+        get/index.ts       the route table for that method (generated)
+        post/login.ts  ->  POST /api/v1/login
+        post/article.ts -> POST /api/v1/article
+      router.ts           turns a route table into framework routes
+      doc.ts              serves the API documentation page and its json
+      mount.ts            puts the api and the docs on the framework instance
+    version.js            API_BASE_URL and VDOC_BASENAME — the one place they are written
+    types/api.d.ts        the contract's exit point (exports["./api"])
+    tealina.config.ts     apiDir / apiBaseURL / typesDir
+    docs/api.json         generated API document (do not edit by hand)
+
+  server/
+    src/
+      config/env.ts       reads .env
+      routes/static/      static assets
+      app.ts              builds the app and calls api-v1's mount
+      index.ts            starts listening
+    public/               served by the static assets route
+
+packages/web/             only with --web
   src/
-    main.ts              the page
-    api/client.ts        `req`, typed from the server's handlers
+    main.ts               the page
+    api/client.ts         `req`, typed from the handlers in api-v1
 ```
 
-`GET /api/v1/health`, `POST /api/v1/login` and `POST /api/v1/article` are the three
-demos. Delete them once you have your own endpoints. Scaffolded with `--js`, every `.ts`
-above is a `.js` and the annotation moves into JSDoc (see "The convention" below); nothing
-else about the layout changes.
+A new API version is a new package (`backend/api-v2`) that depends on `core` and is
+mounted by `server` beside `api-v1`. Nothing in `core` or in the frontend names a version.
+
+Scaffolded with `--js`, every `.ts` above is a `.js` and the annotations move into JSDoc;
+nothing else about the layout changes.
 
 ## The convention
 
-A handler file's default export goes through `openApi(...)` or `authedApi(...)`, and its
-**type annotation** is what everything else is derived from:
+A handler file imports its types from `core`, and its **type annotation** is what
+everything else is derived from:
 
 ```ts
-import type { OpenHandler } from '../../../../types/handler.js'
-import { openApi } from '../../../access/index.js'
+import type { OpenHandler } from 'core/handler'
+import { openApi } from 'core/access'
 
 interface LoginPayload {
   account: string
@@ -79,12 +106,11 @@ Which of the two you call decides whether the route is public — see
   the declaration, and an inline object type would be inlined into the document.
 - JSDoc comments become documentation; `//` comments are ignored.
 
-Scaffolded with `--js`, the same handler is written in JSDoc, and the types come from
-globals instead of an import — nothing to count `../` for, which matters because `align`
-writes stubs into directories that did not exist when the type file was written:
+Scaffolded with `--js`, the same handler is written in JSDoc, with the types reached
+through a `typedef`:
 
 ```js
-import { openApi } from '../../../access/index.js'
+import { openApi } from 'core/access'
 
 /**
  * @typedef {object} LoginPayload
@@ -92,7 +118,7 @@ import { openApi } from '../../../access/index.js'
  * @property {string} password
  */
 
-/** @type {OpenAPI<{ body: LoginPayload }, { token: string }>} */
+/** @type {import('core/handler').OpenHandler<{ body: LoginPayload }, { token: string }>} */
 const handler = async (req, res) => {
   res.send({ token: 'JWT token' })
 }
@@ -100,16 +126,12 @@ const handler = async (req, res) => {
 export default openApi(handler)
 ```
 
-`OpenAPI` and `AuthedAPI` mirror `OpenHandler` and `AuthedHandler` argument for
-argument; a handler with no payload writes the bare global `EmptyObj`. All three are
-declared at the end of `types/handler.d.ts`, the one type file a handler already imports.
-
 The type goes in a JSDoc block directly above the `const` — the same place the TypeScript
-tree puts `: ApiType`, and the form `align` writes for you. Two things it cannot be talked
-out of. It stays on the `const`, not inline in the `openApi(...)` call: that call is how the
-generator finds the handler, and an inline annotation leaves it holding an expression
-instead of a name. And it stays a `const` — on a `function` declaration the `@type` tag
-*checks* the function rather than typing it.
+tree puts `: ApiType`, and the form `align` writes for you. It stays on the `const`, not
+inline in the `openApi(...)` call: that call is how the generator finds the handler, and
+an inline annotation leaves it holding an expression instead of a name. And it stays a
+`const` — on a `function` declaration the `@type` tag *checks* the function rather than
+typing it.
 
 The description has to share that block. A second JSDoc block above it is not attached to
 the declaration at all, so the endpoint would appear in the documentation with no
@@ -120,14 +142,14 @@ description — and a block separated by a blank line is not read either.
 The method name and the filename are the method and the path:
 
 ```bash
-pnpm -F server v1 post/user     # creates src/api/v1/post/user.ts
+pnpm -F api-v1 create post/user     # creates src/api/post/user.ts
 ```
 
 Then edit the generated stub. The `get/index.ts` and `post/index.ts` files are
 **derived artifacts** — regenerate them with:
 
 ```bash
-pnpm -F server align
+pnpm -F api-v1 align
 ```
 
 Run `align` whenever you add, rename or delete a handler file by hand.
@@ -139,10 +161,10 @@ Run `align` whenever you add, rename or delete a handler file by hand.
 write is the whole of it:
 
 ```ts
-// src/api/v1/get/health.ts — public
+// src/api/get/health.ts — public
 export default openApi(handler)
 
-// src/api/v1/post/article.ts — guarded, which is what you get by default
+// src/api/post/article.ts — guarded, which is what you get by default
 export default authedApi(handler)
 ```
 
@@ -159,24 +181,24 @@ curl -i -X POST localhost:8000/api/v1/article -H 'Authorization: anything'   # 2
 ```
 
 The two call names are also two handler types: a chain built with `openApi` is declared
-`OpenHandler`, one built with `authedApi` `AuthedHandler` (`OpenAPI` and `AuthedAPI` in the
-JavaScript tree). On express and koa that pairing is checked, so `openApi(anAuthedHandler)`
-does not compile and a handler reading `res.locals.userId` cannot end up on a route anyone
-can call. Two gaps are left, both measured rather than assumed:
+`OpenHandler`, one built with `authedApi` `AuthedHandler`. On express and koa that pairing
+is checked, so `openApi(anAuthedHandler)` does not compile and a handler reading
+`res.locals.userId` cannot end up on a route anyone can call. Two gaps are left, both
+measured rather than assumed:
 
 - `authedApi(anOpenHandler)` compiles everywhere and installs the guard anyway. The route is
   then stricter than its own types claim, which is the safe direction to be wrong in.
 - Fastify checks neither. `FastifyRequest` is module-augmented with `locals`, so both kinds
   of handler resolve to the same request type there and the two calls accept the same set.
 
-The guard itself is `src/access/verifyToken.ts`. It currently accepts any header value and
-sets `userId` to a placeholder. Replace the `TODO` with your real token check. The 401 body
-is `{ "code": "Unauthorized", "message": "..." }`.
+The guard itself is `backend/core/src/access/verifyToken.ts`. It currently accepts any
+header value and sets `userId` to a placeholder. Replace the `TODO` with your real token
+check. The 401 body is `{ "code": "Unauthorized", "message": "..." }`.
 
 ## API documentation
 
 ```bash
-pnpm -F server gdoc    # regenerates docs/v1.json, served at /api-doc/index.html
+pnpm -F api-v1 gdoc    # regenerates docs/api.json, served at /api-doc/index.html
 ```
 
 The document is **not** checked in — it is produced by the command above, and the docs
@@ -192,20 +214,18 @@ the client:
 ```ts
 // packages/web/src/api/client.ts
 import { createFetchClient } from '@tealina/client'
-import type { ApiTypesForClient } from 'server/api/v1'
+import type { ApiTypesForClient } from 'api-v1/api'
 
 export const req = createFetchClient<ApiTypesForClient, RequestInit>(requester)
 ```
 
-`ApiTypesForClient` is the server's own handlers, projected for a client. It arrives
-through the `server` package's `exports["./api/v1"]` entry, so there is no second
-declaration of the API to keep in step — **rename a field in a handler and the frontend
-stops compiling**, which is the whole point.
+`ApiTypesForClient` is the handlers in `api-v1`, projected for a client. It arrives through
+the `api-v1` package's `exports["./api"]` entry, so there is no second declaration of the
+API to keep in step — **rename a field in a handler and the frontend stops compiling**,
+which is the whole point.
 
-`src/main.ts` is the page. Scaffolded with `--web` it calls `GET /health` once and renders
-the result; installed with `init --web` it calls nothing, because your route table starts
-empty and a call to a route the contract does not have is a compile error. Either way it
-is a placeholder — write your real app in `src/`.
+`src/main.ts` is the page. It calls `GET /health` once and renders the result; it is a
+placeholder — write your real app in `src/`.
 
 ```ts
 import { req } from './api/client'
@@ -222,14 +242,13 @@ pnpm -F web dev      # http://localhost:5173
 
 Two things worth knowing:
 
-- Resolving those types pulls the server's **source** in (`v1.d.ts` → `src/api/v1/`
-  → `access/` → `express`/`fastify`/`koa` → `tealina/utility-types`). So the server's
-  own `tealina` and framework type packages must stay installed — the utility types the
-  contract is built from arrive through `tealina`, which the server already has for the
-  CLI. A `skipLibCheck` in the frontend will not paper over a break here, because this is
-  `.ts`, not `.d.ts`.
-- The proxy is what keeps this same-origin: `vite.config.ts` forwards `/api` to
-  `http://localhost:8000`, so no server template needs CORS headers.
+- Resolving those types pulls the handlers' **source** in (`api.d.ts` → `api-v1/src/`
+  → `core` → `express`/`fastify`/`koa` → `tealina/utility-types`). So the backend's own
+  `tealina` and framework type packages must stay installed. A `skipLibCheck` in the
+  frontend will not paper over a break here, because this is `.ts`, not `.d.ts`.
+- The proxy is what keeps this same-origin: `vite.config.ts` forwards `[API_BASE_URL]` to
+  `http://localhost:8000`, so no server template needs CORS headers. Retarget it if `PORT`
+  is not 8000.
 
 ### Guarded endpoints
 
@@ -249,12 +268,12 @@ await req.post('article', { body: { title: 'hello', content: '...' } })
 ### Adding a frontend without `--web`
 
 Nothing about the above is special to Vite or to this scaffold. The mechanism is one
-dependency and one import, and you can wire any package up to it by hand:
+dependency and one import:
 
-1. In `packages/web/package.json`, link the server by its package name (`server`):
+1. In `packages/web/package.json`, link the API package by its workspace name:
 
    ```json
-   { "devDependencies": { "server": "workspace:*" } }
+   { "devDependencies": { "api-v1": "workspace:*" } }
    ```
 
 2. Run `pnpm install` at the repo root — this creates the symlink.
@@ -262,49 +281,54 @@ dependency and one import, and you can wire any package up to it by hand:
 3. Import the types:
 
    ```ts
-   import type { ApiTypesForClient } from 'server/api/v1'
+   import type { ApiTypesForClient } from 'api-v1/api'
    ```
 
    `import type` is **required**: the `exports` entry publishes a `types` condition only.
 
 A JavaScript frontend reaches the same types through a JSDoc `typedef` instead of a type
-argument; `packages/web/js` in the scaffold's template is the worked example.
+argument; `packages/web/src/api/client.js` in a `--js` scaffold is the worked example.
 
 ## The contract layer
 
-`packages/server/types/` is the part you should not casually restructure:
+`backend/core/types/` and `backend/api-v1/types/api.d.ts` are the part you should not
+casually restructure:
 
-- `handler.d.ts` — `OpenHandler` / `AuthedHandler` and the projections that derive
-  client and doc types. Imports `./alias.js`. Also declares the `OpenAPI` / `AuthedAPI`
-  globals, which is how the JavaScript tree's handlers name these two without an import;
-  they are inert in a TypeScript project.
-- `alias.d.ts` — the one framework-specific file. This is where express/koa/fastify
-  request and response types get bound to the generic handler shape. A JavaScript
-  project's copy repeats the call signature, which is what keeps a checked `.js`
-  handler's `async` form from being rejected (TS1065); the TypeScript copy has one.
-- `v1.d.ts` — the exit point. `ApiTypesForDoc` **must** stay the first export in
-  this file; the doc generator picks it up by position. Also referenced by the
-  `exports["./api/v1"]` entry in `package.json`.
-- `common.d.ts` — shared payload/header/locals shapes.
+- `core/types/handler.d.ts` — `OpenHandler` / `AuthedHandler` and the projections that
+  derive client and doc types. Imports `./alias.js`.
+- `core/types/alias.d.ts` — the one framework-specific file. This is where
+  express/fastify/koa request and response types get bound to the generic handler shape.
+  In a JavaScript project the copy repeats the call signature, which is what keeps a
+  checked `.js` handler's `async` form from being rejected (TS1065).
+- `core/types/common.d.ts` — shared payload/header/locals shapes.
+- `api-v1/types/api.d.ts` — the exit point. `ApiTypesForDoc` **must** stay the first
+  export in this file; the doc generator picks it up by position. It is what
+  `exports["./api"]` in `api-v1/package.json` points at.
 
-Keep the `v1` name: the api directory, `types/v1.d.ts`, the `exports` key,
-`docs/v1.json`, the docs route's `baseURL` and the router prefix are all pinned to
-it. Renaming the api directory is not supported.
+`apiDir` in `api-v1/tealina.config.ts` names the route tree and `apiBaseURL` names the
+prefix the router mounts it under — both read `API_BASE_URL` from `version.js`, so the
+config, the mount, the docs page, the server log line and the frontend's proxy all name the
+same prefix. The public artifacts keep fixed names — `types/api.d.ts` and
+`exports["./api"]` — so moving the api directory changes the config and the router's
+import, not what a frontend imports.
 
 ## Commands
 
 | Command | What it does |
 | --- | --- |
-| `pnpm dev` | start the server with reload |
-| `pnpm build` | build the server |
-| `pnpm -F server v1 <method> <path>` | create a handler stub |
-| `pnpm -F server align` | rewrite the generated `index.ts` files from the file tree |
-| `pnpm -F server gdoc` | regenerate the API document |
-| `pnpm -F server build` | compile to `dist/` |
-| `pnpm -F server start` | run the compiled build |
-| `pnpm -F web dev` | start the frontend dev server |
-| `pnpm -F web build` | type-check and bundle the frontend |
+| `pnpm dev` | build the two libraries, then run every watcher in parallel |
+| `pnpm build` | build every package |
+| `pnpm start` | run the compiled server |
+| `pnpm -F api-v1 create <method> <path>` | create a handler stub |
+| `pnpm -F api-v1 align` | rewrite the generated `index.ts` files from the file tree |
+| `pnpm -F api-v1 gdoc` | regenerate the API document |
+| `pnpm -F api-v1 dev` | watch-compile the api package |
+| `pnpm -F core dev` | watch-compile the contract layer |
+| `pnpm -F server dev` | start the server with reload |
+| `pnpm -F server build` | compile the host |
+| `pnpm -F server start` | run the compiled host |
+| `pnpm -F web dev` | start the frontend dev server (with `--web`) |
+| `pnpm -F web build` | type-check and bundle the frontend (with `--web`) |
 
-The last two need `--web` to have been used. That is also what rewrites the first two
-rows to `pnpm -r --parallel dev` / `pnpm -r build`, so they cover both packages instead
-of just the server.
+In a `--js` scaffold `pnpm build` type-checks instead of compiling: the packages run their
+sources directly, so there is nothing to emit.

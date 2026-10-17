@@ -13,13 +13,12 @@ const repoRoot = path.resolve(here, '../../..')
  * `dist/` — built rather than asserted, because a `dist/` from before the change under test
  * would have the fixture exercise the old behaviour and fail with nothing to say why.
  *
- * It cannot live in the test files, which is where it used to be. A "build once" flag is
- * per *process*, and Vitest runs these files in parallel workers: `e2e.test.ts` and
- * `init.test.ts` each built `tealina`, and a build clears `dist/` before repopulating it.
- * One worker's `tsc` resolving `tealina/utility-types` mid-wipe is a TS2307 for a package
- * that is installed and correct, and the failure lands on whichever fixture happened to be
- * compiling — not on the one doing the building. Building above the workers removes the
- * window instead of narrowing it.
+ * It cannot live in the test files: a "build once" flag is per *process*, and Vitest runs
+ * these files in parallel workers, each of which would run its own build. A build clears
+ * `dist/` before repopulating it, so one worker's `tsc` resolving `tealina/utility-types`
+ * mid-wipe is a TS2307 for a package that is installed and correct — and the failure lands
+ * on whichever fixture happened to be compiling, not on the one doing the building.
+ * Building above the workers removes the window instead of narrowing it.
  *
  * CI builds before testing, so there this is a rebuild of what already exists.
  */

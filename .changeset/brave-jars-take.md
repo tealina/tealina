@@ -10,12 +10,21 @@ package, no `create-vite` React frontend, no bun runtime fork — node only. Wha
 an API server, its contract layer and its documentation generator, which is what the name
 was for.
 
-Smaller, but not merely smaller. It gains an `init` subcommand that installs the convention
-into a server you already have without touching your source: files are only ever added, and
-`package.json` is only ever merged into. It gains `--js`, `--web` and `--no-install`, so a
-run can be fully non-interactive, and a `template-manifest.ts` that names every file the
-scaffold writes instead of walking directories. It runs `gdoc` for you after the install,
-so the document the API doc page reads exists the first time you open it.
+The backend is three workspace packages with one job each: `backend/core` holds the
+contract layer and the access module, `backend/api-v1` holds one API version's route tree,
+its document and the code that mounts them, and `backend/server` is the host. A second API
+version is therefore a new package (`backend/api-v2`) rather than a new folder, and the
+dependency direction is a tree: `core → api-v1 → server`.
+
+`--js` scaffolds every package as checked JavaScript, `--web` adds a minimal Vite frontend
+in `packages/web` that reads the contract through `api-v1/api`, and `--no-install` stops
+after writing the files. A `template-manifest.ts` names every file the scaffold writes
+instead of walking directories. After installing, the scaffold runs `api-v1`'s `gdoc`, so
+the document the API doc page reads exists the first time you open it.
+
+There is no `init` subcommand. The three-package layout is the unit the convention now
+comes in, and installing it into a server you already have is a refactor the CLI cannot do
+without guessing at someone else's entry file; point at the scaffold's layout instead.
 
 The database path has no equivalent here. The old scaffold is not part of this repository.
 `2.2.6` was its last release; this changelog continues from there.

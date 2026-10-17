@@ -47,7 +47,7 @@ export default defineConfig({
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
     // 模板目录是「给脚手架项目的数据」，不是本仓库的源码，两条理由：
     //
-    // 1. 它 import 的 `@tealina/client`、`server/api/v1` 要等脚手架里 pnpm install
+    // 1. 它 import 的 `@tealina/client`、`api-v1/api` 要等脚手架里 pnpm install
     //    之后才解析得到，在仓库里做类型检查必然报 TS2307 —— 而这是结构性的，不是
     //    代码有问题。
     // 2. 更要紧的是 prefer-vite-plus-imports：它会把模板里的 `from 'vite'` 改成

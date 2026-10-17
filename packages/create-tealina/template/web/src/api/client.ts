@@ -1,14 +1,15 @@
 import { createFetchClient } from '@tealina/client'
-import type { ApiTypesForClient } from 'server/api/v1'
+import type { ApiTypesForClient } from 'api-v1/api'
+import { API_BASE_URL } from 'api-v1/version'
 
 /**
- * Where the server mounts its API — see `src/routes/api/index.ts`. Read by
- * `src/main.ts`, which puts it on the page.
+ * Where the backend mounts its API. Read from the api package rather than written again
+ * here: the mount and this client have to name the same prefix.
  *
  * Kept relative so that the server can serve the built page on one origin. In dev it is
- * the `/api` proxy in `vite.config.ts` that reaches this, not the page's own origin.
+ * the proxy in `vite.config.ts` that reaches this, not the page's own origin.
  */
-export const base = '/api/v1'
+export const base = API_BASE_URL
 
 /**
  * Sent as-is when it is not empty. The scaffold's `verifyToken` only checks that the
@@ -35,8 +36,8 @@ const requester = async (url: string, config: RequestInit) => {
 
 /**
  * Every path, payload and response below is checked against the server's handlers:
- * `ApiTypesForClient` is derived from their annotations and arrives through the `server`
- * package's `exports["./api/v1"]`, so there is no second declaration of the API here to
+ * `ApiTypesForClient` is derived from their annotations and arrives through the `api-v1`
+ * package's `exports["./api"]`, so there is no second declaration of the API here to
  * keep in step. Change a handler's response and this call site stops compiling.
  */
 export const req = createFetchClient<ApiTypesForClient, RequestInit>(requester)

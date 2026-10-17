@@ -47,18 +47,19 @@ those types rather than restating them.
 non-interactive; the tutorial continues in
 [the scaffold's README](./packages/create-tealina/README.md).
 
-Already have a server? `pnpm create tealina init` installs the same convention into it in
-place, without touching your source.
+The backend is three workspace packages — `core` (the contract layer), `api-v1` (one API
+version and its docs) and `server` (the host) — so a second API version is a new package
+rather than a new folder.
 
 ## For AI assistants
 
-- A generated project ships `server/AGENTS.md` (and a root one pointing at it). It states the
-  rules that are easy to get wrong: the directory tree under `src/api/v1/` is the route table,
-  `src/api/**/index.*` is generated, `openApi` vs `authedApi` decides access, and payload
-  shapes need a named declaration. Read it before editing endpoints.
+- A generated project ships `backend/api-v1/AGENTS.md` (and a root one pointing at it). It
+  states the rules that are easy to get wrong: the directory tree under `src/api/` is the
+  route table, `src/api/**/index.*` is generated, `openApi` vs `authedApi` decides access,
+  and payload shapes need a named declaration. Read it before editing endpoints.
 - This repository's own instructions are in [AGENTS.md](./AGENTS.md).
-- `tealina <api-dir> --align --check` and `tealina <api-dir> gdoc --check` exit 1 when
-  generated output is stale without writing anything. Add `--json` for a single
-  `{ ok, changed }` object on stdout (errors go to stderr).
+- `pnpm -F api-v1 align --check` and `pnpm -F api-v1 gdoc --check` exit 1 when generated
+  output is stale without writing anything. Add `--json` for a single `{ ok, changed }`
+  object on stdout (errors go to stderr).
 - [llms.txt](./llms.txt) lists the entry points in the format agents expect.
 - Node ≥ 22 is required.

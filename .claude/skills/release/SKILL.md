@@ -36,10 +36,12 @@ version is what tells users which scaffold generation they have.
 pnpm up-temp-versions
 ```
 
-This writes real versions into `template/versionMaps.json` and updates only the workspace
-dependencies each template `package.json` already declares. It is part of `pnpm release`, but
-running it now makes the diff reviewable. If a new template tree was added, it must be listed in
-`TEMP_LIST` in `scripts/update-version-in-template.mjs` or its versions will freeze.
+This updates only the workspace dependencies each template `package.json` already declares. It
+walks every manifest under `template/{core,api-v1,server}` plus `template/web/package.json`. It
+is part of `pnpm release`, but running it now makes the diff reviewable. A new versioned
+dependency belongs in one of the `latest*` lists in `scripts/update-version-in-template.mjs`,
+and a new template package tree must be added to `TEMPLATE_TREES` there or its versions will
+freeze.
 
 ## 3. Verify
 

@@ -16,9 +16,7 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "exclude": [
-    "test-*",
-    "vitest.*",
-    "*.config.ts"
-  ]
+  // `src` only: `tealina.config.ts` and `version.d.ts` sit at the package root, outside
+  // the rootDir the emitted tree is measured from.
+  "include": ["src"]
 }

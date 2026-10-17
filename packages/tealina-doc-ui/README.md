@@ -36,7 +36,7 @@ const vDocConfig: TealinaVdocWebConfig = {
   sources: [
     {
       baseURL: '/api/v1',
-      jsonURL: './v1.json',
+      jsonURL: './api.json',
       name: 'v1',
     },
   ],
@@ -53,8 +53,8 @@ const docRouter = Router({ caseSensitive: true })
     const html = await assembleHTML(vDocConfig);
     res.send(html);
   })
-  .get('/v1.json', (req, res) => {
-    res.sendFile(path.resolve('docs/v1.json'));
+  .get('/api.json', (req, res) => {
+    res.sendFile(path.resolve('docs/api.json'));
   })
   .use(express.static(getAssetsPath()));
 

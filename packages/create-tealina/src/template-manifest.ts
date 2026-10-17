@@ -1,199 +1,199 @@
 import type { ServerTemplate } from './core.js'
 
 /**
- * The template files both entry points copy, listed once.
+ * Which package a template file is copied into. The backend is three packages, and the
+ * destination of a file is relative to the package named here.
  *
- * These used to be two views of the same tree. `create` copied `template/common/` and
- * `template/server/<fw>/` wholesale; `init` carried a curated list of its own. A file could
- * be added to one and missed in the other, and nothing would say so — the cost lands later,
- * as an import that does not resolve inside someone's project. The tree is one tree, so it
- * is written down once here and `init` selects from it.
+ * `core` holds the contract layer and the framework-specific access module; `api-v1`
+ * holds one api version's route tree, its documents and the code that mounts them;
+ * `server` is the host — the app, its port, and its static assets.
+ */
+export type Pkg = 'core' | 'api-v1' | 'server' | 'web'
+
+/**
+ * A file the scaffold writes, as a `{src, dest}` pair.
  *
- * A `{src, dest}` pair rather than a bare path, because the two are not always the same
- * string: a JavaScript project's config sits in a sibling directory, and most of the type
- * files are shared with the TypeScript tree rather than copied into it.
+ * The pair rather than a bare path, because the two are not always the same string: the
+ * tsconfigs and type files are shared with the other trees, and a JavaScript project's
+ * config sits in a sibling directory.
  */
 export interface TemplateFile {
   /** Relative to `templateRootDir`. */
   src: string
-  /** Relative to the package the file is copied into. */
+  /** Relative to the package directory (`backend/<pkg>`). */
   dest: string
+  pkg: Pkg
 }
 
-/**
- * Which of the two trees a file comes from.
- *
- * The mode is a required argument everywhere rather than a defaulted one: "which tree" is
- * the whole question this file answers, and a call site that forgets to say would get a
- * TypeScript file with no complaint from anything.
- */
+/** Which language tree a file comes from. */
 export type Mode = 'ts' | 'js'
 
-/** The tree a mode's value-level files live in. */
-const treeOf = (fw: ServerTemplate, mode: Mode) =>
-  mode === 'js' ? `server/${fw}-js` : `server/${fw}`
-
-/**
- * What a source file in this mode is called. The two trees hold the same files under the
- * same names; only the extension and the type syntax differ, which is what makes a diff
- * between them readable.
- */
 const extOf = (mode: Mode) => (mode === 'js' ? '.js' : '.ts')
+
+const treeOf = (pkg: Pkg, fw: ServerTemplate, mode: Mode) =>
+  `${pkg}/${fw}${mode === 'js' ? '-js' : ''}`
 
 /** The sibling directory a JavaScript project's common files live in. */
 const commonTreeOf = (mode: Mode) => (mode === 'js' ? 'common/js' : 'common')
 
+const file = (pkg: Pkg, src: string, dest: string): TemplateFile => ({
+  pkg,
+  src,
+  dest,
+})
+
 // ---------------------------------------------------------------------------
-// template/common/
+// Files every package gets
 // ---------------------------------------------------------------------------
 
 /**
- * Shipped by both modes, byte for byte. The contract layer is the point of that: a
- * `.d.ts` has no runtime, so the two modes genuinely share these files rather than each
- * having a spelling of its own.
+ * The same compiler configuration in all three packages.
+ *
+ * One file rather than three, because there is nothing about `core`, `api-v1` and
+ * `server` that asks for different compiler options: each has `src/`, and the include
+ * patterns that match nothing in one of them cost nothing. The build config is separate
+ * only because it emits.
  */
-const kCommonShared = [
-  '.env.example',
-  'AGENTS.md',
-  'docs/.gitkeep',
-  'public/index.html',
-  'types/v1.d.ts',
-  'types/common.d.ts',
-  'types/handler.d.ts',
-] as const
-
-/**
- * Value-level common files that exist once per mode, named without their extension:
- * `src/config/env` is `env.ts` in one tree and `env.js` in the other, and so is the
- * config — which is exactly why a JavaScript project does not need a TypeScript file to
- * be configured.
- */
-const kCommonPerMode = ['src/config/env', 'tealina.config'] as const
-
-/** The config files, whose *names* also differ: a JavaScript project has no build. */
-const kCommonConfig: Record<Mode, readonly string[]> = {
+const kConfigFiles: Record<Mode, readonly string[]> = {
   ts: ['tsconfig.json', 'tsconfig.build.json'],
   js: ['tsconfig.json'],
 }
 
-export const commonFiles = (mode: Mode): TemplateFile[] => [
-  ...kCommonShared.map(dest => ({ src: `common/${dest}`, dest })),
-  ...kCommonPerMode.map(bare => ({
-    src: `${commonTreeOf(mode)}/${bare}${extOf(mode)}`,
-    dest: `${bare}${extOf(mode)}`,
-  })),
-  ...kCommonConfig[mode].map(dest => ({
-    src: `${commonTreeOf(mode)}/${dest}`,
-    dest,
-  })),
+const configFiles = (pkg: Pkg, mode: Mode): TemplateFile[] =>
+  kConfigFiles[mode].map(dest =>
+    file(pkg, `${commonTreeOf(mode)}/${dest}`, dest),
+  )
+
+// ---------------------------------------------------------------------------
+// template/core/<fw>[-js]/
+// ---------------------------------------------------------------------------
+
+/**
+ * Shipped by both modes, byte for byte.
+ *
+ * A `.d.ts` has no runtime, so the two modes genuinely share the contract layer rather
+ * than each having a spelling of its own. `handler.d.ts` imports `./alias.js`; the two
+ * files sit beside each other in the package, as they always have.
+ */
+const kCoreSharedTypes = ['types/handler.d.ts', 'types/common.d.ts'] as const
+
+/** Value-level files, named without their extension. */
+const kCoreSourceFiles = ['src/access/index', 'src/access/verifyToken'] as const
+
+export const coreFiles = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
+  ...configFiles('core', mode),
+  ...kCoreSharedTypes.map(dest => file('core', `common/core/${dest}`, dest)),
+  file('core', `${treeOf('core', fw, mode)}/package.json`, 'package.json'),
+  file(
+    'core',
+    `${treeOf('core', fw, mode)}/types/alias.d.ts`,
+    'types/alias.d.ts',
+  ),
+  // Fastify's `alias.d.ts` augments `FastifyRequest` from a sibling file every program
+  // that reads the alias has to reach. The JavaScript tree's alias imports the same
+  // `./fastify.js`, so the file comes from the TypeScript tree in both modes.
+  ...(fw === 'fastify'
+    ? [file('core', 'core/fastify/types/fastify.d.ts', 'types/fastify.d.ts')]
+    : []),
+  ...kCoreSourceFiles.map(bare =>
+    file(
+      'core',
+      `${treeOf('core', fw, mode)}/${bare}${extOf(mode)}`,
+      `${bare}${extOf(mode)}`,
+    ),
+  ),
+]
+
+// ---------------------------------------------------------------------------
+// template/api-v1/<fw>[-js]/
+// ---------------------------------------------------------------------------
+
+/**
+ * The route tree, the generated barrels, and the three files that turn them into a
+ * mounted api version: `router` registers one version's routes, `doc` serves the page and
+ * its json, and `mount` puts both on the framework instance.
+ */
+const kApiV1SourceFiles = [
+  'src/api/get/health',
+  'src/api/get/index',
+  'src/api/index',
+  'src/api/post/article',
+  'src/api/post/index',
+  'src/api/post/login',
+  'src/doc',
+  'src/mount',
+  'src/router',
+] as const
+
+/** Shared by both modes: the contract's exit point, the prefix constants and the docs. */
+const apiV1Shared = (mode: Mode): TemplateFile[] => [
+  file('api-v1', 'common/api-v1/types/api.d.ts', 'types/api.d.ts'),
+  file('api-v1', 'common/api-v1/version.js', 'version.js'),
+  file('api-v1', 'common/api-v1/version.d.ts', 'version.d.ts'),
+  file('api-v1', 'common/api-v1/docs/.gitkeep', 'docs/.gitkeep'),
+  file('api-v1', 'common/api-v1/AGENTS.md', 'AGENTS.md'),
+  file(
+    'api-v1',
+    `${commonTreeOf(mode)}/api-v1/tealina.config${extOf(mode)}`,
+    `tealina.config${extOf(mode)}`,
+  ),
+]
+
+export const apiV1Files = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
+  ...configFiles('api-v1', mode),
+  ...apiV1Shared(mode),
+  file('api-v1', `${treeOf('api-v1', fw, mode)}/package.json`, 'package.json'),
+  ...kApiV1SourceFiles.map(bare =>
+    file(
+      'api-v1',
+      `${treeOf('api-v1', fw, mode)}/${bare}${extOf(mode)}`,
+      `${bare}${extOf(mode)}`,
+    ),
+  ),
 ]
 
 // ---------------------------------------------------------------------------
 // template/server/<fw>[-js]/
 // ---------------------------------------------------------------------------
 
-/** Value-level files, named without their extension. */
-const kFrameworkSourceFiles: Record<ServerTemplate, readonly string[]> = {
-  express: [
-    'src/api/v1/get/health',
-    'src/api/v1/get/index',
-    'src/api/v1/index',
-    'src/api/v1/post/article',
-    'src/api/v1/post/index',
-    'src/api/v1/post/login',
-    'src/app',
-    'src/routes/api/index',
-    'src/routes/api/router',
-    'src/routes/static/assets',
-    'src/routes/static/doc',
-    'src/access/index',
-    'src/access/verifyToken',
-    'src/index',
-  ],
-  koa: [
-    'src/api/v1/get/health',
-    'src/api/v1/get/index',
-    'src/api/v1/index',
-    'src/api/v1/post/article',
-    'src/api/v1/post/index',
-    'src/api/v1/post/login',
-    'src/app',
-    'src/routes/api/index',
-    'src/routes/api/router',
-    'src/routes/static/assets',
-    'src/routes/static/docs',
-    'src/access/index',
-    'src/access/verifyToken',
-    'src/index',
-  ],
-  fastify: [
-    'src/api/v1/get/health',
-    'src/api/v1/get/index',
-    'src/api/v1/index',
-    'src/api/v1/post/article',
-    'src/api/v1/post/index',
-    'src/api/v1/post/login',
-    'src/app',
-    'src/routes/api/index',
-    'src/routes/api/router',
-    'src/routes/static/assets',
-    'src/routes/static/docs',
-    'src/access/index',
-    'src/access/verifyToken',
-    'src/index',
-  ],
-}
+/** The two files that are shared with the package root rather than living in `src/`. */
+const serverRootFiles = (mode: Mode): TemplateFile[] => [
+  file('server', 'common/server/.env.example', '.env.example'),
+  file('server', 'common/server/public/index.html', 'public/index.html'),
+  file(
+    'server',
+    `common/server/src/config/env${extOf(mode)}`,
+    `src/config/env${extOf(mode)}`,
+  ),
+]
 
-/** Written by both modes under the same name. */
-const kFrameworkStaticFiles = ['package.json'] as const
+const kServerSourceFiles = [
+  'src/app',
+  'src/index',
+  'src/routes/static/assets',
+] as const
 
-/**
- * The one type file the two trees spell differently.
- *
- * `alias.d.ts` binds the framework's request and response types to the generic handler
- * shape, and the JavaScript copy repeats each call signature verbatim. A checked `.js`
- * handler annotated with a JSDoc `@type` is otherwise checked against a single signature,
- * and an `async` handler is then rejected because the alias's return type is not the
- * global `Promise` (TS1065). TypeScript handlers annotate the arrow directly, never take
- * that path, and need one signature only.
- *
- * Everything else in the contract layer is shared: get it wrong and every response
- * silently widens, so two copies would be two things to keep in step, with the drift
- * showing up as a wrong document rather than as an error. `common/types/**` is shared the
- * same way, one level up.
- */
-const kAliasFile = 'types/alias.d.ts'
+export const serverFiles = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
+  ...configFiles('server', mode),
+  ...serverRootFiles(mode),
+  file('server', `${treeOf('server', fw, mode)}/package.json`, 'package.json'),
+  ...kServerSourceFiles.map(bare =>
+    file(
+      'server',
+      `${treeOf('server', fw, mode)}/${bare}${extOf(mode)}`,
+      `${bare}${extOf(mode)}`,
+    ),
+  ),
+]
 
-/** Type files every mode copies from the TypeScript tree. */
-const kSharedTypeFiles: Record<ServerTemplate, readonly string[]> = {
-  express: [],
-  koa: [],
-  fastify: ['types/fastify.d.ts'],
-}
-
-export const frameworkFiles = (
+/** Every backend file `create` writes, in the order it writes it. */
+export const backendFiles = (
   fw: ServerTemplate,
   mode: Mode,
 ): TemplateFile[] => [
-  ...kFrameworkStaticFiles.map(dest => ({
-    src: `${treeOf(fw, mode)}/${dest}`,
-    dest,
-  })),
-  ...kFrameworkSourceFiles[fw].map(bare => {
-    const dest = `${bare}${extOf(mode)}`
-    return { src: `${treeOf(fw, mode)}/${dest}`, dest }
-  }),
-  ...kSharedTypeFiles[fw].map(dest => ({
-    src: `server/${fw}/${dest}`,
-    dest,
-  })),
-  { src: `${treeOf(fw, mode)}/${kAliasFile}`, dest: kAliasFile },
-]
-
-/** What `create` copies into the server package, in the order it copies it. */
-export const createFiles = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
-  ...commonFiles(mode),
-  ...frameworkFiles(fw, mode),
+  ...coreFiles(fw, mode),
+  ...apiV1Files(fw, mode),
+  ...serverFiles(fw, mode),
 ]
 
 // ---------------------------------------------------------------------------
@@ -201,13 +201,9 @@ export const createFiles = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
 // ---------------------------------------------------------------------------
 
 /**
- * The frontend is the one part of the scaffold that is not a workspace of its own by
- * default: it is a separate package beside the server, written by `--web` rather than
- * assumed, because a tealina project is the server and the client is whichever one you
- * already have.
- *
- * It is a Vite project with no framework — the point is the projection, not the UI, and a
- * React tree would be nine tenths boilerplate around the one line that matters.
+ * The frontend is opt-in: a tealina project is the backend, and the client is whichever
+ * one you already have. It is a Vite project with no framework — the point is the
+ * projection, not the UI.
  */
 
 /** Written identically by both modes: the package manifest says nothing about types. */
@@ -216,166 +212,34 @@ const kWebShared = ['package.json'] as const
 /** Per mode under the same name — neither filename carries the mode. */
 const kWebNamed = ['index.html', 'tsconfig.json'] as const
 
-/**
- * Per mode, named without the extension the mode gives it. `index.html` is in the group
- * above rather than this one because it is not a source file: it carries no mode of its
- * own, and the two copies differ only in the `<script>` tag's extension.
- *
- * `src/main` is the one entry not here, because it is the one file whose content depends on
- * the project it lands in rather than on the mode — see `kWebBareMain`.
- */
-const kWebPerMode = ['vite.config', 'src/api/client'] as const
+/** Per mode, named without the extension the mode gives it. */
+const kWebPerMode = ['vite.config', 'src/api/client', 'src/main'] as const
 
 /**
- * Files only one tree has, under their literal name — no `extOf`, because a `.d.ts` spells
- * its own type.
- *
- * One entry: the `Take*` names, which a `.js` call site reaches by path. The TypeScript tree
- * has them in `src/api/client`, so the file there would be a competing set of declarations
- * rather than a convenience — hence mode-keyed, not shared.
+ * Files only one tree has, under their literal name — no `extOf`, because a `.d.ts`
+ * spells its own type. The `Take*` names are a JavaScript convenience: the TypeScript
+ * tree has them in `src/api/client`.
  */
 const kWebModeOnly: Record<Mode, readonly string[]> = {
   ts: [],
-  js: ['types/v1.d.ts'],
+  js: ['types/api.d.ts'],
 }
 
 const webTreeOf = (mode: Mode) => (mode === 'js' ? 'web/js' : 'web')
 
-/**
- * The page, in two versions, under one destination.
- *
- * `create` scaffolds a server that ships `GET /health`, so its frontend can call a route
- * and show the projection working end to end. `init` installs beside a server that is
- * whatever it is: `src/api/v1/**` is demo content this command deliberately does not copy,
- * so a host's route table is empty until its owner writes a handler — and a call to a route
- * the contract does not have is a compile error. The installed frontend would not build.
- *
- * So the plain page ships to a host and the demo page ships with the scaffold, and they
- * differ by the one statement that names a route. Everything else about them is the same
- * file, which is why they sit side by side rather than in two trees.
- */
-const kWebBareMain = (mode: Mode) => `main${extOf(mode)}`
-const kWebDemoMain = (mode: Mode) => `main.demo${extOf(mode)}`
-
-const webMainDest = (mode: Mode) => `src/${kWebBareMain(mode)}`
-
-const kWebRest = (mode: Mode): TemplateFile[] => [
-  ...kWebShared.map(dest => ({ src: `web/${dest}`, dest })),
+export const webFiles = (mode: Mode): TemplateFile[] => [
+  ...kWebShared.map(dest => ({
+    pkg: 'web' as const,
+    src: `web/${dest}`,
+    dest,
+  })),
   ...[
     ...kWebNamed,
     ...kWebModeOnly[mode],
     ...kWebPerMode.map(bare => `${bare}${extOf(mode)}`),
-  ].map(dest => ({ src: `${webTreeOf(mode)}/${dest}`, dest })),
-]
-
-/**
- * What `create --web` copies into the web package.
- *
- * Unlike the server side's `initFiles`, this is the whole package either way: nothing in it
- * is host source that a curated subset would have to step around, because the package does
- * not exist in the host project until one of these writes it. The page is the exception,
- * and only in which of the two versions it is.
- */
-export const webFiles = (mode: Mode): TemplateFile[] => [
-  ...kWebRest(mode),
-  {
-    src: `${webTreeOf(mode)}/src/${kWebDemoMain(mode)}`,
-    dest: webMainDest(mode),
-  },
-]
-
-/** The same set, with the page that does not call a route the host has not written yet. */
-export const webHostFiles = (mode: Mode): TemplateFile[] =>
-  webFiles(mode).map(f =>
-    f.dest === webMainDest(mode)
-      ? { ...f, src: `${webTreeOf(mode)}/${webMainDest(mode)}` }
-      : f,
-  )
-
-// ---------------------------------------------------------------------------
-// What `init` takes from the same tree
-// ---------------------------------------------------------------------------
-
-/**
- * Destinations without the mode's extension — `src/access/verifyToken` names
- * `verifyToken.ts` and `verifyToken.js` alike, and the `.d.ts` files keep theirs because it
- * is part of the name.
- *
- * The selection below is therefore mode-independent, which is the honest model: *which*
- * files `init` takes has nothing to do with the mode, only what they are called does.
- */
-const bareOf = (dest: string) =>
-  dest.endsWith('.d.ts') ? dest : dest.replace(/\.(ts|js|mjs|cjs)$/, '')
-
-/**
- * The contract layer, the config, and the docs placeholder. Everything else `create` ships
- * belongs to a project that was scaffolded from scratch: the tsconfigs, `src/config/env`
- * and `public/` are the host's own choices of port, module settings and build.
- */
-const kInitFromCommon: ReadonlySet<string> = new Set([
-  'AGENTS.md',
-  'docs/.gitkeep',
-  'tealina.config',
-  'types/v1.d.ts',
-  'types/common.d.ts',
-  'types/handler.d.ts',
-])
-
-/**
- * What is absent from these sets matters as much as what is in them:
- *
- * - `src/index` and `src/app` are the scaffold's boot and app assembly. This
- *   feature never edits the host's, so it must not drop a competing pair next to them.
- * - `src/api/v1/**` is demo content, and `package.json` is merged rather than copied.
- * - `src/routes/static/assets` serves the scaffold's placeholder page.
- */
-const kInitFromFramework: Record<ServerTemplate, ReadonlySet<string>> = {
-  express: new Set([
-    'src/routes/api/index',
-    'src/routes/api/router',
-    'src/routes/static/doc',
-    'src/access/index',
-    'src/access/verifyToken',
-    'types/alias.d.ts',
-  ]),
-  koa: new Set([
-    'src/routes/api/index',
-    'src/routes/api/router',
-    'src/routes/static/docs',
-    'src/access/index',
-    'src/access/verifyToken',
-    'types/alias.d.ts',
-  ]),
-  fastify: new Set([
-    'src/routes/api/index',
-    'src/routes/api/router',
-    'src/routes/static/docs',
-    'src/access/index',
-    'src/access/verifyToken',
-    'types/alias.d.ts',
-    'types/fastify.d.ts',
-  ]),
-}
-
-export const commonInitFiles = (mode: Mode): TemplateFile[] =>
-  commonFiles(mode).filter(f => kInitFromCommon.has(bareOf(f.dest)))
-
-export const frameworkInitFiles = (
-  fw: ServerTemplate,
-  mode: Mode,
-): TemplateFile[] =>
-  frameworkFiles(fw, mode).filter(f =>
-    kInitFromFramework[fw].has(bareOf(f.dest)),
-  )
-
-/**
- * Every file `init` writes for `fw`, as template-relative `src` → package-relative `dest`.
- *
- * Exported because test/init-manifest.test.ts holds invariants over this list that cannot be
- * checked from the outside: that every `src` exists, that every relative import inside the
- * set lands back inside the set, and that the set is really a subset of what `create` ships.
- */
-export const initFiles = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
-  ...commonInitFiles(mode),
-  ...frameworkInitFiles(fw, mode),
+  ].map(dest => ({
+    pkg: 'web' as const,
+    src: `${webTreeOf(mode)}/${dest}`,
+    dest,
+  })),
 ]

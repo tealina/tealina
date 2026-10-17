@@ -6,8 +6,8 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "pnpm -F server dev",
-    "build": "pnpm -F server build",
+    "dev": "pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev",
+    "build": "pnpm -r build",
     "start": "pnpm -F server start"
   }
 }

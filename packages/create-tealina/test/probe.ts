@@ -1,20 +1,20 @@
 /**
- * The projection probes, shared by T1 (`contract.test.ts`) and T5 (`init.test.ts`).
+ * The projection probes, used by T1 (`contract.test.ts`).
  *
- * Both compile a probe against the same derived types — T1 against the shipped template,
- * T5 against the copy `init` installed into a host — and the mutation self-check is the
- * same construct in both. Keeping them here means a change to the probe cannot leave one
- * arm weaker than the other, which is exactly the failure a self-check exists to prevent.
+ * T1 compiles a probe against the types derived from the shipped template, and the mutation
+ * self-check is the same construct. Keeping the probe here means the fixture and the
+ * self-check cannot drift apart, which is exactly the failure a self-check exists to
+ * prevent.
  *
  * `PROBE_JS` does not merely import the projections — it asserts them. Without those
- * assertions the JavaScript arms would be a false green, because `ExtractApiType` can
+ * assertions the JavaScript arm would be a false green, because `ExtractApiType` can
  * degrade to `never` without a single compiler error.
  *
  * Every specifier below is written for a probe sitting at the *fixture root*, next to
- * `types/` and `src/`. Both callers place it there.
+ * `types/` and `src/`. T1 places it there.
  */
 
-export const PROBE_TS = `import type { ApiTypesForClient, ApiTypesForDoc } from './types/v1.js'
+export const PROBE_TS = `import type { ApiTypesForClient, ApiTypesForDoc } from './types/api.js'
 
 type Doc = ApiTypesForDoc['get']['health']
 export const docOk: Doc['response'] = { isOk: true }
@@ -52,8 +52,8 @@ export const articleDoc: ArticleDoc['response'] = { id: 1 }
  * dropped rather than transliterated — they would add lines that cannot fail.
  */
 export const PROBE_JS = `/**
- * @typedef {import('./types/v1.js').ApiTypesForDoc} ApiTypesForDoc
- * @typedef {import('./types/v1.js').ApiTypesForClient} ApiTypesForClient
+ * @typedef {import('./types/api.js').ApiTypesForDoc} ApiTypesForDoc
+ * @typedef {import('./types/api.js').ApiTypesForClient} ApiTypesForClient
  */
 
 /** @type {ApiTypesForDoc['get']['health']['response']} */
@@ -76,7 +76,7 @@ export const articleDoc = { id: 1 }
  * per-endpoint tuple is lost: `LastElement` hands back the array itself, an array is not a
  * `HandlerAlias`, and so `ExtractApiType` degrades to `never`.
  *
- * Used only to prove the probe can still see that. It is `src/access/index.js` of a
+ * Used only to prove the probe can still see that. It is `core/src/access/index.js` of a
  * JavaScript tree, so it only replaces a `.js` one and its specifiers are written from
  * that directory.
  */

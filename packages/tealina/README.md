@@ -1,35 +1,56 @@
 
 Tealina is a code generation CLI tool that helps you:
 - Generate routing mappings from your API directory structure
-- Create TypeScript types from your Prisma schema  
+- Create TypeScript types from your Prisma schema
 - Generate API documentation from your API type definitions
 
 ### Basic Setup
 
-Tealina requires a root API directory to generate route mappings. We recommend using API version aliases (e.g., `api/v1` → `v1`):
+The CLI reads one config file. `apiDir` names the directory whose tree is the route
+table, and `apiBaseURL` is the URL prefix those routes answer under:
+
+```ts
+// tealina.config.ts
+import { defineConfig } from 'tealina'
+
+export default defineConfig({
+  apiDir: 'src/api',
+  apiBaseURL: '/api/v1',
+  typesDir: 'types',
+})
+```
+
+Every command takes its options from this file, so a package's scripts stay
+argument-less:
 
 ```json
 // package.json
 {
   "scripts": {
-    "v1": "tealina src/api/v1"
+    "create": "tealina create",
+    "align": "tealina align",
+    "gdoc": "tealina gdoc"
   }
 }
 ```
 
-### Generate Route Mapping (`-a`)
+The generated artifacts have fixed names — `types/api.d.ts`, `docs/api.json` and the
+package's `exports["./api"]` entry — so renaming `apiDir` does not change anything a
+consumer imports.
+
+### Generate Route Mapping (`create` / `align`)
 
 The generation follows a specific file structure convention:
 
-- **First layer**: API version or prefix (e.g., `api/v1`)
-- **Second layer**: HTTP methods (e.g., `get`, `post`, `put`)  
+- **First layer under `apiDir`**: HTTP methods (e.g., `get`, `post`, `put`)
 - **Deeper layers**: Endpoint handler files (e.g., `health.ts`, `user/login.ts`)
 
-Each method directory contains an `index.ts` that exports its routes, and the API root has an `index.ts` that aggregates all methods.
+Each method directory contains an `index.ts` that exports its routes, and the API root has
+an `index.ts` that aggregates all methods.
 
 **Example structure:**
 ```
-api/v1/
+src/api/
   |- get/
   |   |- health.ts
   |   |- index.ts
@@ -47,7 +68,7 @@ export default {
 }
 ```
 
-**api/v1/index.ts:**
+**src/api/index.ts:**
 ```ts
 export default {
   get: import('./get/index.ts'),
@@ -55,23 +76,44 @@ export default {
 }
 ```
 
-Run with `-a` to generate/update route mappings. The CLI will automatically maintain all `index.ts` files according to your structure. Route parameters are wrapped in brackets: `[id]`.
+Add a handler stub with `tealina create <method>/<path>`, then rebuild the barrels with
+`tealina align`. The CLI maintains every `index.ts` file from your structure. Route
+parameters are wrapped in brackets: `[id]`.
 
 ```bash
-pnpm v1 -a
+tealina create post/user
+tealina align
 ```
+
+`align` can be told to leave things out of the route tree. Patterns are relative to
+`apiDir` and matched as posix paths:
+
+```ts
+export default defineConfig({
+  apiDir: 'src/api',
+  apiBaseURL: '/api/v1',
+  typesDir: 'types',
+  exclude: ['_shared/**', '**/*.test.ts'],
+})
+```
+
+Both `align` and `gdoc` accept `--check` (compare with disk, write nothing, exit 1 on
+drift) and `--json` (one machine-readable object on stdout).
 
 ### Generate Types (`gtype`)
 
-Reads your `prisma/schema.prisma` file and generates TypeScript types for all models, types, and enums. For better composability, relation fields are omitted—only pure types are generated.
+Reads your `prisma/schema.prisma` file and generates TypeScript types for all models,
+types, and enums. For better composability, relation fields are omitted—only pure types
+are generated.
 
 ```bash
-pnpm v1 gtype
+tealina gtype
 ```
 
 ### Generate API Documentation (`gdoc`)
 
-Parses your exported API types (from `types/v1.ts`) to generate documentation. Your `ApiTypeRecord` should follow this structure:
+Parses `types/api.d.ts` to generate the document. The contract type it reads follows this
+structure:
 
 ```ts
 export type ApiTypeRecord = {
@@ -90,7 +132,21 @@ export type ApiTypeRecord = {
 ```
 
 ```bash
-pnpm v1 gdoc
+tealina gdoc
+```
+
+The default output is `docs/api.json`. A custom output receives the configured
+`apiBaseURL` through `GdocContext`:
+
+```ts
+gdoc: {
+  customOutputs: [
+    (apiDoc, { baseURL }) => ({
+      content: JSON.stringify(convertToOpenApiJson(apiDoc, baseURL)),
+      filePath: 'docs/openapi.json',
+    }),
+  ],
+}
 ```
 
 ### Tips

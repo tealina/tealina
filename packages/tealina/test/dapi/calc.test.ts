@@ -228,7 +228,7 @@ describe('test dapi calculation part', function () {
 })
 
 test('--by-model not acceptable', () => {
-  cli.parse(['', 'tealina', 'dapi', '--by-model'], {
+  cli.parse(['', 'tealina', 'delete', 'post/user', '--by-model'], {
     run: false,
   })
   let hasErr = false

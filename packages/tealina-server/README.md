@@ -19,7 +19,7 @@ npm install @tealina/server
 ### 1. Define API Handlers
 
 ```ts
-// api/v1/post/login.ts
+// api/post/login.ts
 const handler = async (req, res) => {
   const { body } = req
   console.log(body.account)
@@ -32,7 +32,7 @@ export default handler
 ### 2. Organize Route Structure
 
 ```ts
-// api/v1/post/index.ts
+// api/post/index.ts
 export default {
   // path: import module
   login: import('./login.js'),
@@ -41,14 +41,14 @@ export default {
 ```
 
 ```ts
-// api/v1/get/index.ts
+// api/get/index.ts
 export default {
   'user/:id': import('./user/[id].js'),
 }
 ```
 
 ```ts
-// api/v1/index.ts
+// api/index.ts
 export default {
   get: import('./get/index.js'),    // GET method routes
   post: import('./post/index.js'),   // POST method routes
@@ -60,7 +60,7 @@ export default {
 
 ```ts
 import { Router } from 'express'
-import apis from './api/v1/index.js'
+import apis from './api/index.js'
 import { loadAPIs, transformToRouteOptions } from '@tealina/server'
 
 export const buildV1Router = async () => {
@@ -93,7 +93,7 @@ Array of route options with:
 
 ```
 src/
-├── api/v1/
+├── api/
 │   ├── index.ts          # Main export file
 │   ├── get/
 │   │   ├── index.ts      # GET routes collection

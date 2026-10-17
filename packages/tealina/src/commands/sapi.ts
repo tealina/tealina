@@ -16,8 +16,9 @@ import {
 } from 'fp-lite'
 import { statSync } from 'node:fs'
 import { readFile, readdir } from 'node:fs/promises'
-import { basename, join } from 'pathe'
+import { basename, join, relative } from 'pathe'
 import { filename } from 'pathe/utils'
+import picomatch from 'picomatch'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
 import { type Snapshot, completePath, effectFiles } from '../utils/effectFiles'
 import { logResults } from '../utils/logResults'
@@ -52,10 +53,11 @@ const takeFirst = <T extends any[]>(xs: T): FirstElement<T> => xs[0]
 
 const walkDeep = (
   g: Map<'dir' | 'file', [string, boolean][]>,
+  isExcluded: (path: string) => boolean,
 ): Promise<string[]> =>
   pipe(
     g.get('dir') ?? [],
-    map(flow(takeFirst, walkDir)),
+    map(flow(takeFirst, walkDir(isExcluded))),
     asyncFlow(waitAll, flat, concat((g.get('file') ?? []).map(takeFirst))),
   )
 
@@ -64,14 +66,33 @@ const ignoredFilename = flow(
   name => name !== 'index' && !name.startsWith('.'),
 )
 
-const walkDir = (dir: string): Promise<string[]> =>
-  asyncPipe(
-    readdir(dir),
-    map(flow(prepend(dir), withIsDir)),
-    groupBy(([, isDir]) => (isDir ? 'dir' : 'file')),
-    walkDeep,
-    filter(ignoredFilename),
-  )
+/**
+ * `exclude` is relative to `apiDir` and matched as a posix path. `dot: true` keeps the
+ * opt-in explicit: a project that writes `_shared/**` means it, and dotfiles are already
+ * skipped by `ignoredFilename` unless this names them.
+ */
+const makeExcluded = (apiDir: string, patterns?: readonly string[]) => {
+  if (patterns == null || patterns.length === 0) {
+    return (_path: string) => false
+  }
+  const isMatch = picomatch([...patterns], { dot: true })
+  return (path: string) => {
+    const rel = relative(apiDir, path)
+    return rel !== '' && !rel.startsWith('..') && isMatch(rel)
+  }
+}
+
+const walkDir =
+  (isExcluded: (path: string) => boolean) =>
+  (dir: string): Promise<string[]> =>
+    asyncPipe(
+      readdir(dir),
+      map(flow(prepend(dir), withIsDir)),
+      filter(([path]) => !isExcluded(path)),
+      groupBy(([, isDir]) => (isDir ? 'dir' : 'file')),
+      g => walkDeep(g, isExcluded),
+      filter(ignoredFilename),
+    )
 
 const readIndexContent = (dir: string, sourceExt: string) =>
   readFile(join(dir, `index${sourceExt}`)).then(
@@ -99,9 +120,13 @@ const makeIndexFileSnapshot = (
 const gatherIndex = (
   kindDir: string,
   sourceExt: string,
+  isExcluded: (path: string) => boolean,
 ): Promise<GatherPhase> =>
   asyncPipe(
-    waitAll([readIndexContent(kindDir, sourceExt), walkDir(kindDir)]),
+    waitAll([
+      readIndexContent(kindDir, sourceExt),
+      walkDir(isExcluded)(kindDir),
+    ]),
     ([content, files]): GatherPhase => ({
       kind: basename(kindDir),
       content,
@@ -124,7 +149,10 @@ interface FileTreeInfo {
   kindIndexFiles: GatherPhase[]
   topIndexFile: GatherPhase
   typeFileInfo: TypeFileInfo
-  options: Omit<DirInfo, 'testDir'>
+  options: Omit<DirInfo, 'testDir'> & {
+    exclude?: readonly string[]
+    handlerImport?: string
+  }
   suffix: string
   sourceExt: string
 }
@@ -132,17 +160,23 @@ interface FileTreeInfo {
 const collectApiInfo = ({
   apiDir,
   sourceExt,
-}: Pick<DirInfo, 'apiDir'> & { sourceExt: string }) =>
-  asyncPipe(
+  exclude,
+}: Pick<DirInfo, 'apiDir'> & {
+  sourceExt: string
+  exclude?: readonly string[]
+}) => {
+  const isExcluded = makeExcluded(apiDir, exclude)
+  return asyncPipe(
     readdir(apiDir),
     map(prepend(apiDir)),
     filter(v => statSync(v).isDirectory()),
+    filter(v => !isExcluded(v)),
     invoke(validateAllKind),
     dirs =>
       [
         pipe(
           dirs,
-          map(dir => gatherIndex(dir, sourceExt)),
+          map(dir => gatherIndex(dir, sourceExt, isExcluded)),
           waitAll,
         ),
         asyncPipe(
@@ -152,6 +186,7 @@ const collectApiInfo = ({
       ] as const,
     waitAll,
   )
+}
 
 const toSnapshot =
   (genCodeFn: (x: string) => string, sourceExt: string) => (v: GatherPhase) =>
@@ -202,6 +237,8 @@ const pickOption4align = (full: FullOptions): AlignOption => {
     full,
     'apiDir',
     'typesDir',
+    'handlerImport',
+    'exclude',
     'suffix',
     'sourceExt',
     'check',

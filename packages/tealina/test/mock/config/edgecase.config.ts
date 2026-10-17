@@ -11,4 +11,6 @@ export default defineConfig({
   },
   testDir: '',
   typesDir: '',
+  apiDir: 'src/api',
+  apiBaseURL: '/api',
 })

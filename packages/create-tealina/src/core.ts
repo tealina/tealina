@@ -5,8 +5,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import prompts from 'prompts'
-import versionMap from '../template/versionMaps.json'
-import { type Mode, createFiles, webFiles } from './template-manifest.js'
+import {
+  type Mode,
+  type Pkg,
+  backendFiles,
+  webFiles,
+} from './template-manifest.js'
 
 const { blue, green, reset } = chalk
 const { join } = path
@@ -18,7 +22,7 @@ export type ServerTemplate = (typeof kServerTemplates)[number]
  * This package's own `template/` directory. Resolved off `import.meta.url` the same way
  * `createCtx` resolves the project root below — the file sits directly in `src/` when run
  * through tsx and directly in `dist/` after `vp pack`, so `../..` is the package root in
- * both. `init` reads from here too, which is why it is a module-level constant now.
+ * both.
  */
 export const templateRootDir = path.resolve(
   fileURLToPath(import.meta.url),
@@ -29,10 +33,6 @@ export const templateRootDir = path.resolve(
 // Copied from the retired full-kit scaffold, which is no longer part of this
 // repository. Neither package ships an `exports` map, so these helpers cannot
 // be imported from anywhere — they have to be duplicated here.
-//
-// `mayCopyCommonDir` was the one helper deliberately not carried over:
-// `create` copies from template-manifest.ts, which names the files instead of
-// walking a directory, so a wholesale `common/` copy does not exist.
 // ---------------------------------------------------------------------------
 
 const copy = (src: string, dest: string) =>
@@ -187,64 +187,51 @@ const toPkgName = (raw: string) => {
   return name.length > 0 ? name : 'tealina-project'
 }
 
+/**
+ * The root scripts are written here rather than shipped in `template/root`, because they
+ * are the one part of the root that depends on the mode.
+ *
+ * In TypeScript the two library packages are compiled once before the watchers start:
+ * the server imports their `dist/`. In JavaScript there is nothing to build, so `build`
+ * is the type checker — the same command the editor runs, over the same files.
+ *
+ * `pnpm -r` covers three backend packages, and covers `packages/web` as well when the
+ * optional frontend is present.
+ */
+const rootScripts = (mode: Mode) => ({
+  dev:
+    mode === 'js'
+      ? 'pnpm -r --parallel dev'
+      : 'pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev',
+  build: 'pnpm -r build',
+  start: 'pnpm -F server start',
+})
+
 const createRoot = (ctx: ContextType) => {
   fs.mkdirSync(ctx.dest, { recursive: true })
   copyDir(join(ctx.projectRootDir, 'template', 'root'), ctx.root)
   const pkgPath = join(ctx.root, 'package.json')
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
   pkg.name = toPkgName(path.basename(ctx.root))
+  pkg.scripts = rootScripts(ctx.answer.mode)
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
 }
 
-const updateServerPackageJson = (serverDestDir: string) => {
-  const pkgPath = join(serverDestDir, 'package.json')
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
-  // The name is what the frontend links against via `workspace:*`, and what
-  // `pnpm -F <name>` in the root scripts refers to.
-  pkg.name = path.basename(serverDestDir)
-  const { server } = versionMap
-  Object.assign(pkg.dependencies, server.dependencies)
-  Object.assign(pkg.devDependencies, server.devDependencies)
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
-}
+/** The three packages that make up the backend, in dependency order. */
+const kBackendPkgs: readonly Pkg[] = ['core', 'api-v1', 'server']
 
-const createServerProject = async (ctx: ContextType) => {
-  const destServerDir = join(ctx.dest, 'server')
-  await mayOverwrite(destServerDir)
-  for (const { src, dest } of createFiles(ctx.answer.server, ctx.answer.mode)) {
-    const filePath = join(destServerDir, dest)
+const createBackendProject = async (ctx: ContextType) => {
+  for (const pkgName of kBackendPkgs) {
+    await mayOverwrite(join(ctx.backend, pkgName))
+  }
+  for (const { src, dest, pkg } of backendFiles(
+    ctx.answer.server,
+    ctx.answer.mode,
+  )) {
+    const filePath = join(ctx.backend, pkg, dest)
     fs.mkdirSync(path.dirname(filePath), { recursive: true })
     fs.copyFileSync(join(templateRootDir, src), filePath)
   }
-  updateServerPackageJson(destServerDir)
-}
-
-const updateWebPackageJson = (webDestDir: string) => {
-  const pkgPath = join(webDestDir, 'package.json')
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
-  pkg.name = path.basename(webDestDir)
-  // `server: workspace:*` is left as the template wrote it. `create` names that package
-  // `server` and nothing else, so there is no name to substitute here the way `init` has
-  // to — the placeholder and the real thing are the same string.
-  const { web } = versionMap
-  Object.assign(pkg.dependencies, web.dependencies)
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
-}
-
-/**
- * The root scripts are `pnpm -F server …` because the server is the only workspace there
- * is. A frontend beside it is the one case where they have to cover both — and the only
- * file this feature rewrites rather than writes.
- */
-const spreadRootScripts = (ctx: ContextType) => {
-  const pkgPath = join(ctx.root, 'package.json')
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
-  pkg.scripts.dev = 'pnpm -r --parallel dev'
-  pkg.scripts.build = 'pnpm -r build'
-  // `web` has no `start` — it is served by Vite in development and by whatever you deploy
-  // `dist/` to in production. A recursive run skips the packages that lack the script.
-  pkg.scripts.start = 'pnpm -r start'
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
 }
 
 const createWebProject = async (ctx: ContextType) => {
@@ -255,8 +242,6 @@ const createWebProject = async (ctx: ContextType) => {
     fs.mkdirSync(path.dirname(filePath), { recursive: true })
     fs.copyFileSync(join(templateRootDir, src), filePath)
   }
-  updateWebPackageJson(destWebDir)
-  spreadRootScripts(ctx)
 }
 
 const hasCommand = (command: string) => {
@@ -298,8 +283,8 @@ const installAndGenerate = async (ctx: ContextType) => {
   }
   const installed = await runStep('pnpm', ['install'], ctx.root)
   if (!installed) return false
-  // The API docs route reads docs/v1.json from disk; without this the doc page 500s.
-  return runStep('pnpm', ['-F', 'server', 'gdoc'], ctx.root)
+  // The documentation route reads docs/api.json from disk; without this the page 500s.
+  return runStep('pnpm', ['-F', 'api-v1', 'gdoc'], ctx.root)
 }
 
 const showGuide = (ctx: ContextType, ready: boolean) => {
@@ -314,7 +299,7 @@ const showGuide = (ctx: ContextType, ready: boolean) => {
       title: blue('Done. Now run:'),
       items: [
         `cd ${projectName}`,
-        ...(ready ? [] : ['pnpm install', 'pnpm -F server gdoc']),
+        ...(ready ? [] : ['pnpm install', 'pnpm -F api-v1 gdoc']),
         'pnpm dev',
       ],
     },
@@ -324,7 +309,7 @@ const showGuide = (ctx: ContextType, ready: boolean) => {
             title: blue('The frontend is the Vite dev server:'),
             items: [
               'http://localhost:5173',
-              'it proxies /api to http://localhost:8000 — retarget that in ' +
+              'it proxies the api to http://localhost:8000 — retarget that in ' +
                 'packages/web/vite.config.ts if `PORT` is not 8000',
             ],
           },
@@ -370,14 +355,16 @@ const createCtx = async () => {
   return {
     answer,
     root,
+    // The backend is three packages; the optional frontend is the only thing in
+    // `packages/`.
+    backend: join(root, 'backend'),
     dest: join(root, 'packages'),
     projectRootDir,
     pkgManager: pkgFromUserAgent(process.env.npm_config_user_agent),
     // minimist rewrites `--no-install` into `install: false`, so read both spellings.
     skipInstall: argv.install === false || argv['no-install'] === true,
     // A flag beside `skipInstall` rather than an answer beside `server`: nothing asks
-    // this question. `--web` is the only way to say it, and the answers stay what they
-    // were — which is what keeps the default output byte-for-byte what it is today.
+    // this question. `--web` is the only way to say it.
     web: argv.web === true,
   }
 }
@@ -385,7 +372,7 @@ const createCtx = async () => {
 export const createScaffold = async () => {
   const ctx = await createCtx()
   createRoot(ctx)
-  await createServerProject(ctx)
+  await createBackendProject(ctx)
   if (ctx.web) await createWebProject(ctx)
   const ready = await installAndGenerate(ctx)
   showGuide(ctx, ready)

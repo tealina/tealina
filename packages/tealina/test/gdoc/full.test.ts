@@ -4,11 +4,10 @@ import { afterAll, beforeAll, expect, test, vi } from 'vite-plus/test'
 import { cli } from '../../src/commands/index.js'
 
 const mockDir = 'test/gdoc/mock'
-const apiDir = 'api-v1'
+const name = 'api'
 const outputDir = 'temp'
 
-const input = path.join(`${mockDir}/basic`)
-const output = path.join(`${outputDir}/${apiDir}.json`)
+const output = path.join(`${outputDir}/${name}.json`)
 const cleanOutput = () => {
   if (existsSync(output)) {
     rmSync(path.join(output))
@@ -24,10 +23,7 @@ const runGdoc = (...extra: string[]) => {
     [
       '',
       'tealina',
-      apiDir,
       'gdoc',
-      '-i',
-      input,
       '--output',
       outputDir,
       '--tsconfig-path',

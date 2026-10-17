@@ -15,7 +15,7 @@ describe('test genereta api documentation api/post/createUser', () => {
   const mockDir = 'test/gdoc/mock'
   const configpath = path.join(mockDir, 'tsconfig.json')
   const result = parseDeclarationFile({
-    entries: [path.join(mockDir, 'basic', 'api-v1.d.ts')],
+    entries: [path.join(mockDir, 'basic', 'api.d.ts')],
     tsconfigPath: configpath,
   })
   const {

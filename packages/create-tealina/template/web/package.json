@@ -12,7 +12,7 @@
     "@tealina/client": "^1.0.3"
   },
   "devDependencies": {
-    "server": "workspace:*",
+    "api-v1": "workspace:*",
     "typescript": "~6.0.3",
     "vite": "^8.3.0"
   }

@@ -71,3 +71,42 @@ lite 在 3.0.0 接替了 `create-tealina` 这个名字，整包退役并从仓�
   一份列表覆盖六棵 server 树与 web。
 - **`archive/` 移出仓库**：保留在仓库外的一份快照里，不再参与构建、lint 或发布。
 - **新入口的说明**：模板里新增 `AGENTS.md`，仓库根也有一份。
+
+## 2026-10-18 — `v1` 的深度耦合解开
+
+上一轮记下的七处 `v1` 绑定，这一轮一次性解开，按 major 发布、不留兼容：
+
+- `apiDir` 与 `apiBaseURL` 进配置，命令不再接收目录参数。这两个值无法从目录名或 argv
+  推断，所以配置缺任一字段都直接报错。
+- 公开产物改用**固定名字**：`types/api.d.ts`、`docs/api.json`、`exports["./api"]`。
+  改 api 目录只改配置和 handler 的相对 import，不再改任何对外名字。
+- `exclude` 接受相对 `apiDir` 的 glob，允许把非路由文件与目录留在树里。
+
+也考虑过「每个 api 版本一个 package」：`/api/v1`、将来 `/api/v2` 各自一个包，公共契约
+层落到 `core/`。结构上自洽，但它要求一开始就分好层，而 `init` 无法给已有项目重新分层，
+只能做成绿地时的可选形态，所以没有放进默认模板。默认形态仍是一个 server 包、一个
+`apiDir`、一个 `api.d.ts`。
+
+剩下的耦合是 URL 前缀：`apiBaseURL` 只喂给 `gdoc`，router 的 mount 前缀、doc 路由的
+`baseURL` 与 web client 的 `base` 仍各自写一遍。
+
+## 2026-10-18 — 后端拆成三个包
+
+上一节把「每个 api 版本一个 package」留在可选形态，理由是 `init` 无法给已有项目重新分层。
+这一轮默认形态改成了它，`init` 一并删除：
+
+- 脚手架只保留 `create`，默认产出 `backend/core`、`backend/api-v1`、`backend/server`。
+  `core` 放契约层（`handler.d.ts`、`common.d.ts`、`alias.d.ts`）与 `access/`；`api-v1`
+  放一版路由树、`router`/`doc`/`mount`、`version.js` 与 `gdoc`；`server` 只做宿主胶水。
+- 依赖方向是 `core → api-v1 → server`，可选前端留在 `packages/web`，只依赖 `api-v1`
+  的 `./api` 与 `./version`。`pnpm -r build` 因此是拓扑序。
+- handler 的 import 从相对路径变成包名（`core/handler`、`core/access`），api 目录的深度
+  不再出现在生成物里。`tealina.config` 的 `handlerImport` 做这件事，默认仍是
+  `./handler`，模板设成 `core/handler`。
+- URL 前缀收敛到 `api-v1/version.js`：配置、mount、doc 路由与 web proxy 都读它。
+- 包内的路由树从 `src/api/v1/` 移到 `src/api/`：包名已经说明版本，目录再写一次 `v1`
+  只是重复；URL 仍是 `/api/v1`，由 `version.js` 决定，与目录无关。
+- `versionMaps.json` 删除。模板里每份 `package.json` 已经是该包真实的清单，
+  `update-version-in-template.mjs` 直接遍历三个包目录与 web。
+- brownfield 入口随之消失：`init` 的前提是宿主已经有一个 server 包，而新形态默认就要
+  三个包。把约定装进已有项目回到「照模板分层」，不再由 CLI 猜。

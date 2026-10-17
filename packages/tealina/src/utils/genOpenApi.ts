@@ -31,7 +31,7 @@ const kApplicationJson = 'application/json'
 
 export function convertToOpenApiJson(
   apiDoc: ApiDoc,
-  prefix = '/api/v1',
+  prefix: string,
 ): BasicOpenApiJson {
   //  All functions within the function indirectly or directly require the use of the first parameter apiDoc,
   //  so they are defined within the function

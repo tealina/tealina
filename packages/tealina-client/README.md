@@ -19,9 +19,7 @@ npm install @tealina/client
 First, define your API structure using TypeScript interfaces:
 
 ```ts
-import type { ApiTypesRecord } from '@tealina/client'
-
-type ApiTypesRecord = {
+type ApiTypesForClient = {
   // First level represents HTTP methods
   get: {
     // Second level defines endpoint URLs
@@ -48,14 +46,14 @@ type ApiTypesRecord = {
   // Support for other HTTP methods (put, delete, patch, etc.)
 }
 ```
-It's recommend using [create-tealina](https://www.npmjs.com/package/create-tealina) to scaffold your project, which provides pre-configured `ApiTypeRecord` imports from the server - no manual setup required.
+It's recommend using [create-tealina](https://www.npmjs.com/package/create-tealina) to scaffold your project, which provides a pre-configured `ApiTypesForClient` import from the API package - no manual setup required.
 
 ### RPC Style (Method Chaining)
 ```ts
 import { createFetchRPC } from '@tealina/client'
-import type { ApiTypesRecord } from 'server/api/v1'
+import type { ApiTypesForClient } from 'api-v1/api'
 
-const rpc = createFetchRPC<ApiTypesRecord, RequestInit>(async (url, config) => {
+const rpc = createFetchRPC<ApiTypesForClient, RequestInit>(async (url, config) => {
   const response = await fetch(url, config)
   const data = await response.json()
   return data
@@ -72,13 +70,13 @@ rpc.get.user[':id']({ params: { id: 'user_id' } }).then(user => console.log(user
 ```ts
 import axios, { type AxiosRequestConfig } from 'axios'
 import { createAxiosReq } from '@tealina/client'
-import type { ApiTypesRecord } from 'server/api/v1'
+import type { ApiTypesForClient } from 'api-v1/api'
 
 const instance = axios.create({
   baseURL: '/api/v1/',
 })
 
-export const req = createAxiosReq<ApiTypesRecord, AxiosRequestConfig>(c =>
+export const req = createAxiosReq<ApiTypesForClient, AxiosRequestConfig>(c =>
   instance.request(c).then(v => v.data),
 )
 

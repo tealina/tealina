@@ -28,7 +28,9 @@ export const cleanDir = (root: string) => {
 export function tempDirFactory(root: string) {
   return (name: string): DirInfo => {
     const apiDir = path.join(root, name)
-    const typesDir = path.join(root, 'types')
+    // The contract file has one fixed name, so each case needs its own directory: a
+    // shared one would make the second case see a file the first one created.
+    const typesDir = path.join(root, `${name}-types`)
     const testDir = path.join(root, 'test')
     ensureDirSync(apiDir)
     ensureDirSync(typesDir)
@@ -37,23 +39,50 @@ export function tempDirFactory(root: string) {
   }
 }
 
+/**
+ * The commands read `apiDir`, `typesDir` and `testDir` from the config, so a test that
+ * wants a throwaway tree writes one. It sits beside the api directory and re-exports the
+ * fixture config, which keeps `template` and `suffix` coming from the checked-in file.
+ */
+const writeTempConfig = (dirInfo: DirInfo, configPath: string) => {
+  const dir = path.dirname(dirInfo.apiDir)
+  const relativePath = path
+    .relative(dir, path.resolve(configPath))
+    .replace(/\.ts$/, '.js')
+  const specifier = relativePath.startsWith('.')
+    ? relativePath
+    : `./${relativePath}`
+  const filePath = path.join(dir, 'tealina.generated.config.ts')
+  fs.writeFileSync(
+    filePath,
+    [
+      `import base from '${specifier}'`,
+      'export default {',
+      '  ...base,',
+      `  apiDir: ${JSON.stringify(dirInfo.apiDir)},`,
+      `  typesDir: ${JSON.stringify(dirInfo.typesDir)},`,
+      `  testDir: ${JSON.stringify(dirInfo.testDir)},`,
+      '}',
+    ].join('\n'),
+  )
+  return filePath
+}
+
 export function parseCommandArgs(
   command: string,
   dirInfo: DirInfo,
   configPath = 'test/mock/config/tealina.config.ts',
 ) {
-  cli.option('--types-dir', '', { default: dirInfo.typesDir })
-  cli.option('--test-dir', '', { default: dirInfo.testDir })
-  cli.option('--tsconfig-path', '')
+  const generatedConfig = writeTempConfig(dirInfo, configPath)
   const parsedResult = cli.parse(
     [
       '',
       'tealina',
-      dirInfo.apiDir,
+      'create',
       ...command.split(' '),
       ...(command.includes('--no-with-test') ? [] : ['--with-test']),
       '--config-path',
-      configPath,
+      generatedConfig,
     ],
     { run: false },
   )

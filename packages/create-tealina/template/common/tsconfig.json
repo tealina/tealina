@@ -15,4 +15,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
+  // The same file lands in every backend package. `tealina.config.ts` and the version
+  // constants exist only in `api-v1`, and `types/` only in some; a pattern that matches
+  // nothing costs nothing, which is what lets one file serve all three.
+  "include": ["types/**/*.d.ts", "src/**/*.ts", "*.ts", "*.d.ts"]
 }

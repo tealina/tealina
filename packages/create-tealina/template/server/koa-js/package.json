@@ -5,38 +5,24 @@
   "description": "",
   "type": "module",
   "main": "src/index.js",
-  "exports": {
-    "./api/v1": {
-      "types": "./types/v1.d.ts"
-    }
-  },
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "v1": "tealina src/api/v1 --config-path ./tealina.config.js",
-    "gdoc": "tealina src/api/v1 gdoc --config-path ./tealina.config.js",
-    "align": "tealina src/api/v1 -a --config-path ./tealina.config.js"
+    "build": "tsc --noEmit"
   },
   "dependencies": {
-    "@koa/bodyparser": "^6.0.0",
-    "@koa/router": "^15.0.0",
-    "@tealina/doc-ui": "^2.0.1",
-    "@tealina/server": "^1.0.2",
     "koa": "^3.0.1",
-    "koa-mount": "^4.0.0",
-    "koa-static": "^5.0.0"
+    "koa-static": "^5.0.0",
+    "api-v1": "workspace:*"
   },
   "devDependencies": {
-    "@types/koa": "^3.0.0",
-    "@types/koa-mount": "^4.0.5",
-    "@types/koa-static": "^4.0.4",
-    "@types/koa__router": "12.0.4",
     "@types/node": "^22.0.0",
-    "tealina": "^2.2.2",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "@types/koa": "^3.0.0",
+    "@types/koa-static": "^4.0.4"
   },
   "license": "ISC"
 }

@@ -3,7 +3,10 @@ export type { OpenAPIV3_1, OpenAPIV3 } from 'openapi-types'
 import type { ApiDoc } from '@tealina/doc-types'
 export type GdocContext = {
   outputDir: string
+  /** The configured api directory, spelled as the config spells it. */
   apiDir: string
+  /** The public URL prefix the routes are served under. */
+  baseURL: string
 }
 
 export type CustomOutputFn = (
@@ -116,7 +119,7 @@ export interface TemplateContext {
   Filename: string
   /**
    * The directory the file will be written into, spelled the way `apiDir` is — e.g.
-   * `src/api/v1/post` for the handler `tealina src/api/v1 post/order` writes. The file
+   * `src/api/post` for the handler `tealina create post/order` writes. The file
    * does not exist yet, so this is all the generator can say about where it lands; a stub
    * measures its own import specifiers from it.
    */
@@ -176,6 +179,40 @@ export type TemplateConfig = {
 }
 
 export interface TealinaConfig {
+  /**
+   * The directory whose file tree is the route table, e.g. `src/api`.
+   *
+   * The CLI no longer takes this as an argument. Every generated artifact has a fixed
+   * name — `types/api.d.ts`, `docs/api.json`, `exports["./api"]` — so moving or renaming
+   * this directory changes no public name. Only route discovery and the handlers' own
+   * relative imports follow it.
+   */
+  apiDir: string
+  /**
+   * The URL prefix the routes answer under, e.g. `/api/v1`.
+   *
+   * This is a deployment choice, not something the CLI can infer from a directory name.
+   * `gdoc` gives it to custom outputs through `GdocContext`, and it is what an OpenAPI
+   * document is prefixed with.
+   */
+  apiBaseURL: string
+  /**
+   * Globs, relative to `apiDir`, whose files and directories are not routes.
+   *
+   * `align` already skips `index` files and dotfiles. This is for everything else a
+   * project wants to colocate: `['_shared/**']`.
+   */
+  exclude?: string[]
+  /**
+   * The module specifier the fallback `types/api.d.ts` imports the handler types from.
+   *
+   * When the contract layer lives in another package — `core/handler`, in a scaffold whose
+   * api version is a package of its own — a relative `./handler` does not resolve. This is
+   * only the specifier; the suffix is not appended to it.
+   *
+   * @default "./handler" + `suffix`
+   */
+  handlerImport?: string
   template?: TemplateConfig
   typesDir: string
   /**

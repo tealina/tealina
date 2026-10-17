@@ -1,22 +1,27 @@
 import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vite-plus/test'
-import tsTemplate from '../template/common/tealina.config.js'
-import jsTemplate from '../template/common/js/tealina.config.js'
+import tsTemplate from '../template/common/api-v1/tealina.config.js'
 import { PROBE_JS, PROBE_TS, WIDENED_ACCESS } from './probe.js'
 
 /**
  * T1 — the cheap "does it actually compile" gate.
  *
- * Copies the shipped contract subtree (types + access + the guard it imports
- * + api/v1 demos) into a scratch project and type-checks it. No install and no network:
- * the compiler and the framework types both come from this package's own devDependencies,
- * so this runs in a couple of seconds and is safe to leave on by default.
+ * Copies the shipped contract subtree (the `core` types + access + the guard they import,
+ * plus `api-v1`'s demos and type entry) into a scratch project and type-checks it. No
+ * install and no network: the compiler and the framework types both come from this
+ * package's own devDependencies, so this runs in a couple of seconds and is safe to leave
+ * on by default.
+ *
+ * The three packages are one directory apart in a real scaffold, and the handlers reach
+ * the contract by name (`core/handler`, `core/access`). Here that seam is rebuilt with
+ * `paths` rather than a workspace install, so the fixture still runs offline; the names
+ * are the same ones the packages publish.
  *
  * The compiler is the one the *template* pins (`typescript: ~6.0.3` in
- * `template/server/<fw>/package.json`), not whatever the repo root happens to have, and
+ * `template/api-v1/<fw>/package.json`), not whatever the repo root happens to have, and
  * that is the point: everything the JavaScript trees rely on — `@typedef` with `<const T>`,
  * a JSDoc `@type` above a `const` being accepted for an `async` arrow — is compiler
  * behaviour, so a version nobody installs would be a gate over nothing.
@@ -73,20 +78,53 @@ const baseCompilerOptions = {
 const fixtureTsconfig = (mode: Mode) => ({
   compilerOptions:
     mode === 'js'
-      ? { ...baseCompilerOptions, allowJs: true, checkJs: true }
-      : baseCompilerOptions,
+      ? {
+          ...baseCompilerOptions,
+          allowJs: true,
+          checkJs: true,
+          paths: { ...baseCompilerOptions.paths, ...corePaths(mode) },
+        }
+      : {
+          ...baseCompilerOptions,
+          paths: { ...baseCompilerOptions.paths, ...corePaths(mode) },
+        },
   include:
     mode === 'js'
-      ? ['types/**/*.d.ts', 'src/**/*.js', 'probe.js']
-      : ['types/**/*.d.ts', 'src/**/*.ts', 'probe.ts'],
+      ? [
+          'core/types/**/*.d.ts',
+          'types/**/*.d.ts',
+          'core/src/**/*.js',
+          'src/**/*.js',
+          'probe.js',
+        ]
+      : [
+          'core/types/**/*.d.ts',
+          'types/**/*.d.ts',
+          'core/src/**/*.ts',
+          'src/**/*.ts',
+          'probe.ts',
+        ],
+})
+
+/**
+ * The `core` package's public entries, mapped into the fixture.
+ *
+ * A real project installs the package and resolves these through its `exports` map; the
+ * fixture has no install, so it points at the same three files directly. The specifiers are
+ * the published ones, which is what makes this a test of the seam rather than of a path.
+ */
+const corePaths = (mode: Mode) => ({
+  'core/handler': ['./core/types/handler.d.ts'],
+  'core/common': ['./core/types/common.d.ts'],
+  'core/access': [`./core/src/access/index.${mode === 'js' ? 'js' : 'ts'}`],
 })
 
 type BuildOptions = {
-  /** Replaces `src/access/index.<ext>` after the tree has been copied. */
+  /** Replaces `core/src/access/index.<ext>` after the tree has been copied. */
   access?: string
-  /** Deletes the JS handlers' global aliases from `types/handler.d.ts`. */
+  /** Deletes the JS handlers' global aliases from `core/types/handler.d.ts`. */
   stripGlobals?: boolean
-  /** Strips the JavaScript tree's repeated call signature from `types/alias.d.ts`. */
+  /** Strips the JavaScript tree's repeated call signature from `core/types/alias.d.ts`. */
   dropOverload?: boolean
   /** Names the scratch directory, for a variant that differs only in how it is run. */
   key?: string
@@ -98,7 +136,42 @@ type BuildOptions = {
  */
 const GLOBAL_NAMESPACE_MARKER = '// Aliases for JavaScript handlers.'
 
-function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
+/**
+ * The JavaScript config, loaded from a directory where its `./version.js` import resolves.
+ *
+ * At scaffold time the config is copied to the api package's root, beside `version.js`;
+ * in the template it sits in `common/js/`, which has no such sibling. Importing it in
+ * place would fail on that one specifier, so the test rebuilds the destination shape —
+ * two files in one directory — and imports that. Nothing else about what runs changes.
+ */
+let jsConfigPromise:
+  | Promise<{ template?: { handlers?: { generateFn?: unknown }[] } }>
+  | undefined
+const loadJsConfig = () => {
+  jsConfigPromise ??= (async () => {
+    const dir = path.join(fixtureRoot, '_config-js')
+    fs.rmSync(dir, { recursive: true, force: true })
+    fs.mkdirSync(dir, { recursive: true })
+    fs.copyFileSync(
+      path.join(templateDir, 'common/js/api-v1/tealina.config.js'),
+      path.join(dir, 'tealina.config.js'),
+    )
+    fs.copyFileSync(
+      path.join(templateDir, 'common/api-v1/version.js'),
+      path.join(dir, 'version.js'),
+    )
+    return (
+      await import(pathToFileURL(path.join(dir, 'tealina.config.js')).href)
+    ).default
+  })()
+  return jsConfigPromise
+}
+
+async function buildFixture(
+  fw: Framework,
+  mode: Mode,
+  options: BuildOptions = {},
+): Promise<string> {
   const variant = options.access
     ? '-mut'
     : options.stripGlobals
@@ -118,19 +191,35 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   // The contract layer's shared half comes from the TypeScript tree; `alias.d.ts` comes
   // from the mode's own tree, because the JavaScript copy carries a second call
   // signature. The mode only decides the extension of the *value* files below.
-  const tree = mode === 'js' ? `server/${fw}-js` : `server/${fw}`
+  const tree = mode === 'js' ? `core/${fw}-js` : `core/${fw}`
+  const apiTree = mode === 'js' ? `api-v1/${fw}-js` : `api-v1/${fw}`
   const ext = mode === 'js' ? 'js' : 'ts'
-  copyInto(path.join(templateDir, 'common/types'), path.join(dest, 'types'))
   copyInto(
-    path.join(templateDir, `server/${fw}/types`),
+    path.join(templateDir, 'common/core/types'),
+    path.join(dest, 'core/types'),
+  )
+  copyInto(
+    path.join(templateDir, `${tree}/types`),
+    path.join(dest, 'core/types'),
+  )
+  if (fw === 'fastify') {
+    // Shared by both modes and sourced from the TypeScript tree, exactly as the manifest
+    // does it: the `-js` tree has no `fastify.d.ts` of its own.
+    fs.copyFileSync(
+      path.join(templateDir, 'core/fastify/types/fastify.d.ts'),
+      path.join(dest, 'core/types/fastify.d.ts'),
+    )
+  }
+  copyInto(
+    path.join(templateDir, `${tree}/src/access`),
+    path.join(dest, 'core/src/access'),
+  )
+  copyInto(
+    path.join(templateDir, 'common/api-v1/types'),
     path.join(dest, 'types'),
   )
-  if (mode === 'js') {
-    // The JavaScript `alias.d.ts` lands over the TypeScript one copied above.
-    copyInto(path.join(templateDir, `${tree}/types`), path.join(dest, 'types'))
-  }
   if (options.dropOverload) {
-    const alias = path.join(dest, 'types/alias.d.ts')
+    const alias = path.join(dest, 'core/types/alias.d.ts')
     const src = fs.readFileSync(alias, 'utf-8')
     const marker = '  // The same signature, a second time'
     const start = src.indexOf(marker)
@@ -144,18 +233,17 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
     fs.writeFileSync(alias, src.slice(0, start) + src.slice(end))
   }
   copyInto(
-    path.join(templateDir, `${tree}/src/api/v1`),
-    path.join(dest, 'src/api/v1'),
+    path.join(templateDir, `${apiTree}/src/api`),
+    path.join(dest, 'src/api'),
   )
-  // The whole module, guard and all: `access/index` imports `verifyToken`, which is the
-  // point of the two sitting together. The guard's 401 branch is app behaviour this fixture
-  // never runs; `tsc` only has to be able to read it.
-  copyInto(
-    path.join(templateDir, `${tree}/src/access`),
-    path.join(dest, 'src/access'),
-  )
+  // The whole module over `core`, guard and all: `access/index` imports `verifyToken`,
+  // which is the point of the two sitting together. The guard's 401 branch is app behaviour
+  // this fixture never runs; `tsc` only has to be able to read it.
   if (options.access != null) {
-    fs.writeFileSync(path.join(dest, `src/access/index.${ext}`), options.access)
+    fs.writeFileSync(
+      path.join(dest, `core/src/access/index.${ext}`),
+      options.access,
+    )
   }
   // The stub `align` writes is a string, and nothing else compiles it: the e2e suite runs
   // `align` but never type-checks what came out, so a type name the generator gets wrong
@@ -167,8 +255,9 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   // paths out separately, in two trees that share no code, so a depth one of them gets
   // wrong is a stub that only breaks in a project nobody ran this on.
   const [entry] =
-    (mode === 'js' ? jsTemplate : tsTemplate).template?.handlers ?? []
-  if (typeof entry?.generateFn !== 'function') {
+    (mode === 'js' ? await loadJsConfig() : tsTemplate).template?.handlers ?? []
+  const generateFn = entry?.generateFn
+  if (typeof generateFn !== 'function') {
     throw new Error(
       `the ${mode} template config no longer exposes template.handlers[0].generateFn — ` +
         'the generated stub has stopped being compiled by anything',
@@ -177,16 +266,16 @@ function buildFixture(fw: Framework, mode: Mode, options: BuildOptions = {}) {
   // The shipped stubs read only `fileDir`, but `TemplateContext` is what the generator
   // hands a real config, so the rest is filled in rather than cast away.
   fs.writeFileSync(
-    path.join(dest, `src/api/v1/post/generated.${ext}`),
-    entry.generateFn({
+    path.join(dest, `src/api/post/generated.${ext}`),
+    generateFn({
       filename: 'generated',
       Filename: 'Generated',
-      fileDir: 'src/api/v1/post',
+      fileDir: 'src/api/post',
       method: 'post',
     }),
   )
   if (options.stripGlobals) {
-    const contract = path.join(dest, 'types/handler.d.ts')
+    const contract = path.join(dest, 'core/types/handler.d.ts')
     const src = fs.readFileSync(contract, 'utf-8')
     const at = src.indexOf(GLOBAL_NAMESPACE_MARKER)
     // Throwing rather than tolerating: if the marker text moves, this mutation would
@@ -267,8 +356,8 @@ describe('shipped contract layer type-checks', () => {
 
   for (const mode of ['ts', 'js'] as const) {
     for (const fw of FRAMEWORKS) {
-      it(`${fw} (${mode}): types + access + api/v1 compile and project correctly`, () => {
-        const dest = buildFixture(fw, mode)
+      it(`${fw} (${mode}): types + access + api/v1 compile and project correctly`, async () => {
+        const dest = await buildFixture(fw, mode)
         const output = runTsc(dest)
         expect(output, `tsc reported:\n${output}`).toBe('')
       })
@@ -279,8 +368,8 @@ describe('shipped contract layer type-checks', () => {
     // The self-check. A probe that cannot fail is not a gate, and the failure it exists
     // to catch — a projection that quietly becomes `never` — is invisible in the output
     // of the test above. So: break it on purpose, and insist the compiler notices.
-    it(`${fw} (js): the probe still fails when the projection is broken`, () => {
-      const dest = buildFixture(fw, 'js', { access: WIDENED_ACCESS })
+    it(`${fw} (js): the probe still fails when the projection is broken`, async () => {
+      const dest = await buildFixture(fw, 'js', { access: WIDENED_ACCESS })
       const output = runTsc(dest)
       expect(
         output,
@@ -297,8 +386,8 @@ describe('shipped contract layer type-checks', () => {
     // a JS file with no annotations still compiles. Delete it and insist on being told.
     // TS2304 specifically, not an error count: `EmptyObj` goes missing in the same edit
     // and brings its own TS2304 along.
-    it(`${fw} (js): the handlers stop compiling without the global aliases`, () => {
-      const dest = buildFixture(fw, 'js', { stripGlobals: true })
+    it(`${fw} (js): the handlers stop compiling without the global aliases`, async () => {
+      const dest = await buildFixture(fw, 'js', { stripGlobals: true })
       const output = runTsc(dest)
       expect(
         output,
@@ -314,8 +403,8 @@ describe('shipped contract layer type-checks', () => {
     // tree. Its `types/alias.d.ts` repeats the call signature; strip the repetition and
     // every async handler has to be rejected. If this passes, the file the manifest ships
     // is no longer the thing keeping the JS tree compiling.
-    it(`${fw} (js): the async handlers stop compiling without the repeated signature`, () => {
-      const dest = buildFixture(fw, 'js', { dropOverload: true })
+    it(`${fw} (js): the async handlers stop compiling without the repeated signature`, async () => {
+      const dest = await buildFixture(fw, 'js', { dropOverload: true })
       const output = runTsc(dest)
       expect(
         output,
@@ -331,8 +420,8 @@ describe('shipped contract layer type-checks', () => {
     // is also what `buildFixture` writes, so nothing else here can see an error written
     // inside `types/**/*.d.ts` — and `types/` is where this project's own JSDoc handlers
     // read their aliases from. Off, the compiler reads the contract layer too.
-    it(`${fw} (js): the contract layer is clean with skipLibCheck off`, () => {
-      const dest = buildFixture(fw, 'js', { key: 'libcheck' })
+    it(`${fw} (js): the contract layer is clean with skipLibCheck off`, async () => {
+      const dest = await buildFixture(fw, 'js', { key: 'libcheck' })
       const output = runTsc(dest, '--skipLibCheck', 'false')
       expect(output, `tsc reported inside the contract layer:\n${output}`).toBe(
         '',
