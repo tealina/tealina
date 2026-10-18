@@ -3,9 +3,16 @@ import 'prismjs/components/prism-json'
 import '../../assets/css/vsc-plus.css'
 import '../../assets/css/vs.css'
 import { useState } from 'react'
-import Editor from 'react-simple-code-editor'
+import EditorModule from 'react-simple-code-editor'
 import { useAtomValue } from 'jotai'
 import { themeAtom } from '../../atoms/themeAtom'
+
+// The package is CommonJS with an `__esModule` marker. The dev optimizer wraps its
+// whole exports object as the default export, so the component sits one level below
+// where the types say it is; take whichever shape actually arrived.
+const Editor =
+  (EditorModule as unknown as { default?: typeof EditorModule }).default ??
+  EditorModule
 export const JsonEditor = ({
   defaultValue,
   className,
