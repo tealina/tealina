@@ -26,3 +26,40 @@ test('Variants status code ', async () => {
   expect(statusRespone).toHaveProperty('200')
   expect(statusRespone).toHaveProperty('500')
 })
+
+test('Response headers become OpenAPI header objects', () => {
+  const doc = {
+    apis: {
+      get: {
+        stream: {
+          response: {
+            kind: 15,
+            statusCode: 200,
+            headers: { kind: 4, id: 1 },
+            response: { kind: 4, id: 2 },
+          },
+        },
+      },
+    },
+    entityRefs: {
+      1: {
+        name: 'StreamHeaders',
+        props: [
+          { kind: 7, name: 'Content-Type', value: 'text/event-stream' },
+          { kind: 0, name: 'Cache-Control', type: 'string' },
+        ],
+      },
+      2: { name: 'Event', props: [] },
+    },
+    enumRefs: {},
+    tupleRefs: {},
+    docTypeVersion: 1,
+  }
+  const output = convertToOpenApiJson(doc as any, '/api/v1')
+  const response = (output.paths as any)['/api/v1/stream'].get.responses['200']
+  expect(response.content).toHaveProperty('text/event-stream')
+  expect(response.headers).toEqual({
+    'Cache-Control': { required: true, schema: { type: 'string' } },
+  })
+  expect(Object.keys(output.components!.schemas!)).toEqual(['Event'])
+})

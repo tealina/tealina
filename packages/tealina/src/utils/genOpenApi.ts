@@ -29,6 +29,26 @@ const kTextPlan = {
 
 const kApplicationJson = 'application/json'
 
+/** TypeScript and SQL spellings map onto the smaller JSON Schema set. */
+const kPrimitiveTypes: Record<string, OpenAPIV3_1.NonArraySchemaObjectType> = {
+  int: 'integer',
+  integer: 'integer',
+  bigint: 'integer',
+  float: 'number',
+  double: 'number',
+  date: 'string',
+  datetime: 'string',
+  undefined: 'null',
+  void: 'null',
+}
+
+function normalizePrimitive(type: string) {
+  const lower = type.toLowerCase()
+  return (
+    kPrimitiveTypes[lower] ?? (lower as OpenAPIV3_1.NonArraySchemaObjectType)
+  )
+}
+
 export function convertToOpenApiJson(
   apiDoc: ApiDoc,
   prefix: string,
@@ -36,7 +56,9 @@ export function convertToOpenApiJson(
   //  All functions within the function indirectly or directly require the use of the first parameter apiDoc,
   //  so they are defined within the function
   //
-  function convertEntityToSchema(entity: Entity): OpenAPIV3_1.SchemaObject {
+  function convertEntityToSchema(
+    entity: Pick<Entity, 'props'>,
+  ): OpenAPIV3_1.SchemaObject {
     const schema: OpenAPIV3_1.SchemaObject = {
       type: 'object',
       properties: {},
@@ -150,11 +172,13 @@ export function convertToOpenApiJson(
     const restHeaderProps = headEntity.props.filter(
       p => p.name !== 'Content-Type',
     )
-    headers = convertDocNodeToSchema({
-      kind: DocKind.LiteralObject,
-      ...headEntity,
-      props: restHeaderProps,
-    })
+    // Each entry is an OpenAPI Header Object, not a property of one schema.
+    headers = Object.fromEntries(
+      restHeaderProps.map(prop => [
+        prop.name,
+        { ...getExtraInfo(prop), schema: convertDocNodeToSchema(prop) },
+      ]),
+    )
     return { headers, contentType }
   }
 
@@ -220,6 +244,10 @@ export function convertToOpenApiJson(
     const pathItem: OpenAPIV3_1.OperationObject = {
       responses: convertRichResponse(docItem.response),
     }
+    if (docItem.comment != null) {
+      pathItem.summary = docItem.comment.split('\n')[0]
+      pathItem.description = docItem.comment
+    }
     const { examples } = docItem
     if (docItem.body) {
       const getRequestContentType = (props: PropType[]) => {
@@ -275,13 +303,23 @@ export function convertToOpenApiJson(
     return pathItem
   }
 
+  function normalizeUnion(types: DocNode[]) {
+    // `undefined` only marks the property as optional; it is not a JSON Schema type.
+    const present = types.filter(
+      type => !(type.kind === DocKind.Primitive && type.type === 'undefined'),
+    )
+    if (present.length === 0) return {}
+    if (present.length === 1) return convertDocNodeToSchema(present[0])
+    return { oneOf: present.map(type => convertDocNodeToSchema(type)) }
+  }
+
   function convertDocNodeToSchema(
     docNode: DocNode,
   ): OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject {
     switch (docNode.kind) {
       case DocKind.Primitive: // PrimitiveType
         return {
-          type: docNode.type.toLowerCase() as OpenAPIV3_1.NonArraySchemaObjectType,
+          type: normalizePrimitive(docNode.type),
           ...getDescription(docNode),
           ...getIsDeprecated(docNode),
           ...getExtraFrom(docNode.jsDoc),
@@ -320,13 +358,13 @@ export function convertToOpenApiJson(
           },
         }
       case DocKind.Union: // UnionType
-        return {
-          oneOf: docNode.types.map(type => convertDocNodeToSchema(type)),
-        }
+        return normalizeUnion(docNode.types)
       case DocKind.EntityRef: // RefType
         return {
           $ref: `#/components/schemas/${apiDoc.entityRefs[docNode.id].name}`,
         }
+      case DocKind.LiteralObject: // inline `{ a: string; b?: number }`
+        return convertEntityToSchema(docNode)
       case DocKind.Never: // NeverType
         return { type: 'null' }
       case DocKind.Record: // RecordType
@@ -443,6 +481,35 @@ export function convertToOpenApiJson(
         method.toLowerCase() as OpenAPIV3_1.HttpMethods
       ] = pathItem
     }
+  }
+
+  // The doc also records inline literals and intersections as entities, whose source
+  // spelling — `{ id: string; }` — is not a valid component name. Keep only what paths use.
+  const referenced = new Set<string>()
+  const pending: unknown[] = [openApiJson.paths]
+  const visited = new Set<unknown>()
+  while (pending.length > 0) {
+    const value = pending.pop()
+    if (value == null || typeof value !== 'object' || visited.has(value))
+      continue
+    visited.add(value)
+    if (Array.isArray(value)) {
+      pending.push(...value)
+      continue
+    }
+    const ref = (value as { $ref?: unknown }).$ref
+    if (typeof ref === 'string' && ref.startsWith('#/components/schemas/')) {
+      const name = ref.slice('#/components/schemas/'.length)
+      const schema = schemas[name]
+      if (schema != null) {
+        referenced.add(name)
+        pending.push(schema)
+      }
+    }
+    pending.push(...Object.values(value))
+  }
+  for (const name of Object.keys(schemas)) {
+    if (!referenced.has(name)) delete schemas[name]
   }
 
   return openApiJson
