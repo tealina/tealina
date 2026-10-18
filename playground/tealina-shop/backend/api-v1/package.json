@@ -1,0 +1,44 @@
+{
+  "name": "api-v1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "type": "module",
+  "exports": {
+    "./api": {
+      "types": "./types/api.d.ts"
+    },
+    "./version": {
+      "types": "./version.d.ts",
+      "import": "./version.js"
+    },
+    "./mount": {
+      "types": "./src/mount.ts",
+      "import": "./dist/mount.js"
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsc --project tsconfig.build.json --watch --preserveWatchOutput",
+    "build": "tsc --project tsconfig.build.json",
+    "create": "tealina create",
+    "gdoc": "tealina gdoc",
+    "gtype": "tealina gtype",
+    "align": "tealina align"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "@tealina/doc-ui": "^2.0.1",
+    "@tealina/server": "^1.0.2",
+    "core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tealina": "^2.2.2",
+    "typescript": "~6.0.3",
+    "@types/express": "^5.0.3"
+  },
+  "license": "ISC"
+}
