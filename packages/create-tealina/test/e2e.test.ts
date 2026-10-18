@@ -29,6 +29,7 @@ const cliEntry = path.join(pkgDir, 'src/index.ts')
 const tsxBin = path.join(pkgDir, 'node_modules/.bin/tsx')
 const tealinaDir = path.join(repoRoot, 'packages/tealina')
 const tealinaServerDir = path.join(repoRoot, 'packages/tealina-server')
+const docUiDir = path.join(repoRoot, 'packages/tealina-doc-ui')
 
 const enabled = process.env.TEALINA_E2E === '1' || process.env.CI != null
 const describeE2E = enabled ? describe : describe.skip
@@ -50,12 +51,17 @@ const PORT: Record<Mode, Record<Framework, number>> = {
   js: { express: 8731, fastify: 8732, koa: 8733 },
 }
 
+/** A port past the framework ports above, for the two-version project. */
+const kMultiVersionPort = 8751
+
 /** The three backend packages, in the order the test's assertions reach them. */
 const backendDir = (projectDir: string) => path.join(projectDir, 'backend')
 const serverDir = (projectDir: string) =>
   path.join(backendDir(projectDir), 'server')
 const apiV1Dir = (projectDir: string) =>
   path.join(backendDir(projectDir), 'api-v1')
+const apiV2Dir = (projectDir: string) =>
+  path.join(backendDir(projectDir), 'api-v2')
 const coreDir = (projectDir: string) =>
   path.join(backendDir(projectDir), 'core')
 
@@ -71,8 +77,13 @@ const coreDir = (projectDir: string) =>
  * server would be generating its barrels with one side of that contract and routing them
  * with the other.
  *
- * Both overrides are scoped to the fixture's own workspace file, so the templates are
+ * The overrides are scoped to the fixture's own workspace file, so the templates are
  * untouched and a real user's install is unaffected.
+ *
+ * `@tealina/doc-ui` is linked for the same reason: `TealinaVdocSource` is the type the
+ * templates now hand between an api version and the host, and the published release does
+ * not have it yet. A fixture that installed the release would fail to compile a tree that
+ * is correct against this repo.
  *
  * `link:` needs a path relative to the *workspace root*, which is the fixture directory —
  * pnpm rewrites it into `node_modules/` from there.
@@ -81,6 +92,7 @@ const workspaceOverrides = (projectDir: string, extra: string[] = []) =>
   `\noverrides:\n` +
   `  tealina: link:${path.relative(projectDir, tealinaDir)}\n` +
   `  '@tealina/server': link:${path.relative(projectDir, tealinaServerDir)}\n` +
+  `  '@tealina/doc-ui': link:${path.relative(projectDir, docUiDir)}\n` +
   extra.join('')
 
 /**
@@ -349,11 +361,142 @@ describeE2E('scaffolded project, end to end', () => {
 
         const docPage = await fetch(`${base}/api-doc/index.html`)
         expect(docPage.status).toBe(200)
+        const pageHtml = await docPage.text()
+        expect(pageHtml, `${fw} docs page has no source for v1`).toContain(
+          '/api/v1/_doc/api.json',
+        )
+
+        // The page reads a json the version package publishes. Asking for it directly is
+        // what distinguishes a mounted source from a page whose selector silently has
+        // nothing to show.
+        const servedDoc = await fetch(`${base}/api/v1/_doc/api.json`)
+        expect(servedDoc.status, `${fw} version json route`).toBe(200)
+        expect(await servedDoc.json()).toEqual(docJson)
 
         killTree(child)
       })
     }
   }
+})
+
+// ---------------------------------------------------------------------------
+// two api versions, one documentation page
+// ---------------------------------------------------------------------------
+
+/**
+ * Why the page belongs to the host rather than to a version.
+ *
+ * The templates wire one version, so nothing above can observe what a second one does. This
+ * project copies `api-v1` to `api-v2`, gives the copy its own `API_VERSION`, and mounts
+ * both. What has to hold is that each version serves its own document at its own prefix and
+ * that the host's page lists both — the aggregation the split exists for.
+ *
+ * Express in TypeScript only: the second version's files are the first version's, so the
+ * framework and the mode are not variables here.
+ */
+describeE2E('two api versions share one documentation page', () => {
+  it('express (ts): each version publishes its json and the host lists both', async () => {
+    onTestFailed(() => {
+      failed = true
+    })
+    const projectDir = path.join(tempRoot, 'multi-version-express-ts')
+    fs.rmSync(projectDir, { recursive: true, force: true })
+    fs.mkdirSync(tempRoot, { recursive: true })
+
+    must(
+      tsxBin,
+      [cliEntry, projectDir, '--template', 'express', '--no-install'],
+      pkgDir,
+    )
+    fs.appendFileSync(
+      path.join(projectDir, 'pnpm-workspace.yaml'),
+      workspaceOverrides(projectDir),
+    )
+
+    // A second version is a copy of the first with a different name: the starting point a
+    // user has when v2 begins to diverge from v1.
+    const v2Dir = apiV2Dir(projectDir)
+    fs.cpSync(apiV1Dir(projectDir), v2Dir, { recursive: true })
+    const v2PkgFile = path.join(v2Dir, 'package.json')
+    const v2Pkg = JSON.parse(fs.readFileSync(v2PkgFile, 'utf-8'))
+    v2Pkg.name = 'api-v2'
+    fs.writeFileSync(v2PkgFile, `${JSON.stringify(v2Pkg, null, 2)}\n`)
+    const v2VersionFile = path.join(v2Dir, 'version.js')
+    const v2Version = fs
+      .readFileSync(v2VersionFile, 'utf-8')
+      .replace("API_VERSION = 'v1'", "API_VERSION = 'v2'")
+    expect(v2Version, 'the copy did not take a new version').toContain(
+      "API_VERSION = 'v2'",
+    )
+    fs.writeFileSync(v2VersionFile, v2Version)
+
+    // The host is the only place that knows there is more than one version.
+    const serverPkgFile = path.join(serverDir(projectDir), 'package.json')
+    const serverPkg = JSON.parse(fs.readFileSync(serverPkgFile, 'utf-8'))
+    serverPkg.dependencies['api-v2'] = 'workspace:*'
+    fs.writeFileSync(serverPkgFile, `${JSON.stringify(serverPkg, null, 2)}\n`)
+
+    const appFile = path.join(serverDir(projectDir), 'src/app.ts')
+    const appText = fs
+      .readFileSync(appFile, 'utf-8')
+      .replace(
+        "import { mount } from 'api-v1/mount'",
+        "import { mount } from 'api-v1/mount'\nimport { mount as mountV2 } from 'api-v2/mount'",
+      )
+      .replace(
+        'const v1 = await mount(app)\n  await mountDocs(app, [v1])',
+        'const v1 = await mount(app)\n  const v2 = await mountV2(app)\n  await mountDocs(app, [v1, v2])',
+      )
+    expect(appText, 'the host was not wired to the second version').toContain(
+      'mountDocs(app, [v1, v2])',
+    )
+    fs.writeFileSync(appFile, appText)
+
+    must('pnpm', ['install', '--prefer-offline'], projectDir)
+    must('pnpm', ['-r', 'build'], projectDir)
+    must('pnpm', ['-F', 'api-v1', 'gdoc'], projectDir)
+    must('pnpm', ['-F', 'api-v2', 'gdoc'], projectDir)
+
+    fs.writeFileSync(
+      path.join(serverDir(projectDir), '.env'),
+      `PORT=${kMultiVersionPort}\n`,
+    )
+    const base = `http://localhost:${kMultiVersionPort}`
+    const child = spawn('pnpm', ['-F', 'server', 'dev'], {
+      cwd: projectDir,
+      stdio: 'ignore',
+      detached: true,
+    })
+    booted.push(child)
+    await waitForHealth(`${base}/api/v1/health`, 60_000)
+
+    const v2Health = await fetch(`${base}/api/v2/health`)
+    expect(v2Health.status, 'v2 was not mounted under its own prefix').toBe(200)
+    expect(await v2Health.json()).toEqual({ isOk: true })
+
+    for (const version of ['v1', 'v2']) {
+      const res = await fetch(`${base}/api/${version}/_doc/api.json`)
+      expect(res.status, `${version} publishes no json`).toBe(200)
+      const doc = await res.json()
+      expect(
+        Object.keys(doc.apis.post),
+        `${version} served someone else's document`,
+      ).toEqual(expect.arrayContaining(['article', 'login']))
+    }
+
+    const page = await fetch(`${base}/api-doc/index.html`)
+    expect(page.status).toBe(200)
+    const html = await page.text()
+    expect(html, 'v1 is missing from the page').toContain(
+      '/api/v1/_doc/api.json',
+    )
+    expect(html, 'v2 is missing from the page').toContain(
+      '/api/v2/_doc/api.json',
+    )
+    expect(html, 'the selector has no label for v2').toContain('"name":"v2"')
+
+    killTree(child)
+  })
 })
 
 // ---------------------------------------------------------------------------

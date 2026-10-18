@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "express": "^5.1.0",
+    "@tealina/doc-ui": "^2.0.1",
     "api-v1": "workspace:*"
   },
   "devDependencies": {

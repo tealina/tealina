@@ -110,8 +110,8 @@ export const coreFiles = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
 
 /**
  * The route tree, the generated barrels, and the three files that turn them into a
- * mounted api version: `router` registers one version's routes, `doc` serves the page and
- * its json, and `mount` puts both on the framework instance.
+ * mounted api version: `router` registers one version's routes, `doc` publishes that
+ * version's json, and `mount` puts the routes and the json on the framework instance.
  */
 const kApiV1SourceFiles = [
   'src/api/get/health',
@@ -169,6 +169,7 @@ const serverRootFiles = (mode: Mode): TemplateFile[] => [
 
 const kServerSourceFiles = [
   'src/app',
+  'src/doc',
   'src/index',
   'src/routes/static/assets',
 ] as const

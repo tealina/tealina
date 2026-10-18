@@ -14,8 +14,11 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@koa/router": "^15.0.0",
     "koa": "^3.0.1",
+    "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
+    "@tealina/doc-ui": "^2.0.1",
     "api-v1": "workspace:*"
   },
   "devDependencies": {
@@ -23,7 +26,9 @@
     "tsx": "^4.20.5",
     "typescript": "~6.0.3",
     "@types/koa": "^3.0.0",
-    "@types/koa-static": "^4.0.4"
+    "@types/koa-mount": "^4.0.5",
+    "@types/koa-static": "^4.0.4",
+    "@types/koa__router": "12.0.4"
   },
   "license": "ISC"
 }

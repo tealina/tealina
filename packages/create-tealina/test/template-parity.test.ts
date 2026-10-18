@@ -135,10 +135,22 @@ describe('backend template parity', () => {
         }
         const mount = readText(`${dir}/src/mount${ext}`)
         expect(mount, `${dir} mount prefix`).contain('API_BASE_URL')
-        expect(mount, `${dir} doc prefix`).contain('VDOC_BASENAME')
+        expect(mount, `${dir} returns its doc source`).contain(
+          'return docSource',
+        )
         const doc = readText(`${dir}/src/doc${ext}`)
         expect(doc, `${dir} jsonURL`).contain("'../docs/api.json'")
         expect(doc, `${dir} baseURL`).contain('API_BASE_URL')
+        expect(doc, `${dir} json path`).contain('/_doc/api.json')
+
+        const serverDir = `server/${fw}${suffix(mode)}`
+        const serverDoc = readText(`${serverDir}/src/doc${ext}`)
+        expect(serverDoc, `${serverDir}/src/doc${ext} basename`).contain(
+          "VDOC_BASENAME = '/api-doc'",
+        )
+        expect(serverDoc, `${serverDir}/src/doc${ext} page`).contain(
+          'assembleHTML',
+        )
       }
     }
 
@@ -153,8 +165,8 @@ describe('backend template parity', () => {
 
   it('the version constants are the only place the prefixes are written', () => {
     const version = readText('common/api-v1/version.js')
-    expect(version).contain("export const API_BASE_URL = '/api/v1'")
-    expect(version).contain("export const VDOC_BASENAME = '/api-doc'")
+    expect(version).contain("export const API_VERSION = 'v1'")
+    expect(version).contain('export const API_BASE_URL = `/api/${API_VERSION}`')
 
     // Every consumer reads them rather than restating them: the config, the mount, the doc
     // route, the server's log line, the client and the dev proxy. A literal that reappears

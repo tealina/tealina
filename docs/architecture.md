@@ -356,7 +356,7 @@ type Snapshot = {
 |---|---|---|
 | `backend/core` | `types/handler.d.ts`、`common.d.ts`、`alias.d.ts`（fastify 另有 `fastify.d.ts`）与 `src/access/{index,verifyToken}` | 框架 type 包 |
 | `backend/api-v1` | `src/api/**` 路由树、`src/{router,doc,mount}`、`version.js`/`version.d.ts`、`types/api.d.ts`、`docs/api.json`、`tealina.config` | `core`、`@tealina/server`、`@tealina/doc-ui` |
-| `backend/server` | `src/{app,index}`、静态资源、`.env.example`、`public/` | `api-v1` |
+| `backend/server` | `src/{app,doc,index}`、静态资源、`.env.example`、`public/` | `api-v1`、`@tealina/doc-ui` |
 
 `packages/web` 是可选的（`--web`）：一个 Vite 前端，只依赖 `api-v1` 的 `./api` 与
 `./version`。依赖方向因此是 `core → api-v1 → server` 与 `web → api-v1`，`pnpm -r build`
@@ -365,6 +365,12 @@ type Snapshot = {
 
 新的 API 版本就是一个新包（`backend/api-v2`）：独立依赖 `core`、独立 `tealina.config`，
 由 `server` 与 `api-v1` 并列挂载。`core` 和前端都不出现版本号。
+
+文档也按这个边界拆开：每个 api 包只发布自己的 json，路径是
+`${API_BASE_URL}/_doc/api.json`，`mount` 返回一个 `docSource`（`name`/`baseURL`/`jsonURL`）。
+唯一的文档页放在 `server`：`mountDocs` 收集各版本返回的 source，拼成 `sources[]` 后只
+`assembleHTML` 一次。页面组件本身早就有来源选择器，所以多版本不需要第二个页面，也
+不存在两个包争 `/api-doc` 的问题。
 
 文件清单由 `src/template-manifest.ts` 列出，不遍历目录：一个文件只有被 manifest 点名才会
 被写出，`test/template-manifest.test.ts` 会抓住「模板里有、manifest 没点名」的文件。
@@ -402,6 +408,3 @@ type Snapshot = {
    代价是模板不能再被当作「纯数据」。
 3. **`MultiTarget` 嵌套。** 当前只支持顶层，嵌套会静默退化成透传。要么在类型层拒绝，
    要么支持递归。
-4. **一个 workspace 里能挂几个 API 版本？** 现在 `api-v1` 的 `mount` 只挂自己。挂第二个
-   版本需要 `server` 调两次 `mount`，而两者共用 `VDOC_BASENAME` 时会争同一个文档页——
-   多版本的文档入口还没有约定。

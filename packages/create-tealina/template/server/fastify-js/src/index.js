@@ -1,6 +1,6 @@
 import { PORT } from './config/env.js'
 import { buildApp } from './app.js'
-import { VDOC_BASENAME } from 'api-v1/mount'
+import { VDOC_BASENAME } from './doc.js'
 
 /** @param {string} address */
 const logAddress = address => {

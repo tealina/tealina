@@ -49,9 +49,9 @@ backend/
         post/login.ts  ->  POST /api/v1/login
         post/article.ts -> POST /api/v1/article
       router.ts           turns a route table into framework routes
-      doc.ts              serves the API documentation page and its json
-      mount.ts            puts the api and the docs on the framework instance
-    version.js            API_BASE_URL and VDOC_BASENAME — the one place they are written
+      doc.ts              serves this version's document json
+      mount.ts            puts the api and its json on the framework instance
+    version.js            API_VERSION and API_BASE_URL — the one place they are written
     types/api.d.ts        the contract's exit point (exports["./api"])
     tealina.config.ts     apiDir / apiBaseURL / typesDir
     docs/api.json         generated API document (do not edit by hand)
@@ -60,7 +60,8 @@ backend/
     src/
       config/env.ts       reads .env
       routes/static/      static assets
-      app.ts              builds the app and calls api-v1's mount
+      doc.ts              the documentation page for every mounted version
+      app.ts              builds the app, mounts api-v1, serves its page
       index.ts            starts listening
     public/               served by the static assets route
 
@@ -198,12 +199,15 @@ check. The 401 body is `{ "code": "Unauthorized", "message": "..." }`.
 ## API documentation
 
 ```bash
-pnpm -F api-v1 gdoc    # regenerates docs/api.json, served at /api-doc/index.html
+pnpm -F api-v1 gdoc    # regenerates docs/api.json
 ```
 
-The document is **not** checked in — it is produced by the command above, and the docs
-route reads it from disk. If `/api-doc/index.html` returns an error about a missing file,
-run `gdoc`.
+Each api version publishes its document at `<API_BASE_URL>/_doc/api.json` (for the
+scaffold, `/api/v1/_doc/api.json`). The page that displays it lives in the `server`
+package at `/api-doc/index.html`, and it lists every version the host mounts.
+
+The document is **not** checked in — it is produced by the command above, and the json
+route reads it from disk. If the page shows an error about a missing file, run `gdoc`.
 
 ## The frontend
 

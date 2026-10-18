@@ -156,6 +156,9 @@ interface TealinaVdocWebConfig {
   }
 }
 
+/** One entry in the documentation page's source list: one mounted api version. */
+type TealinaVdocSource = TealinaVdocWebConfig['sources'][number]
+
 const getAssetsPath = () => {
   const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../')
   const assetsDir = path.join(dir, 'static')
@@ -200,4 +203,4 @@ async function assembleHTML(config: TealinaVdocWebConfig) {
 }
 
 export { getAssetsPath, assembleHTML }
-export type { TealinaVdocWebConfig, CommonFieldsType }
+export type { TealinaVdocWebConfig, TealinaVdocSource, CommonFieldsType }

@@ -81,3 +81,21 @@ Start your server and open:
 ```
 http://localhost:5000/api-doc/index.html
 ```
+
+#### Several API versions
+
+`sources` is a list, and the page shows a selector as soon as it has more than one. Each
+api package only has to publish its own json; the host collects the entries:
+
+```typescript
+import type { TealinaVdocSource } from '@tealina/doc-ui';
+
+const sources: TealinaVdocSource[] = [
+  { name: 'v1', baseURL: '/api/v1', jsonURL: '/api/v1/_doc/api.json' },
+  { name: 'v2', baseURL: '/api/v2', jsonURL: '/api/v2/_doc/api.json' },
+];
+
+const html = await assembleHTML({ sources });
+```
+
+`name` is the label in the selector; leave it out and the json URL is used instead.

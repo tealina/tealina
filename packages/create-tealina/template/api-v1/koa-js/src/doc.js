@@ -1,51 +1,35 @@
 import Router from '@koa/router'
-import { assembleHTML, getAssetsPath } from '@tealina/doc-ui'
-import mount from 'koa-mount'
-import serve from 'koa-static'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { API_BASE_URL, VDOC_BASENAME } from '../version.js'
+import { API_BASE_URL, API_VERSION } from '../version.js'
 
 // Resolved from this module rather than from the working directory: the command that
 // writes it runs in the package, but the server may be started from anywhere.
 const jsonFile = fileURLToPath(new URL('../docs/api.json', import.meta.url))
 
-/** @type {import('@tealina/doc-ui').TealinaVdocWebConfig} */
-const vDocCofig = {
-  sources: [
-    {
-      baseURL: API_BASE_URL,
-      jsonURL: './api.json',
-      name: 'v1',
-    },
-  ],
-  errorMessageKey: 'message',
-  features: {
-    playground: {
-      commonFields: {
-        headers: {
-          Authorization: 'string',
-        },
-      },
-    },
-  },
+/**
+ * This version's entry in the documentation page's source list. The page belongs to the
+ * host; this package publishes the json it reads.
+ *
+ * @type {import('@tealina/doc-ui').TealinaVdocSource}
+ */
+export const docSource = {
+  name: API_VERSION,
+  baseURL: API_BASE_URL,
+  jsonURL: `${API_BASE_URL}/_doc/api.json`,
 }
 
-/** @param {import('koa')} app */
-const docRouter = app => {
-  const router = new Router({ prefix: VDOC_BASENAME })
-  router.get('/api.json', async ctx => {
+/**
+ * Serve this version's document json at `docSource.jsonURL`.
+ *
+ * @param {import('koa')} app
+ */
+export const serveDocJson = app => {
+  const router = new Router({ prefix: API_BASE_URL })
+  router.get('/_doc/api.json', async ctx => {
     const buffer = await readFile(jsonFile)
     ctx.type = 'application/json'
     ctx.body = buffer
   })
-  router.get('/index.html', async ctx => {
-    const html = await assembleHTML(vDocCofig)
-    ctx.type = 'text/html'
-    ctx.body = html
-  })
   app.use(router.routes())
-  app.use(mount(VDOC_BASENAME, serve(getAssetsPath())))
 }
-
-export { docRouter }

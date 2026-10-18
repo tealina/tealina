@@ -1,48 +1,32 @@
-import plugin4static from '@fastify/static'
+import type { TealinaVdocSource } from '@tealina/doc-ui'
 import type { FastifyPluginCallback } from 'fastify'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import {
-  type TealinaVdocWebConfig,
-  getAssetsPath,
-  assembleHTML,
-} from '@tealina/doc-ui'
-import { API_BASE_URL } from '../version.js'
+import { API_BASE_URL, API_VERSION } from '../version.js'
 
 // Resolved from this module rather than from the working directory: the command that
 // writes it runs in the package, but the server may be started from anywhere.
 const jsonFile = fileURLToPath(new URL('../docs/api.json', import.meta.url))
 
-const vDocCofig: TealinaVdocWebConfig = {
-  sources: [
-    {
-      baseURL: API_BASE_URL,
-      jsonURL: './api.json',
-      name: 'v1',
-    },
-  ],
-  errorMessageKey: 'message',
-  features: {
-    playground: {
-      commonFields: {
-        headers: {
-          Authorization: 'string',
-        },
-      },
-    },
-  },
+/**
+ * This version's entry in the documentation page's source list. The page belongs to the
+ * host; this package publishes the json it reads.
+ */
+export const docSource: TealinaVdocSource = {
+  name: API_VERSION,
+  baseURL: API_BASE_URL,
+  jsonURL: `${API_BASE_URL}/_doc/api.json`,
 }
 
-const docRouter: FastifyPluginCallback = function (fastify, _opts, done) {
-  fastify.get('/api.json', (_req, res) => {
-    readFile(jsonFile).then(buffer => res.send(buffer))
+/** Serve this version's document json at `docSource.jsonURL`. */
+const serveDocJson: FastifyPluginCallback = function (fastify, _opts, done) {
+  fastify.get('/_doc/api.json', (_req, res) => {
+    readFile(jsonFile).then(buffer => {
+      res.type('application/json')
+      res.send(buffer)
+    })
   })
-  fastify.get('/index.html', (_req, res) => {
-    res.type('text/html')
-    assembleHTML(vDocCofig).then(html => res.send(html))
-  })
-  fastify.register(plugin4static, { root: getAssetsPath() })
   done()
 }
 
-export { docRouter }
+export { serveDocJson }

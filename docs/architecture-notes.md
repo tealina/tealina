@@ -106,5 +106,5 @@
 
 `v1` 的深度耦合已经解开：`apiDir` 进了配置，公开产物改用固定名字，命令不再接收目录参数。
 URL 前缀也收敛到了 `api-v1/version.js` 一处，配置、mount、doc 路由与前端 proxy 都读它。
-剩下的真问题是多版本的挂载：两个 api 包会争同一个 `VDOC_BASENAME`，多版本文档入口还没有
-约定。
+多版本的挂载也已经有了约定：api 包只发布 `${API_BASE_URL}/_doc/api.json` 并在 `mount`
+里返回 `docSource`，`server` 持有唯一的文档页、把各版本的 source 聚合成一个列表。

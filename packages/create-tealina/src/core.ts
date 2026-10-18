@@ -283,7 +283,8 @@ const installAndGenerate = async (ctx: ContextType) => {
   }
   const installed = await runStep('pnpm', ['install'], ctx.root)
   if (!installed) return false
-  // The documentation route reads docs/api.json from disk; without this the page 500s.
+  // The version's document json is read from disk; without this the page has a source that
+  // answers with an error.
   return runStep('pnpm', ['-F', 'api-v1', 'gdoc'], ctx.root)
 }
 

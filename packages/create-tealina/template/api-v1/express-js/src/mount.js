@@ -1,8 +1,8 @@
 import express, { Router } from 'express'
 import apisV1 from './api/index.js'
-import { docRouter } from './doc.js'
+import { docSource, serveDocJson } from './doc.js'
 import { buildRouter } from './router.js'
-import { API_BASE_URL, VDOC_BASENAME } from '../version.js'
+import { API_BASE_URL } from '../version.js'
 
 /** @type {import('express').RequestHandler} */
 const setupApiHeaders = (_req, res, next) => {
@@ -15,22 +15,25 @@ const setupApiHeaders = (_req, res, next) => {
 
 /**
  * Mount this api version onto an express app: its body parsers, its routes under
- * `API_BASE_URL`, and the documentation page under `VDOC_BASENAME`.
+ * `API_BASE_URL`, and its document json. The documentation page itself belongs to the
+ * host, which collects one source from every mounted version.
  *
- * What the host adds on top — static assets, for the scaffold — is registered after this,
- * so the api and the docs keep the prefixes they own.
+ * What the host adds on top — the documentation page and the static assets, for the
+ * scaffold — is registered after this, so the api keeps the prefix it owns.
  *
  * @param {import('express').Express} app
+ * @returns {Promise<import('@tealina/doc-ui').TealinaVdocSource>}
  */
 export const mount = async app => {
   app.use(express.urlencoded({ extended: true }))
   app.use(express.json())
+  serveDocJson(app)
   const apiRoutes = await buildRouter(apisV1)
   const apiRouter = Router({ caseSensitive: true })
     .use(setupApiHeaders)
     .use(apiRoutes)
   app.use(API_BASE_URL, apiRouter)
-  app.use(VDOC_BASENAME, docRouter)
+  return docSource
 }
 
-export { API_BASE_URL, VDOC_BASENAME }
+export { API_BASE_URL }

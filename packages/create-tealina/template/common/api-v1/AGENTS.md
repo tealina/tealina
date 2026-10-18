@@ -16,7 +16,8 @@ lives in the `core` package. The generated stubs import it from `core/handler` a
   them. After adding, renaming, or deleting a handler, run `pnpm align`.
 - `apiDir` and `apiBaseURL` in `tealina.config` say where the route tree is and which URL
   prefix it answers under. The prefix itself lives in `version.js`, which the mount, the
-  documentation router and the frontend also read — change it there, not in one of them.
+  documentation json route and the frontend also read — change it there, not in one of
+  them.
 - The public artifacts do not follow the directory's name: `types/api.d.ts` and
   `exports["./api"]` keep those names if the directory moves.
 - A handler file's default export is `openApi(handler)` for a public route or
@@ -27,9 +28,10 @@ lives in the `core` package. The generated stubs import it from `core/handler` a
   a payload shape — the document generator reads the declaration's name.
 - JSDoc comments become API documentation; `//` comments do not.
 - Regenerate the API document with `pnpm gdoc` after changing a handler.
-- `src/mount`, `src/router` and `src/doc` are this package's host seam: they register the
-  routes and the documentation page on the framework instance. `core` must not import
-  them, or the dependency direction stops being a tree.
+- `src/mount`, `src/router` and `src/doc` are this package's host seam. `mount` returns a
+  `docSource` describing the json this version publishes; the host collects one source per
+  mounted version and owns the page that displays them. `core` must not import these
+  files, or the dependency direction stops being a tree.
 
 ## Verify
 
