@@ -1,4 +1,5 @@
 import { act, fireEvent, render } from '@testing-library/react'
+import { useEffect } from 'react'
 import { useAtomValue } from 'jotai'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -42,10 +43,12 @@ describe('test use menus hook', () => {
   afterAll(() => server.close())
 
   test('show menu and click to effect atom', async () => {
-    let curApi: any = null
+    const observed: { current: any } = { current: null }
     const ContentSection = () => {
       const cur = useAtomValue(curShowApiAtom)
-      curApi = cur
+      useEffect(() => {
+        observed.current = cur
+      }, [cur])
       return (
         <div>
           {cur?.method}, {cur?.path}
@@ -67,9 +70,9 @@ describe('test use menus hook', () => {
     )
     const list = await result.findAllByText('health')
     const el = list.find(v => v.classList.contains('ant-menu-title-content'))
-    expect(el != null).true
+    expect(el != null).toBe(true)
     fireEvent.click(el!)
     fireEvent.click(result.getByText('health'))
-    expect(curApi).toMatchObject({ method: 'get', path: 'health' })
+    expect(observed.current).toMatchObject({ method: 'get', path: 'health' })
   })
 })

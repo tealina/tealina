@@ -55,7 +55,7 @@ export const createAxiosReq = <
   C extends ShapeOfAxiosReq,
 >(
   requester: (config: C) => unknown,
-  shape?: ShapeWitness<T>,
+  _shape?: ShapeWitness<T>,
 ) => createReq<ToReq<T, C>, C>(makeHandler(requester))
 
 /**
@@ -77,7 +77,7 @@ export const createRawAxiosReq = <
   R extends ShapeOfAxiosRes,
 >(
   requester: (config: C) => unknown,
-  shape?: ShapeWitness<T>,
+  _shape?: ShapeWitness<T>,
 ) => createReq<MakeRawAxiosReqType<T, C, R>, C>(makeHandler(requester))
 
 /**
@@ -98,7 +98,7 @@ export const createRawAxiosReq = <
 export function createAxiosRPC<
   T extends ApiRecordShape,
   C extends ShapeOfAxiosReq,
->(requester: (config: C) => Promise<unknown>, shape?: ShapeWitness<T>) {
+>(requester: (config: C) => Promise<unknown>, _shape?: ShapeWitness<T>) {
   return createRPC<ToRPC<T, C>, C>(makeHandler(requester))
 }
 
@@ -119,6 +119,6 @@ export function createRawAxiosRPC<
   T extends ApiRecordShape,
   C extends ShapeOfAxiosReq,
   R extends ShapeOfAxiosRes,
->(requester: (config: C) => Promise<unknown>, shape?: ShapeWitness<T>) {
+>(requester: (config: C) => Promise<unknown>, _shape?: ShapeWitness<T>) {
   return createRPC<ToRawRPC<T, C, R>, C>(makeHandler(requester))
 }

@@ -54,24 +54,34 @@ export function useCacheStates({
 }) {
   const [getCache, setCache] = useAtom(memoMutateAtom)
   const commonInitialValue = useAtomValue(commonInitialValueAtom)
-  const statesRef = useRef<MemoState['states'] | undefined>(undefined)
   const formValueRef = useRef<Record<string, unknown> | null>(null)
   const cache = getCache(cacheKey)
   const [states, setStates] = useState(cache.states)
-  statesRef.current = states
+  // Read from the cleanup below, which must keep running only on unmount: the
+  // latest value is copied into a ref after each commit instead of being listed
+  // as a dependency.
+  const latest = useRef({ form, cacheKey, setCache, cache })
+  useEffect(() => {
+    latest.current = { form, cacheKey, setCache, cache }
+  })
+  const statesRef = useRef(states)
+  useEffect(() => {
+    statesRef.current = states
+  }, [states])
   const cacheFormValue = (formValue: Record<string, unknown>) => {
     formValueRef.current = formValue
   }
   useEffect(() => {
     if (formValueRef.current != null) return
     initFormValue(commonInitialValue, form.getFieldsValue(), form)
-  }, [commonInitialValue])
+  }, [commonInitialValue, form])
   useEffect(() => {
-    form.setFieldsValue(cache.formValues)
+    latest.current.form.setFieldsValue(latest.current.cache.formValues)
     return () => {
+      const { cacheKey, setCache } = latest.current
       setCache(cacheKey, {
         formValues: formValueRef.current ?? {},
-        states: statesRef.current ?? DefaultCache.states,
+        states: statesRef.current,
       })
     }
   }, [])

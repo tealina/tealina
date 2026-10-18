@@ -110,7 +110,7 @@ const defaultConfig: Record<
       prop.attribute.has('default'),
   },
   UpdateInput: {
-    checkOptional: prop => true,
+    checkOptional: () => true,
   },
 }
 

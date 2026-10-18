@@ -9,7 +9,7 @@ export default defineConfig({
   apiDir: 'src/api',
   apiBaseURL: '/api',
   gdoc: {
-    customOutputs: [prop => ({ content: '', filePath: '' })],
+    customOutputs: [() => ({ content: '', filePath: '' })],
   },
   gtype: {
     output: '',

@@ -28,7 +28,7 @@ test('parse to ast', async () => {
   expect(userBlock.comment.public[0]).eq(' public comment')
 
   const userIdProp = userBlock.props.find(v => v.name == 'id')!
-  expect(userIdProp.attribute.has('id')).true
+  expect(userIdProp.attribute.has('id')).toBe(true)
   expect(userIdProp.attribute.get('default')).eq('(autoincrement())')
   expect(userIdProp.kind).eq('scalarType')
 
@@ -42,5 +42,5 @@ test('parse to ast', async () => {
   expect(userRoleProp.kind).eq('enum')
 
   const meanIgnoreBlock = astList.at(-1)!
-  expect(meanIgnoreBlock.attribute.has('ignore')).true
+  expect(meanIgnoreBlock.attribute.has('ignore')).toBe(true)
 })

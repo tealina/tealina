@@ -120,7 +120,7 @@ const parseByRoute = (route: string, tempConfig: ApiTemplateType[]): Seeds => {
   const strategies = makeStrategies(kind, name)
   const template = tempConfig.find(t => strategies.some(f => f(t))) ?? {
     name: '',
-    generateFn: ctx => '',
+    generateFn: () => '',
   }
   const { generateFn } = template
   return { generateFn, namePaths, kind }

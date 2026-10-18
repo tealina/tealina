@@ -30,8 +30,8 @@ describe('test dapi calculation part', function () {
       isExists: false,
     },
     testTemplate: {
-      genHelper: (x: any) => 'test helper',
-      genSuite: (x: any) => 'test suite',
+      genHelper: (_x: any) => 'test helper',
+      genSuite: (_x: any) => 'test suite',
     },
     suffix: '.js',
     sourceExt: '.ts',
@@ -80,7 +80,9 @@ describe('test dapi calculation part', function () {
     const [topIndex] = snapshots
     expect(topIndex.action).eq('update')
     const allMatched = newFiles.every(n => snapshots.some(s => s.filePath == n))
-    expect(allMatched, 'should delete all files when api dir is empty').true
+    expect(allMatched, 'should delete all files when api dir is empty').toBe(
+      true,
+    )
   })
 
   test(': role cr, remove partial', () => {
@@ -104,7 +106,7 @@ describe('test dapi calculation part', function () {
     const [postIndex, ...deletions] = snapshots
     expect(postIndex.action).eq('update')
     const allActionIsDeleted = deletions.every(s => s.action == 'delete')
-    expect(allActionIsDeleted).true
+    expect(allActionIsDeleted).toBe(true)
   })
 
   test('(no suffix) : role cr, remove partial', () => {
@@ -129,7 +131,7 @@ describe('test dapi calculation part', function () {
     const [postIndex, ...deletions] = snapshots
     expect(postIndex.action).eq('update')
     const allActionIsDeleted = deletions.every(s => s.action == 'delete')
-    expect(allActionIsDeleted).true
+    expect(allActionIsDeleted).toBe(true)
   })
 
   test(': student -t crud, with expicity -t option', () => {
@@ -160,7 +162,7 @@ describe('test dapi calculation part', function () {
     const [topIndexSnapshot, ...deletions] = snapshots
     expect(topIndexSnapshot.action).eq('update')
     const allActionIsDeleted = deletions.every(s => s.action == 'delete')
-    expect(allActionIsDeleted).true
+    expect(allActionIsDeleted).toBe(true)
   })
 
   test(': put/user/[id], remove last one in "put" dir', () => {
@@ -182,7 +184,7 @@ describe('test dapi calculation part', function () {
       ...restCtx,
     })
     const [apiIndex, putIndex, apiHandler] = snapshots
-    expect(snapshots.some(v => v.group == 'test')).true
+    expect(snapshots.some(v => v.group == 'test')).toBe(true)
     expect(apiIndex.action).eq('update')
     expect(putIndex.action).eq('delete')
     expect(apiHandler.action).eq('delete')
@@ -218,7 +220,7 @@ describe('test dapi calculation part', function () {
       options: { ...dirInfo, withTest: false } as any,
       ...restCtx,
     })
-    expect(snapshots.some(v => v.group == 'test')).false
+    expect(snapshots.some(v => v.group == 'test')).toBe(false)
     const [apiIndex, putIndex, apiHandler] = snapshots
     expect(apiIndex.action).eq('update')
     expect(putIndex.action).eq('delete')
@@ -238,5 +240,5 @@ test('--by-model not acceptable', () => {
     hasErr = true
     expect(String(error)).includes('Unknown option `--byModel`')
   }
-  expect(hasErr).true
+  expect(hasErr).toBe(true)
 })

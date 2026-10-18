@@ -4,35 +4,35 @@ export const FuncTemplates: ApiTemplateType[] = [
   {
     alias: 'c',
     name: 'create',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'Func style POST create api'
     },
   },
   {
     alias: 'r',
     name: 'getList',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'Func style GET api'
     },
   },
   {
     alias: 'u',
     name: 'update',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'Func style PUT api'
     },
   },
   {
     alias: 'd',
     name: 'delete',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'Func style DELETE api'
     },
   },
   {
     alias: '*',
     name: '',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'basic api handler'
     },
   },

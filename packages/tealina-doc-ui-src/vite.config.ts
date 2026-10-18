@@ -23,7 +23,7 @@ const getRemoteConfig = async (): Promise<RemoteConfig | undefined> => {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(env => ({
+export default defineConfig(() => ({
   plugins: lazyPlugins(async () => [
     react(),
     UnoCSS(),

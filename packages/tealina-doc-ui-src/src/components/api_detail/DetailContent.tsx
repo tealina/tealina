@@ -19,11 +19,12 @@ import {
   type TabsProps,
 } from 'antd'
 import { useAtomValue } from 'jotai'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useId } from 'react'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
 import { syntaxColorAtom } from '../../atoms/themeAtom'
 import { type2cell } from '../../transformer/type2cell'
 import { getMethodColor } from '../../utils/methodColors'
+import { nodeKey } from '../../utils/nodeKey'
 import { Anchor } from '../Anchor'
 import { ColorText } from '../ColorText'
 import { EntityTable } from '../EntityTable'
@@ -147,6 +148,7 @@ function PlayloadPanel({
   keyPrefix: string
 }) {
   const key = curTab as PayloadKeys
+  const uid = useId()
   const targetNode = docItem[key]
   if (targetNode == null) {
     return null
@@ -199,12 +201,17 @@ function PlayloadPanel({
           )
         }
         case 'literal': {
-          const key = Math.random().toString(16)
+          const literalKey = `${uid}-${nodeKey(k.value)}`
           if (k.value.props.length <= 0) {
-            return <ColorText type="object">{`{ }`}</ColorText>
+            return <ColorText key={literalKey} type="object">{`{ }`}</ColorText>
           }
           return (
-            <EntityTable entity={k.value} key={key} id={key} doc={parsedDoc} />
+            <EntityTable
+              entity={k.value}
+              key={literalKey}
+              id={literalKey}
+              doc={parsedDoc}
+            />
           )
         }
       }
@@ -251,7 +258,7 @@ function PlayloadPanel({
         }
       }
       default: {
-        const key = Math.random().toString(16)
+        const key = `${uid}-${nodeKey(v)}`
         return {
           key,
           tabKey: key,

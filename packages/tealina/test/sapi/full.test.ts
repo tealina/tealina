@@ -45,6 +45,7 @@ describe('test sapi in mock dir', function () {
   })
 
   // the 2nd argument is the suite task since vitest 4.1
+  // oxlint-disable-next-line no-empty-pattern -- vitest requires a destructured first argument
   afterAll(({}, suite) => {
     if (suite.tasks.every(v => v.result?.state != 'fail')) {
       fs.rmSync(tempDir, { recursive: true })
@@ -140,7 +141,7 @@ describe('test sapi in mock dir', function () {
     const invalidDir = path.join(ctx.apiDir, 'dummy')
     fs.mkdirSync(invalidDir, { recursive: true })
     const err = await syncApiByFile(ctx).catch(e => e)
-    expect(err).not.null
+    expect(err).not.toBeNull()
     fs.rmSync(invalidDir, { recursive: true })
   })
 })

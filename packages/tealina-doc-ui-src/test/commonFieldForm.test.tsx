@@ -37,7 +37,7 @@ describe('test common field setting', () => {
       window.sessionStorage.getItem(kConfigKey.FILEDS_VALUES)
     })
     const result = window.sessionStorage.getItem(kConfigKey.FILEDS_VALUES)
-    expect(result).not.null
+    expect(result).not.toBeNull()
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     expect(JSON.parse(result!)).toMatchObject({
       headers: {

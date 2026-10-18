@@ -17,7 +17,7 @@ export function ComonFields({ onSaved }: { onSaved: () => void }) {
     const storage = window.sessionStorage.getItem(kConfigKey.FILEDS_VALUES)
     if (storage == null) return
     form.setFieldsValue(JSON.parse(storage))
-  }, [])
+  }, [form])
   if (entries.length < 1) return <div>Empty</div>
   return (
     <Form

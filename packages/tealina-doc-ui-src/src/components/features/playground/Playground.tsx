@@ -23,7 +23,7 @@ const Playground = (props: {
     ) : (
       <Typography className="text-center mt-20">No payload required</Typography>
     )
-  }, [])
+  }, [entity.props, doc])
   console.log(states.contentType?.includes('json') ? 'json' : void 0)
   return (
     <div className="flex gap-3 h-full">

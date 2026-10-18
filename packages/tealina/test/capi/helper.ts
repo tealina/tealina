@@ -13,6 +13,7 @@ export const cleanDir = (root: string) => {
   })
   // vitest 4.1 moved the suite task from the 1st argument to the 2nd; the 1st is
   // now the fixtures context, and it has to be destructured even when unused.
+  // oxlint-disable-next-line no-empty-pattern -- vitest requires a destructured first argument
   afterAll(({}, suite) => {
     if (
       suite.tasks

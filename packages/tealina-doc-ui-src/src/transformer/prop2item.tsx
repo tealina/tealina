@@ -52,7 +52,7 @@ const toBigInt = (v: null | undefined | string) => {
   if (v == null) return
   try {
     return BigInt(v)
-  } catch (error) {}
+  } catch {}
 }
 
 export const prop2item = (

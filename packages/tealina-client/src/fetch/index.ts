@@ -43,12 +43,12 @@ const createHandler =
  */
 export const createFetchClient = <T extends ApiRecordShape, C>(
   requester: (url: string, config: C) => unknown,
-  shape?: ShapeWitness<T>,
+  _shape?: ShapeWitness<T>,
 ) => createReq<ToReq<T, C>, C>(createHandler(requester))
 
 export function createFetchRPC<T extends ApiRecordShape, C>(
   requester: (url: string, config: C) => unknown,
-  shape?: ShapeWitness<T>,
+  _shape?: ShapeWitness<T>,
 ) {
   return createRPC<ToRPC<T, C>, C>(createHandler(requester))
 }

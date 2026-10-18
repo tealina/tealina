@@ -5,7 +5,7 @@ export const SubmitBtn = (
   props: Omit<ButtonProps, 'onClick'> & { onSubmit: () => Promise<any> },
 ) => {
   const [submitting, setSubmitting] = useState(props.loading ?? false)
-  const { onSubmit, loading, ...rest } = props
+  const { onSubmit, loading: _loading, ...rest } = props
   const handleSubmit = async () => {
     setSubmitting(true)
     onSubmit().finally(() => {

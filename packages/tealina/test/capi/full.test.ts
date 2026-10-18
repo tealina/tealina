@@ -106,7 +106,7 @@ describe('full test cai', () => {
       dirInfo,
     )
     expect(result).deep.eq(fullResult)
-    expect(result2).is.empty
+    expect(result2).toHaveLength(0)
     fs.rmSync(dirInfo.apiDir, { recursive: true })
   })
 

@@ -5,8 +5,8 @@ test('load and transform APIs', async () => {
   type Handler1 = (x: string) => string
   type Handler2 = (x: number) => number
   type MockHandler = Handler1 | Handler2
-  const getStutas = (x: string): string => 'fine'
-  const createUer = (x: number) => 200
+  const getStutas = (_x: string): string => 'fine'
+  const createUer = (_x: number) => 200
   const apiRecords = await loadAPIs({
     get: Promise.resolve({
       default: {
@@ -33,7 +33,7 @@ test('load and transform APIs', async () => {
 
 test('test smart reorder', async () => {
   type MockHandler = (x: string) => string
-  const mockHandler = (x: string) => 'mock'
+  const mockHandler = (_x: string) => 'mock'
   const apiRecords = await loadAPIs({
     post: Promise.resolve({
       default: {

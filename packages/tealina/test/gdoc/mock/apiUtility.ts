@@ -1,4 +1,4 @@
-import type { DocDataKeys, RemapToExampleType } from '@tealina/utility-types'
+import type { RemapToExampleType } from '@tealina/utility-types'
 export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 export type ModelId = {
@@ -49,13 +49,13 @@ type ExtractRestfulAPI<T> =
     ? Simplify<Payload & { response: Response; headers: Headers }>
     : never
 
-type b = Simplify<{ b: number } & { c: string }>
+type _b = Simplify<{ b: number } & { c: string }>
 
 export interface ApiHandler<
-  T extends RawPayload = {},
-  Tresponse = null,
-  Theaders extends Record<string, any> = Simplify<AuthHeaders>,
-  Tlocals extends Record<string, any> = BaseLocals,
+  _T extends RawPayload = {},
+  _Tresponse = null,
+  _Theaders extends Record<string, any> = Simplify<AuthHeaders>,
+  _Tlocals extends Record<string, any> = BaseLocals,
 > {
   (req: any, res: any, next: any): any
 }
@@ -82,4 +82,4 @@ export type MakeExampleType<T> =
     ? RemapToExampleType<P & { response: R }>
     : never
 
-type A = MakeExampleType<FuncAPI<{ query: { page: number } }>>
+type _A = MakeExampleType<FuncAPI<{ query: { page: number } }>>

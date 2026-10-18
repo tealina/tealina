@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import { builtinModules } from 'node:module'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vite-plus/test'
 import { kServerTemplates, templateRootDir } from '../src/core.js'
 import {
@@ -32,11 +31,7 @@ import {
  * Both are pure assertions over the shipped template, so this runs offline in milliseconds.
  */
 
-const here = path.dirname(fileURLToPath(import.meta.url))
-const pkgDir = path.resolve(here, '..')
-
 const MODES: Mode[] = ['ts', 'js']
-const ext = (mode: Mode) => (mode === 'js' ? 'js' : 'ts')
 
 const exists = (rel: string) => fs.existsSync(path.join(templateRootDir, rel))
 

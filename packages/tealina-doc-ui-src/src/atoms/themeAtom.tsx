@@ -2,9 +2,11 @@ import { atom } from 'jotai'
 type ThemeType = 'dark' | 'light'
 
 const syncBodyClassList = (update: ThemeType) => {
-  update === 'light'
-    ? window.document.body.classList.remove('dark')
-    : window.document.body.classList.add('dark')
+  if (update === 'light') {
+    window.document.body.classList.remove('dark')
+  } else {
+    window.document.body.classList.add('dark')
+  }
 }
 
 const initialTheme = window.matchMedia('(prefers-color-scheme: dark)').matches

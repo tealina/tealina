@@ -50,7 +50,7 @@ export const collectTypeFileInfo = async (
 ): Promise<TypeFileInfo> => {
   const filePath = getApiTypeFilePath(dirInfo)
   const isExists = await access(filePath).then(
-    v => true,
+    () => true,
     () => false,
   )
   return { filePath, isExists }

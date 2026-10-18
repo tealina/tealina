@@ -87,27 +87,30 @@ export const useMenus = () => {
           : defaultOpenKeys
     return { items, defaultOpenKeys, defaultSelectedKeys }
   }, [summaries])
-  const [openKeys, setOpenKeys] = useState(defaultOpenKeys)
-  const [selectedKeys, setSelectedKeys] = useState(defaultSelectedKeys)
-  const updateCurShowApi = (key: string) => {
-    const [method, ...rest] = key.split('/')
-    const nextPath = rest.join('/')
-    setCurShowApi({ method, path: nextPath })
-    return
-  }
+  const derivedOpenKeys = useMemo(() => {
+    if (curShowApi == null) return defaultOpenKeys
+    const itemKey = [curShowApi.method, curShowApi.path].join('/')
+    const [, part] = curShowApi.path.split('/')
+    return [itemKey, part]
+  }, [curShowApi, defaultOpenKeys])
+  const [openState, setOpenState] = useState<{
+    source: typeof curShowApi
+    keys: string[]
+  }>(() => ({ source: curShowApi, keys: derivedOpenKeys }))
+  // `curShowApi` is the source of truth for the selection, so the keys derived
+  // from it replace the stored ones whenever it changes. The stored copy exists
+  // only to keep sub-menus the reader opened or closed by hand.
+  const selectedKeys =
+    curShowApi == null
+      ? defaultSelectedKeys
+      : [[curShowApi.method, curShowApi.path].join('/')]
+  const openKeys =
+    openState.source === curShowApi ? openState.keys : derivedOpenKeys
   useEffect(() => {
-    if (curShowApi == null) {
-      const keys = gatherFirstElement(items[0])
-      updateCurShowApi(keys.at(-1)!)
-      return
-    }
-    const { method, path } = curShowApi
-    const _keys = [method, path].join('/')
-    const [, part] = path.split('/')
-    const _open = [_keys, part]
-    setSelectedKeys([_keys])
-    setOpenKeys(_open)
-  }, [curShowApi])
+    if (curShowApi != null) return
+    const [method, ...rest] = gatherFirstElement(items[0]).at(-1)!.split('/')
+    setCurShowApi({ method, path: rest.join('/') })
+  }, [curShowApi, items, setCurShowApi])
   const menuProps: MenuProps = {
     items,
     selectedKeys,
@@ -115,12 +118,13 @@ export const useMenus = () => {
     defaultOpenKeys,
     defaultSelectedKeys,
     onSelect: info => {
-      setOpenKeys(info.keyPath)
-      setSelectedKeys(info.selectedKeys)
-      updateCurShowApi(info.key)
+      const [method, ...rest] = info.key.split('/')
+      const next = { method, path: rest.join('/') }
+      setCurShowApi(next)
+      setOpenState({ source: next, keys: info.keyPath })
     },
     onOpenChange: keys => {
-      setOpenKeys(keys)
+      setOpenState({ source: curShowApi, keys })
     },
   }
   return menuProps

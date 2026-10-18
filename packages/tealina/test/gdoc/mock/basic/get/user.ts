@@ -10,7 +10,7 @@ interface RestfulInputType {
 }
 
 type ApiType = ApiHandler<RestfulInputType>
-const handler: ApiType = (req, res, next) => {}
+const handler: ApiType = (_req, _res, _next) => {}
 
 export default handler
 

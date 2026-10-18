@@ -30,9 +30,9 @@ test('rich responses are recognised through the published ResponseFlagSymbol', (
   const [withStatus, withHeaders] = response.types as ResponseEntity[]
   expect(withStatus.kind).eq(DocKind.ResponseEntity)
   expect(withStatus).contains({ statusCode: 201 })
-  expect(withStatus.response).not.null
+  expect(withStatus.response).not.toBeNull()
 
   expect(withHeaders.kind).eq(DocKind.ResponseEntity)
-  expect(withHeaders.headers).not.null
-  expect(withHeaders.response).not.null
+  expect(withHeaders.headers).not.toBeNull()
+  expect(withHeaders.response).not.toBeNull()
 })

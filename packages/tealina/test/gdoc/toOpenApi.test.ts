@@ -22,7 +22,7 @@ test('Variants status code ', async () => {
   expect(output.openapi).eq('3.1.1')
   expect(output.paths).toHaveProperty('/api/v1/status')
   const statusRespone = (output.paths as any)['/api/v1/status']?.get?.responses
-  expect(statusRespone).not.null
+  expect(statusRespone).not.toBeNull()
   expect(statusRespone).toHaveProperty('200')
   expect(statusRespone).toHaveProperty('500')
 })

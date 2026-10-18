@@ -25,7 +25,7 @@ describe('test error handling', () => {
       hasError = true
       expect(String(error)).includes('Export symbol not found')
     }
-    expect(hasError).true
+    expect(hasError).toBe(true)
   })
   test('error when no valid export found', () => {
     let hasError = false
@@ -38,6 +38,6 @@ describe('test error handling', () => {
       hasError = true
       expect(String(error)).includes('Export default should be a function')
     }
-    expect(hasError).true
+    expect(hasError).toBe(true)
   })
 })

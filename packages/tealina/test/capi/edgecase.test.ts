@@ -41,9 +41,9 @@ describe('test capi edgecase', () => {
       'get/some --no-with-test',
       dirInfo,
     )
-    expect(parsedResult.options.withTest).false
+    expect(parsedResult.options.withTest).toBe(false)
     const result: Snapshot[] = await cli.runMatchedCommand()
-    expect(result.some(v => v.group == 'test')).false
+    expect(result.some(v => v.group == 'test')).toBe(false)
   })
 
   test('error cache on real run', async () => {

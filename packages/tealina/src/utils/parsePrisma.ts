@@ -34,7 +34,11 @@ const groupAndPick =
     each(xs, v => {
       const key = getKey(v)
       const list = record.get(key)
-      list ? list.push(getValue(v)) : record.set(key, [getValue(v)])
+      if (list) {
+        list.push(getValue(v))
+      } else {
+        record.set(key, [getValue(v)])
+      }
     })
     return record
   }

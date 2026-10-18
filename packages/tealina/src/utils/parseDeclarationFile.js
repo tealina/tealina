@@ -438,7 +438,7 @@ const enumTypeStrategies = [
   },
   {
     // @ts-ignore
-    match: t => true,
+    match: () => true,
     handle: t => {
       // @ts-ignore
       return { kind: DocKind.EnumRef, id: recordEnum(t) }
@@ -487,7 +487,7 @@ const objTypeStrategies = [
   },
   {
     // @ts-ignore
-    match: t => true,
+    match: () => true,
     handle: t => {
       const name = checker.typeToString(t)
       return recordRefs(t, name)
@@ -510,7 +510,7 @@ const typeParseStrategies = [
   {
     match: t => ts.TypeFlags.Never === t.flags,
     // @ts-ignore
-    handle: t => ({ kind: DocKind.Never }),
+    handle: () => ({ kind: DocKind.Never }),
   },
   {
     match: t => checker.isArrayType(t),
