@@ -11,7 +11,7 @@
     "verify": "vp run -r build && vp check && vp test",
     "preinstall": "npx only-allow pnpm",
     "prepare": "vp config --no-agent",
-    "dev:ui": "concurrently 'pnpm -C playground/doc-factory dev' 'pnpm -F @tealina/doc-ui-src dev'",
+    "dev:ui": "node scripts/dev-ui.mjs",
     "cproj": "node packages/create-tealina/dist/index.mjs",
     "up-temp-versions": "node scripts/update-version-in-template.mjs"
   },
@@ -23,7 +23,6 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "catalog:",
-    "concurrently": "^9.2.0",
     "dotenv-cli": "^10.0.0",
     "tsx": "4.19.2",
     "typescript": "^6.0.3",
