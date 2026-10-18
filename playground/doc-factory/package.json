@@ -1,31 +1,20 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "type": "module",
-  "scripts": {
-    "dev": "dotenv -c -- tsx watch src",
-    "start": "dotenv -c -- tsx src",
-    "v1": "tealina src/api-v1"
+  "name": "doc-factory",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=22"
   },
-  "keywords": [],
-  "dependencies": {
-    "@tealina/doc-ui": "workspace:*",
-    "@tealina/server": "workspace:*",
-    "express": "^5.1.0",
-    "express-session": "^1.18.2",
-    "fp-lite": "^2.0.0",
-    "zod": "^4.1.1"
+  "scripts": {
+    "dev": "pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "start": "pnpm -F server start",
+    "check": "vp check",
+    "fmt": "vp fmt",
+    "lint": "vp lint"
   },
   "devDependencies": {
-    "@tealina/utility-types": "workspace:*",
-    "@types/express": "^5.0.3",
-    "@types/express-session": "^1.18.2",
-    "@types/node": "^22.0.0",
-    "dotenv-cli": "7.2.1",
-    "tealina": "workspace:*",
-    "tsx": "^4.20.5"
-  },
-  "license": "ISC"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
 }

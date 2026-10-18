@@ -5,7 +5,9 @@ import { defineConfig, lazyPlugins } from 'vite-plus'
 import axios from 'axios'
 import path from 'path/posix'
 
-const kDocFactory = 'http://localhost:6001'
+// The playground the dev server fetches its config and proxies its api to. Override it
+// to point `pnpm -F @tealina/doc-ui-src dev` at another instance.
+const kDocFactory = process.env.DOC_FACTORY_URL ?? 'http://localhost:8000'
 type RemoteConfig = { customScripts?: string[] } & Record<string, unknown>
 let kConfigPromise: Promise<RemoteConfig | undefined> | null = null
 const getRemoteConfig = async (): Promise<RemoteConfig | undefined> => {
