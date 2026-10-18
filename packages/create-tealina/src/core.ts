@@ -188,15 +188,16 @@ const toPkgName = (raw: string) => {
 }
 
 /**
- * The root scripts are written here rather than shipped in `template/root`, because they
- * are the one part of the root that depends on the mode.
+ * The root scripts are written here rather than shipped in `template/root`: `create`
+ * owns the whole `scripts` block, so a script that lived in the file would be lost.
  *
  * In TypeScript the two library packages are compiled once before the watchers start:
  * the server imports their `dist/`. In JavaScript there is nothing to build, so `build`
  * is the type checker — the same command the editor runs, over the same files.
  *
  * `pnpm -r` covers three backend packages, and covers `packages/web` as well when the
- * optional frontend is present.
+ * optional frontend is present. `check`/`fmt`/`lint` are Vite+'s Oxc toolchain; the root
+ * `vite.config.ts` holds the settings they share.
  */
 const rootScripts = (mode: Mode) => ({
   dev:
@@ -205,6 +206,9 @@ const rootScripts = (mode: Mode) => ({
       : 'pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev',
   build: 'pnpm -r build',
   start: 'pnpm -F server start',
+  check: 'vp check',
+  fmt: 'vp fmt',
+  lint: 'vp lint',
 })
 
 const createRoot = (ctx: ContextType) => {
@@ -214,7 +218,7 @@ const createRoot = (ctx: ContextType) => {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
   pkg.name = toPkgName(path.basename(ctx.root))
   pkg.scripts = rootScripts(ctx.answer.mode)
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
+  fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
 }
 
 /** The three packages that make up the backend, in dependency order. */

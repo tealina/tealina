@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite-plus'
 import { API_BASE_URL } from 'api-v1/version'
 
 export default defineConfig({

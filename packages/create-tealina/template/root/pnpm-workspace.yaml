@@ -7,3 +7,16 @@ packages:
 # ERR_PNPM_IGNORED_BUILDS until you answer it. Older pnpm ignores the key.
 allowBuilds:
   esbuild: true
+
+# Vite+ is the toolchain: one `vite-plus` supplies `vp`, and everything that asks for
+# `vite` gets the copy Vite+ bundles rather than a second one.
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.3
+  vite-plus: 0.3.3
+overrides:
+  vite@*: 'catalog:'
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: '*'

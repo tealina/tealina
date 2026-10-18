@@ -19,6 +19,7 @@ rather than restating them.
 
 ```bash
 pnpm dev
+pnpm check     # format, lint and type-check (Vite+)
 ```
 
 - Service: http://localhost:8000
@@ -323,6 +324,9 @@ import, not what a frontend imports.
 | `pnpm dev` | build the two libraries, then run every watcher in parallel |
 | `pnpm build` | build every package |
 | `pnpm start` | run the compiled server |
+| `pnpm check` | format, lint and type-check everything (Vite+) |
+| `pnpm fmt` | rewrite files with Oxfmt |
+| `pnpm lint` | report lint and type errors with Oxlint |
 | `pnpm -F api-v1 create <method> <path>` | create a handler stub |
 | `pnpm -F api-v1 align` | rewrite the generated `index.ts` files from the file tree |
 | `pnpm -F api-v1 gdoc` | regenerate the API document |

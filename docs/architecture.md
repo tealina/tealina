@@ -358,10 +358,15 @@ type Snapshot = {
 | `backend/api-v1` | `src/api/**` 路由树、`src/{router,doc,mount}`、`version.js`/`version.d.ts`、`types/api.d.ts`、`docs/api.json`、`tealina.config` | `core`、`@tealina/server`、`@tealina/doc-ui` |
 | `backend/server` | `src/{app,doc,index}`、静态资源、`.env.example`、`public/` | `api-v1`、`@tealina/doc-ui` |
 
-`packages/web` 是可选的（`--web`）：一个 Vite 前端，只依赖 `api-v1` 的 `./api` 与
-`./version`。依赖方向因此是 `core → api-v1 → server` 与 `web → api-v1`，`pnpm -r build`
-按拓扑序构建。`exports` 的 `types` 条件指向源码 `.ts`（或受检的源码 `.js`），类型检查
-因此不需要先构建；JS 包的 `build` 就是 `tsc --noEmit`。
+`packages/web` 是可选的（`--web`）：一个运行在 Vite+ 上的 Vite 前端，只依赖 `api-v1`
+的 `./api` 与 `./version`。依赖方向因此是 `core → api-v1 → server` 与 `web → api-v1`，
+`pnpm -r build` 按拓扑序构建。`exports` 的 `types` 条件指向源码 `.ts`（或受检的源码
+`.js`），类型检查因此不需要先构建；JS 包的 `build` 就是 `tsc --noEmit`。
+
+根目录的 `vite.config.ts` 是 Vite+ 的共享配置：`pnpm check`（`vp check`）用 Oxfmt 格式化、
+Oxlint 检查并在其上做类型检查，`pnpm fmt` / `pnpm lint` 各跑一半。格式配置就是模板源码
+本身的写法（单引号、无分号、80 列），所以刚生成、未改一行的项目也能通过；`align`
+生成的 `src/api/**/index.*` 由生成器负责格式，不在检查范围内。
 
 新的 API 版本就是一个新包（`backend/api-v2`）：独立依赖 `core`、独立 `tealina.config`，
 由 `server` 与 `api-v1` 并列挂载。`core` 和前端都不出现版本号。

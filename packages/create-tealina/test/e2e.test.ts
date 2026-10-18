@@ -88,12 +88,25 @@ const coreDir = (projectDir: string) =>
  * `link:` needs a path relative to the *workspace root*, which is the fixture directory —
  * pnpm rewrites it into `node_modules/` from there.
  */
-const workspaceOverrides = (projectDir: string, extra: string[] = []) =>
-  `\noverrides:\n` +
-  `  tealina: link:${path.relative(projectDir, tealinaDir)}\n` +
-  `  '@tealina/server': link:${path.relative(projectDir, tealinaServerDir)}\n` +
-  `  '@tealina/doc-ui': link:${path.relative(projectDir, docUiDir)}\n` +
-  extra.join('')
+const appendWorkspaceOverrides = (
+  workspaceFile: string,
+  projectDir: string,
+  extra: string[] = [],
+) => {
+  const entries = [
+    `  tealina: link:${path.relative(projectDir, tealinaDir)}`,
+    `  '@tealina/server': link:${path.relative(projectDir, tealinaServerDir)}`,
+    `  '@tealina/doc-ui': link:${path.relative(projectDir, docUiDir)}`,
+    ...extra,
+  ]
+  // The template ships an `overrides:` block of its own (the `vite` alias), so the fixture
+  // cannot append a second top-level key. Add its entries to the block that exists.
+  const lines = fs.readFileSync(workspaceFile, 'utf-8').split('\n')
+  const at = lines.findIndex(line => line.trimEnd() === 'overrides:')
+  if (at === -1) lines.push('overrides:', ...entries)
+  else lines.splice(at + 1, 0, ...entries)
+  fs.writeFileSync(workspaceFile, lines.join('\n'))
+}
 
 /**
  * The other dependency a fixture has to reach past npm for, and only the JavaScript
@@ -110,7 +123,7 @@ const clientOverride = (projectDir: string) =>
   `  '@tealina/client': link:${path.relative(
     projectDir,
     path.join(repoRoot, 'packages/tealina-client'),
-  )}\n`
+  )}`
 
 const run = (command: string, args: string[], cwd: string) => {
   const res = spawnSync(command, args, {
@@ -163,7 +176,8 @@ const killTree = (child: ChildProcess) => {
 const booted: ChildProcess[] = []
 let failed = false
 
-// The fixtures link `tealina` and `@tealina/server` — see `workspaceOverrides` — and, for
+// The fixtures link `tealina` and `@tealina/server` — see
+// `appendWorkspaceOverrides` — and, for
 // the JavaScript frontend, `@tealina/client` (`clientOverride`) by path, so what they
 // resolve is the package's `dist/`. All of them are built once in `global-setup.ts`, above
 // the workers, rather than lazily from here: two test files in two workers each building
@@ -250,9 +264,9 @@ describeE2E('scaffolded project, end to end', () => {
         ).toBe(true)
 
         // Point the generated project's install at the CLI this repo built — see
-        // `workspaceOverrides`. Appended rather than written, so the file the scaffolder
-        // produced is still the one under test.
-        fs.appendFileSync(workspaceFile, workspaceOverrides(projectDir))
+        // `appendWorkspaceOverrides`. Edited rather than rewritten, so the file the
+        // scaffolder produced is still the one under test.
+        appendWorkspaceOverrides(workspaceFile, projectDir)
 
         // 2. install — this is also where a broken `allowBuilds` would surface
         must('pnpm', ['install', '--prefer-offline'], projectDir)
@@ -262,6 +276,16 @@ describeE2E('scaffolded project, end to end', () => {
         //    covers the JSDoc the JavaScript tree is made of. This is also the first thing
         //    that resolves `core/handler` and `api-v1/mount` through a real `exports` map.
         must('pnpm', ['-r', 'build'], projectDir)
+
+        // The scaffold ships the formatter and linter configured to its own sources, so
+        // `check` has to pass on the template before anything is edited.
+        //
+        // The fixtures live under this repo's ignored `temp/`, and Vite+'s ignore
+        // discovery would otherwise exclude the whole project. Making the fixture its own
+        // git root leaves the generated `.gitignore` as the only one that applies.
+        fs.mkdirSync(path.join(projectDir, '.git'))
+        must('pnpm', ['check'], projectDir)
+
         if (mode === 'ts') {
           for (const [label, built] of [
             ['core', path.join(coreDir(projectDir), 'dist/access/index.js')],
@@ -408,9 +432,9 @@ describeE2E('two api versions share one documentation page', () => {
       [cliEntry, projectDir, '--template', 'express', '--no-install'],
       pkgDir,
     )
-    fs.appendFileSync(
+    appendWorkspaceOverrides(
       path.join(projectDir, 'pnpm-workspace.yaml'),
-      workspaceOverrides(projectDir),
+      projectDir,
     )
 
     // A second version is a copy of the first with a different name: the starting point a
@@ -555,14 +579,13 @@ describeE2E('scaffolded project with a frontend, end to end', () => {
           : 'pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev',
       )
       expect(rootPkg.scripts.build).toBe('pnpm -r build')
+      expect(rootPkg.scripts.check).toBe('vp check')
+      expect(rootPkg.devDependencies?.['vite-plus']).toBe('catalog:')
 
       const workspaceFile = path.join(projectDir, 'pnpm-workspace.yaml')
-      fs.appendFileSync(
-        workspaceFile,
-        workspaceOverrides(projectDir, [
-          ...(mode === 'js' ? [clientOverride(projectDir)] : []),
-        ]),
-      )
+      appendWorkspaceOverrides(workspaceFile, projectDir, [
+        ...(mode === 'js' ? [clientOverride(projectDir)] : []),
+      ])
 
       // 2. install — four packages' worth of dependencies, from the registry
       must('pnpm', ['install', '--prefer-offline'], projectDir)
