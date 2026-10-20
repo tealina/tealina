@@ -10,8 +10,9 @@ lives in the `core` package. The generated stubs import it from `core/handler` a
 
 ## Rules
 
-- Add an endpoint with the CLI, not by hand: `pnpm create <method> <path>` from this
-  package, or `pnpm -F api-v1 create <method> <path>` from the workspace root.
+- Add an endpoint with the CLI, not by hand: `pnpm run create <method> <path>` from this
+  package, or `pnpm -F api-v1 run create <method> <path>` from the workspace root. The
+  `run` is required — `pnpm create` is pnpm's own project scaffolder, not this script.
 - `src/api/index.*` and `src/api/<method>/index.*` are **generated**. Never edit
   them. After adding, renaming, or deleting a handler, run `pnpm align`.
 - `apiDir` and `apiBaseURL` in `tealina.config` say where the route tree is and which URL

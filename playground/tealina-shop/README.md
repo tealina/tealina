@@ -178,7 +178,7 @@ on display.
 | `pnpm check` | format, lint and type-check the whole project (Vite+) |
 | `pnpm fmt` / `pnpm lint` | one at a time |
 | `pnpm build` | build every package and the bundle |
-| `pnpm -F api-v1 create <method> <path>` | create a handler stub |
+| `pnpm -F api-v1 run create <method> <path>` | create a handler stub |
 | `pnpm -F api-v1 delete <method> <path>` | remove a handler and its barrel entry |
 | `pnpm -F api-v1 align` | regenerate the route barrels |
 | `pnpm -F api-v1 gdoc` | regenerate the API document |

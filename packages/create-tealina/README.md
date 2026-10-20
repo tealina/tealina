@@ -92,7 +92,7 @@ otherwise.
 The method name and the filename are the method and the path:
 
 ```bash
-pnpm -F api-v1 create post/user     # writes src/api/post/user.ts
+pnpm -F api-v1 run create post/user # writes src/api/post/user.ts
 pnpm -F api-v1 align                # rebuilds the generated index files
 pnpm -F api-v1 gdoc                 # regenerates docs/api.json
 ```

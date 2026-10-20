@@ -124,7 +124,7 @@ description — and a block separated by a blank line is not read either.
 The method name and the filename are the method and the path:
 
 ```bash
-pnpm -F api-v1 create post/user     # creates src/api/post/user.ts
+pnpm -F api-v1 run create post/user # creates src/api/post/user.ts
 ```
 
 Then edit the generated stub. The `get/index.ts` and `post/index.ts` files are
@@ -304,7 +304,7 @@ import, not what a frontend imports.
 | `pnpm check` | format, lint and type-check everything (Vite+) |
 | `pnpm fmt` | rewrite files with Oxfmt |
 | `pnpm lint` | report lint and type errors with Oxlint |
-| `pnpm -F api-v1 create <method> <path>` | create a handler stub |
+| `pnpm -F api-v1 run create <method> <path>` | create a handler stub |
 | `pnpm -F api-v1 align` | rewrite the generated `index.*` files from the file tree |
 | `pnpm -F api-v1 gdoc` | regenerate the API document |
 | `pnpm -F api-v1 dev` | watch-compile the api package |

@@ -4,6 +4,9 @@ on:
     workflows: ["CI"]
     types:
       - completed
+    # 只跟随 main 上的 CI。没有这一行，任何分支的 CI 成功都会触发发布任务。
+    branches:
+      - main
   push:
     branches:
       - "main"
@@ -12,7 +15,8 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # push 事件里没有 workflow_run 这个字段，只写后面那一半会把 push 触发全部挡掉。
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

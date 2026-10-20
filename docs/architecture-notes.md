@@ -76,20 +76,18 @@
 
 ## 5. CI 兜不住什么
 
-现在的测试分四层，其中三层默认会跑：
+现在的测试分四层，CI 上四层都会跑：
 
 | 层 | 文件 | 覆盖 |
 |---|---|---|
 | T1 契约 | `test/contract.test.ts` | 拿 `template/**` 拼出 fixture 交给 `tsc`，包括 `core` 的 `paths` 接缝 |
-| T3 e2e | `test/e2e*` | `TEALINA_E2E=1` 门控：真装、真构建三个包、真起服务、真发请求 |
+| T3 e2e | `test/e2e*` | 本地需 `TEALINA_E2E=1`，CI 上由 `CI` 自动开启：真装、真构建三个包、真起服务、真发请求 |
 | T4 manifest / parity | `test/template-manifest.test.ts`、`test/template-parity.test.ts` | 每个文件落在哪个包、每个 import 是否能在该包内解析；三棵树的结构与依赖方向 |
 | 生成器快照 | `packages/tealina/test/**` | 生成字符串是否正确、`--check` 是否只在漂移时退出 1 |
 
-仍然兜不住的两块：
+仍然兜不住的一块：
 
-1. **e2e 默认不跑。** 它依赖安装已发布（或 `file:` 覆盖）的包，成本高，所以只在显式设置
-   `TEALINA_E2E=1` 时运行。改模板后本地跑一遍比看 CI 绿更有说服力。
-2. **`align` 的类型文件兜底。** `types/api.d.ts` 已存在时 `align` 不重写它，`--check` 也
+1. **`align` 的类型文件兜底。** `types/api.d.ts` 已存在时 `align` 不重写它，`--check` 也
    看不见它。改契约层后如果需要重建，只能先删文件。见 `architecture.md` §10。
 
 除此之外，「CI 绿了」已经能作为「生成出来的项目至少编译得通过」的证据——这一点和第一轮

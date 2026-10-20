@@ -43,7 +43,8 @@ vp env doctor              # when setup/runtime/package-manager behavior looks w
 
 Run tests through `vp test` or the package script, not bare `npx vitest run`:
 `create-tealina` needs `--testTimeout=0`, which the configured script supplies. End-to-end tests
-are gated by `TEALINA_E2E=1`.
+are skipped locally unless `TEALINA_E2E=1`; on CI they run automatically because GitHub Actions
+sets `CI`.
 
 **Node ≥ 22** is required. `vite-plus-core`'s tsdown uses `Promise.withResolvers`, which Node 20
 does not have, so a Node 20 build fails at the first step. `.nvmrc`, CI, `engines`, each package's
