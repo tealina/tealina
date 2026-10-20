@@ -63,7 +63,7 @@ export default defineConfig(() => ({
     globals: true,
     deps: {
       optimizer: {
-        web: {
+        client: {
           include: ['vitest-canvas-mock'],
         },
       },

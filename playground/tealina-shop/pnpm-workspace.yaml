@@ -11,8 +11,8 @@ allowBuilds:
 # Vite+ is the toolchain: one `vite-plus` supplies `vp`, and everything that asks for
 # `vite` gets the copy Vite+ bundles rather than a second one.
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@0.3.3
-  vite-plus: 0.3.3
+  vite: npm:@voidzero-dev/vite-plus-core@1.3.0
+  vite-plus: 1.3.0
 overrides:
   # This playground is checked out beside the packages it runs. Linking them here keeps
   # `dev` pointed at the workspace source, so a fix in tealina or the doc UI shows up
