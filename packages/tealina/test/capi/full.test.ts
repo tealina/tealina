@@ -94,6 +94,22 @@ describe('full test cai', () => {
     fs.rmSync(dirInfo.apiDir, { recursive: true })
   })
 
+  test('the generator is told the configured sourceExt', async () => {
+    const route = 'book/getList'
+    const dirInfo = prepareTempDir('source-ext')
+    const { cli } = parseCommandArgs(
+      route,
+      dirInfo,
+      'test/mock/config/tealina.source-ext.config.ts',
+    )
+    await cli.runMatchedCommand()
+    const filePath = path.join(dirInfo.apiDir, 'post', 'book/getList.js')
+    expect(fs.readFileSync(filePath).toString()).eq(
+      ['post', '.js', path.dirname(filePath)].join('|'),
+    )
+    fs.rmSync(dirInfo.apiDir, { recursive: true })
+  })
+
   test('no thing change when duplicate run', async () => {
     const route = 'book/read'
     const dirInfo = prepareTempDir('nothing-change')

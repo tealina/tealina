@@ -23,4 +23,18 @@ export interface HandlerAliasCore<
     res: Response<R, TLocals>,
     next: NextFunction,
   ): unknown
+  // The same signature, a second time, so that this is an overload set. A `.js` handler
+  // kept while a project migrates to TypeScript can annotate a `const` with a JSDoc
+  // `@type`; the compiler then treats that annotation as the function's declared type,
+  // and with a single signature an `async` handler is rejected because a declared type
+  // returning `unknown` must return a value (TS2355). An overload set is accepted.
+  // Repeating the signature verbatim is the point: anything narrower, such as
+  // `Promise<void>`, is still a single signature, and would reject the sync handlers this
+  // contract accepts.
+  (
+    req: Request<T['params'], R, T['body'], T['query']> &
+      MaybeProperty<T['headers'], 'headers'>,
+    res: Response<R, TLocals>,
+    next: NextFunction,
+  ): unknown
 }

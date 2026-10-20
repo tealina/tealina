@@ -55,7 +55,7 @@
 | `apiDir` / `apiBaseURL` | `api-v1/version.js`、`tealina.config`、`api-v1/src/mount`、`api-v1/src/doc`、web 的 `vite.config` | 公开产物已固定名字（`types/api.d.ts`、`docs/api.json`、`exports["./api"]`），所以改目录名只影响发现路径。URL 前缀已经收敛到 `version.js` 一处，但改它之后要重跑 `gdoc`，文档里的 `servers` 才会更新 |
 | 加包 / 改包名 | `scripts/update-version-in-template.mjs` 的 `TEMPLATE_TREES` 与四个 `latest*` 列表、模板三个后端包与 web 的 `package.json`、根 `pnpm-workspace.yaml` 的 `overrides` | 脚本只改模板里**已经声明**的依赖键；新增包没有加进 `TEMPLATE_TREES`、或新依赖没有进 `latest*` 列表时，模板会静默停在旧版本 |
 | `tealina` 的构建配置 | bin shim 引用的 `dist/` **深路径** | 它是 tsdown 的 `unbundle` **1:1 不打包**模式，改成打包会打断 bin shim |
-| `create-tealina/template/**` | 三个后端包 × 六棵树（3 框架 × ts/js）、web 树与 `src/template-manifest.ts` | 改一个框架容易忘另外五个。`test/template-parity.test.ts` 约束文件集合、api/access 布局与包间依赖方向；`test/template-manifest.test.ts` 约束 manifest、每个文件的目的包与 import 解析 |
+| `create-tealina/template/**` | 三个后端包 × 三棵树（express/fastify/koa）、web 树与 `src/template-manifest.ts` | 改一个框架容易忘另外两个。`test/template-parity.test.ts` 约束 api/access 布局与包间依赖方向；`test/template-manifest.test.ts` 约束 manifest、每个文件的目的包与 import 解析 |
 
 ---
 
@@ -82,7 +82,7 @@
 |---|---|---|
 | T1 契约 | `test/contract.test.ts` | 拿 `template/**` 拼出 fixture 交给 `tsc`，包括 `core` 的 `paths` 接缝 |
 | T3 e2e | `test/e2e*` | `TEALINA_E2E=1` 门控：真装、真构建三个包、真起服务、真发请求 |
-| T4 manifest / parity | `test/template-manifest.test.ts`、`test/template-parity.test.ts` | 每个文件落在哪个包、每个 import 是否能在该包内解析；六棵树的结构与依赖方向 |
+| T4 manifest / parity | `test/template-manifest.test.ts`、`test/template-parity.test.ts` | 每个文件落在哪个包、每个 import 是否能在该包内解析；三棵树的结构与依赖方向 |
 | 生成器快照 | `packages/tealina/test/**` | 生成字符串是否正确、`--check` 是否只在漂移时退出 1 |
 
 仍然兜不住的两块：

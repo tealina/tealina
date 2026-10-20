@@ -14,8 +14,8 @@ export type Pkg = 'core' | 'api-v1' | 'server' | 'web'
  * A file the scaffold writes, as a `{src, dest}` pair.
  *
  * The pair rather than a bare path, because the two are not always the same string: the
- * tsconfigs and type files are shared with the other trees, and a JavaScript project's
- * config sits in a sibling directory.
+ * tsconfigs and type files are shared with the other framework trees, and a destination
+ * is relative to the package while the source is relative to `template/`.
  */
 export interface TemplateFile {
   /** Relative to `templateRootDir`. */
@@ -24,17 +24,6 @@ export interface TemplateFile {
   dest: string
   pkg: Pkg
 }
-
-/** Which language tree a file comes from. */
-export type Mode = 'ts' | 'js'
-
-const extOf = (mode: Mode) => (mode === 'js' ? '.js' : '.ts')
-
-const treeOf = (pkg: Pkg, fw: ServerTemplate, mode: Mode) =>
-  `${pkg}/${fw}${mode === 'js' ? '-js' : ''}`
-
-/** The sibling directory a JavaScript project's common files live in. */
-const commonTreeOf = (mode: Mode) => (mode === 'js' ? 'common/js' : 'common')
 
 const file = (pkg: Pkg, src: string, dest: string): TemplateFile => ({
   pkg,
@@ -54,58 +43,45 @@ const file = (pkg: Pkg, src: string, dest: string): TemplateFile => ({
  * patterns that match nothing in one of them cost nothing. The build config is separate
  * only because it emits.
  */
-const kConfigFiles: Record<Mode, readonly string[]> = {
-  ts: ['tsconfig.json', 'tsconfig.build.json'],
-  js: ['tsconfig.json'],
-}
+const kConfigFiles = ['tsconfig.json', 'tsconfig.build.json'] as const
 
-const configFiles = (pkg: Pkg, mode: Mode): TemplateFile[] =>
-  kConfigFiles[mode].map(dest =>
-    file(pkg, `${commonTreeOf(mode)}/${dest}`, dest),
-  )
+const configFiles = (pkg: Pkg): TemplateFile[] =>
+  kConfigFiles.map(dest => file(pkg, `common/${dest}`, dest))
 
 // ---------------------------------------------------------------------------
-// template/core/<fw>[-js]/
+// template/core/<fw>/
 // ---------------------------------------------------------------------------
 
 /**
- * Shipped by both modes, byte for byte.
+ * Shared by every framework, byte for byte.
  *
- * A `.d.ts` has no runtime, so the two modes genuinely share the contract layer rather
- * than each having a spelling of its own. `handler.d.ts` imports `./alias.js`; the two
- * files sit beside each other in the package, as they always have.
+ * A `.d.ts` has no runtime, so the frameworks genuinely share these contract files
+ * rather than each having a spelling of its own. `handler.d.ts` imports `./alias.js`; the
+ * two files sit beside each other in the package, as they always have.
  */
 const kCoreSharedTypes = ['types/handler.d.ts', 'types/common.d.ts'] as const
 
 /** Value-level files, named without their extension. */
 const kCoreSourceFiles = ['src/access/index', 'src/access/verifyToken'] as const
 
-export const coreFiles = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
-  ...configFiles('core', mode),
+export const coreFiles = (fw: ServerTemplate): TemplateFile[] => [
+  ...configFiles('core'),
   ...kCoreSharedTypes.map(dest => file('core', `common/core/${dest}`, dest)),
-  file('core', `${treeOf('core', fw, mode)}/package.json`, 'package.json'),
-  file(
-    'core',
-    `${treeOf('core', fw, mode)}/types/alias.d.ts`,
-    'types/alias.d.ts',
-  ),
+  file('core', `core/${fw}/package.json`, 'package.json'),
+  file('core', `core/${fw}/types/alias.d.ts`, 'types/alias.d.ts'),
   // Fastify's `alias.d.ts` augments `FastifyRequest` from a sibling file every program
-  // that reads the alias has to reach. The JavaScript tree's alias imports the same
-  // `./fastify.js`, so the file comes from the TypeScript tree in both modes.
+  // that reads the alias has to reach. Only the fastify tree has that file, so it is
+  // named explicitly rather than derived from the framework directory.
   ...(fw === 'fastify'
     ? [file('core', 'core/fastify/types/fastify.d.ts', 'types/fastify.d.ts')]
     : []),
   ...kCoreSourceFiles.map(bare =>
-    file(
-      'core',
-      `${treeOf('core', fw, mode)}/${bare}${extOf(mode)}`,
-      `${bare}${extOf(mode)}`,
-    ),
+    file('core', `core/${fw}/${bare}.ts`, `${bare}.ts`),
   ),
 ]
 
 // ---------------------------------------------------------------------------
-// template/api-v1/<fw>[-js]/
+// template/api-v1/<fw>/
 // ---------------------------------------------------------------------------
 
 /**
@@ -125,46 +101,39 @@ const kApiV1SourceFiles = [
   'src/router',
 ] as const
 
-/** Shared by both modes: the contract's exit point, the prefix constants and the docs. */
-const apiV1Shared = (mode: Mode): TemplateFile[] => [
+/**
+ * The contract's exit point, the prefix constants and the docs.
+ *
+ * `version.js` is the one deliberately literal `.js` file: it is a runtime constant that
+ * every package reads, and the sibling `version.d.ts` types it.
+ */
+const apiV1Shared: readonly TemplateFile[] = [
   file('api-v1', 'common/api-v1/types/api.d.ts', 'types/api.d.ts'),
   file('api-v1', 'common/api-v1/version.js', 'version.js'),
   file('api-v1', 'common/api-v1/version.d.ts', 'version.d.ts'),
   file('api-v1', 'common/api-v1/docs/.gitkeep', 'docs/.gitkeep'),
   file('api-v1', 'common/api-v1/AGENTS.md', 'AGENTS.md'),
-  file(
-    'api-v1',
-    `${commonTreeOf(mode)}/api-v1/tealina.config${extOf(mode)}`,
-    `tealina.config${extOf(mode)}`,
-  ),
+  file('api-v1', 'common/api-v1/tealina.config.ts', 'tealina.config.ts'),
 ]
 
-export const apiV1Files = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
-  ...configFiles('api-v1', mode),
-  ...apiV1Shared(mode),
-  file('api-v1', `${treeOf('api-v1', fw, mode)}/package.json`, 'package.json'),
+export const apiV1Files = (fw: ServerTemplate): TemplateFile[] => [
+  ...configFiles('api-v1'),
+  ...apiV1Shared,
+  file('api-v1', `api-v1/${fw}/package.json`, 'package.json'),
   ...kApiV1SourceFiles.map(bare =>
-    file(
-      'api-v1',
-      `${treeOf('api-v1', fw, mode)}/${bare}${extOf(mode)}`,
-      `${bare}${extOf(mode)}`,
-    ),
+    file('api-v1', `api-v1/${fw}/${bare}.ts`, `${bare}.ts`),
   ),
 ]
 
 // ---------------------------------------------------------------------------
-// template/server/<fw>[-js]/
+// template/server/<fw>/
 // ---------------------------------------------------------------------------
 
 /** The two files that are shared with the package root rather than living in `src/`. */
-const serverRootFiles = (mode: Mode): TemplateFile[] => [
+const serverRootFiles: readonly TemplateFile[] = [
   file('server', 'common/server/.env.example', '.env.example'),
   file('server', 'common/server/public/index.html', 'public/index.html'),
-  file(
-    'server',
-    `common/server/src/config/env${extOf(mode)}`,
-    `src/config/env${extOf(mode)}`,
-  ),
+  file('server', 'common/server/src/config/env.ts', 'src/config/env.ts'),
 ]
 
 const kServerSourceFiles = [
@@ -174,31 +143,24 @@ const kServerSourceFiles = [
   'src/routes/static/assets',
 ] as const
 
-export const serverFiles = (fw: ServerTemplate, mode: Mode): TemplateFile[] => [
-  ...configFiles('server', mode),
-  ...serverRootFiles(mode),
-  file('server', `${treeOf('server', fw, mode)}/package.json`, 'package.json'),
+export const serverFiles = (fw: ServerTemplate): TemplateFile[] => [
+  ...configFiles('server'),
+  ...serverRootFiles,
+  file('server', `server/${fw}/package.json`, 'package.json'),
   ...kServerSourceFiles.map(bare =>
-    file(
-      'server',
-      `${treeOf('server', fw, mode)}/${bare}${extOf(mode)}`,
-      `${bare}${extOf(mode)}`,
-    ),
+    file('server', `server/${fw}/${bare}.ts`, `${bare}.ts`),
   ),
 ]
 
 /** Every backend file `create` writes, in the order it writes it. */
-export const backendFiles = (
-  fw: ServerTemplate,
-  mode: Mode,
-): TemplateFile[] => [
-  ...coreFiles(fw, mode),
-  ...apiV1Files(fw, mode),
-  ...serverFiles(fw, mode),
+export const backendFiles = (fw: ServerTemplate): TemplateFile[] => [
+  ...coreFiles(fw),
+  ...apiV1Files(fw),
+  ...serverFiles(fw),
 ]
 
 // ---------------------------------------------------------------------------
-// template/web[/js]/
+// template/web/
 // ---------------------------------------------------------------------------
 
 /**
@@ -206,41 +168,18 @@ export const backendFiles = (
  * one you already have. It is a Vite project with no framework — the point is the
  * projection, not the UI.
  */
+const kWebFiles = [
+  'package.json',
+  'index.html',
+  'tsconfig.json',
+  'vite.config.ts',
+  'src/api/client.ts',
+  'src/main.ts',
+] as const
 
-/** Written identically by both modes: the package manifest says nothing about types. */
-const kWebShared = ['package.json'] as const
-
-/** Per mode under the same name — neither filename carries the mode. */
-const kWebNamed = ['index.html', 'tsconfig.json'] as const
-
-/** Per mode, named without the extension the mode gives it. */
-const kWebPerMode = ['vite.config', 'src/api/client', 'src/main'] as const
-
-/**
- * Files only one tree has, under their literal name — no `extOf`, because a `.d.ts`
- * spells its own type. The `Take*` names are a JavaScript convenience: the TypeScript
- * tree has them in `src/api/client`.
- */
-const kWebModeOnly: Record<Mode, readonly string[]> = {
-  ts: [],
-  js: ['types/api.d.ts'],
-}
-
-const webTreeOf = (mode: Mode) => (mode === 'js' ? 'web/js' : 'web')
-
-export const webFiles = (mode: Mode): TemplateFile[] => [
-  ...kWebShared.map(dest => ({
+export const webFiles = (): TemplateFile[] =>
+  kWebFiles.map(dest => ({
     pkg: 'web' as const,
     src: `web/${dest}`,
     dest,
-  })),
-  ...[
-    ...kWebNamed,
-    ...kWebModeOnly[mode],
-    ...kWebPerMode.map(bare => `${bare}${extOf(mode)}`),
-  ].map(dest => ({
-    pkg: 'web' as const,
-    src: `${webTreeOf(mode)}/${dest}`,
-    dest,
-  })),
-]
+  }))

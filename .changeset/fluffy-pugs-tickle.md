@@ -20,7 +20,7 @@ export const req = createFetchClient<ApiTypesForClient, RequestInit>(requester)
 One `workspace:*` dependency and one `import type` — `api-v1`'s `exports["./api"]` entry is
 the entire mechanism. No code generation, no `tsconfig` paths, no project references, no
 build step. Rename a field in a handler and the frontend stops compiling;
-`test/e2e.test.ts` asserts exactly that, install and build included, in both modes.
+`test/e2e.test.ts` asserts exactly that, install and build included.
 
 The page calls `GET /health`, because the scaffold's backend ships that route. It is a
 placeholder, not an example to keep: what it demonstrates is the typed `req`, not the
@@ -29,7 +29,3 @@ markup.
 `--web` also adds the package to the workspace, which is why the root scripts are written
 as `pnpm -r …` from the start: the same scripts cover three backend packages, and cover
 four when the frontend is present.
-
-Both modes get the frontend, `--js` included: `template/web/js` is the same package with
-JSDoc in place of type syntax, reaching the API record through `ShapeWitness` rather than a
-type argument.

@@ -43,7 +43,7 @@ handler's annotation is the single source of truth that the router, the API docu
 and the frontend types are derived from. `--web` adds a minimal Vite frontend that reads
 those types rather than restating them.
 
-`--template express|fastify|koa`, `--js` and `--no-install` make a run fully
+`--template express|fastify|koa` and `--no-install` make a run fully
 non-interactive; the tutorial continues in
 [the scaffold's README](./packages/create-tealina/README.md).
 

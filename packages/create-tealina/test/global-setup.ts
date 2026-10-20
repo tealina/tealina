@@ -22,12 +22,7 @@ const repoRoot = path.resolve(here, '../../..')
  *
  * CI builds before testing, so there this is a rebuild of what already exists.
  */
-const LINKED_PACKAGES = [
-  'tealina',
-  '@tealina/client',
-  '@tealina/doc-ui',
-  '@tealina/server',
-]
+const LINKED_PACKAGES = ['tealina', '@tealina/doc-ui', '@tealina/server']
 
 export default function setup() {
   for (const name of LINKED_PACKAGES) {

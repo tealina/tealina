@@ -22,6 +22,7 @@ export const parseCreateInfo = (
   method: string,
   fullPathArr: string[],
   fileDir: string,
+  sourceExt?: string,
 ): TemplateContext => {
   const dirPathArr = fullPathArr.slice(0, -1)
   const dir = dirPathArr.at(-1) ?? ''
@@ -33,6 +34,7 @@ export const parseCreateInfo = (
     Filename: capitalize(filename),
     fileDir,
     method,
+    sourceExt,
   }
 }
 

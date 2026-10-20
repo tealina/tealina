@@ -5,12 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import prompts from 'prompts'
-import {
-  type Mode,
-  type Pkg,
-  backendFiles,
-  webFiles,
-} from './template-manifest.js'
+import { type Pkg, backendFiles, webFiles } from './template-manifest.js'
 
 const { blue, green, reset } = chalk
 const { join } = path
@@ -105,7 +100,6 @@ export const isServerTemplate = (v: string): v is ServerTemplate =>
 const collectUserAnswer = async (
   argProjectName: string | undefined,
   presetServer: string | undefined,
-  presetMode: Mode | undefined,
 ) => {
   if (presetServer != null && !isServerTemplate(presetServer)) {
     throw new Error(
@@ -113,10 +107,7 @@ const collectUserAnswer = async (
     )
   }
   // Only ask what the flags did not already answer, so `--template x <name>` is
-  // fully non-interactive (that is what the e2e test relies on). The mode question rides
-  // on the same rule rather than one of its own: a caller who named a template has asked
-  // for a non-interactive run, and stopping to ask about JavaScript would break that
-  // promise. They get TypeScript, and `--js` is how they say otherwise.
+  // fully non-interactive (that is what the e2e test relies on).
   const questions = [
     ...(argProjectName
       ? []
@@ -142,30 +133,12 @@ const collectUserAnswer = async (
             ],
           },
         ]),
-    // Skipped when *either* flag was given: `--template` alone already promises a
-    // non-interactive run, and `--js`/`--ts` alone has answered this very question.
-    ...(presetServer || presetMode
-      ? []
-      : [
-          {
-            message: reset('TypeScript or JavaScript?'),
-            name: 'mode',
-            type: 'select' as const,
-            choices: [
-              { title: 'TypeScript', value: 'ts' },
-              {
-                title: 'JavaScript — ESM, no build; types via .d.ts + JSDoc',
-                value: 'js',
-              },
-            ],
-          },
-        ]),
   ]
   const answers = (await prompts(questions, {
     onCancel: () => {
       throw 'Canceled'
     },
-  })) as { projectName?: string; server?: ServerTemplate; mode?: Mode }
+  })) as { projectName?: string; server?: ServerTemplate }
 
   const rawName = answers.projectName ?? argProjectName
   if (rawName == null) throw 'Canceled'
@@ -174,7 +147,6 @@ const collectUserAnswer = async (
   return {
     projectName: formatDestDir(rawName),
     server,
-    mode: answers.mode ?? presetMode ?? 'ts',
   }
 }
 
@@ -191,25 +163,21 @@ const toPkgName = (raw: string) => {
  * The root scripts are written here rather than shipped in `template/root`: `create`
  * owns the whole `scripts` block, so a script that lived in the file would be lost.
  *
- * In TypeScript the two library packages are compiled once before the watchers start:
- * the server imports their `dist/`. In JavaScript there is nothing to build, so `build`
- * is the type checker — the same command the editor runs, over the same files.
+ * The two library packages are compiled once before the watchers start: the server
+ * imports their `dist/`.
  *
  * `pnpm -r` covers three backend packages, and covers `packages/web` as well when the
  * optional frontend is present. `check`/`fmt`/`lint` are Vite+'s Oxc toolchain; the root
  * `vite.config.ts` holds the settings they share.
  */
-const rootScripts = (mode: Mode) => ({
-  dev:
-    mode === 'js'
-      ? 'pnpm -r --parallel dev'
-      : 'pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev',
+const rootScripts = {
+  dev: 'pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev',
   build: 'pnpm -r build',
   start: 'pnpm -F server start',
   check: 'vp check',
   fmt: 'vp fmt',
   lint: 'vp lint',
-})
+}
 
 const createRoot = (ctx: ContextType) => {
   fs.mkdirSync(ctx.dest, { recursive: true })
@@ -217,7 +185,7 @@ const createRoot = (ctx: ContextType) => {
   const pkgPath = join(ctx.root, 'package.json')
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
   pkg.name = toPkgName(path.basename(ctx.root))
-  pkg.scripts = rootScripts(ctx.answer.mode)
+  pkg.scripts = rootScripts
   fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
 }
 
@@ -228,10 +196,7 @@ const createBackendProject = async (ctx: ContextType) => {
   for (const pkgName of kBackendPkgs) {
     await mayOverwrite(join(ctx.backend, pkgName))
   }
-  for (const { src, dest, pkg } of backendFiles(
-    ctx.answer.server,
-    ctx.answer.mode,
-  )) {
+  for (const { src, dest, pkg } of backendFiles(ctx.answer.server)) {
     const filePath = join(ctx.backend, pkg, dest)
     fs.mkdirSync(path.dirname(filePath), { recursive: true })
     fs.copyFileSync(join(templateRootDir, src), filePath)
@@ -241,7 +206,7 @@ const createBackendProject = async (ctx: ContextType) => {
 const createWebProject = async (ctx: ContextType) => {
   const destWebDir = join(ctx.dest, 'web')
   await mayOverwrite(destWebDir)
-  for (const { src, dest } of webFiles(ctx.answer.mode)) {
+  for (const { src, dest } of webFiles()) {
     const filePath = join(destWebDir, dest)
     fs.mkdirSync(path.dirname(filePath), { recursive: true })
     fs.copyFileSync(join(templateRootDir, src), filePath)
@@ -293,12 +258,7 @@ const installAndGenerate = async (ctx: ContextType) => {
 }
 
 const showGuide = (ctx: ContextType, ready: boolean) => {
-  const { projectName, mode } = ctx.answer
-  // Said out loud because `--template express <name>` settles the mode without asking,
-  // and a scaffold that quietly picked one of two languages is worth one line.
-  console.log(
-    `\n${green(`Scaffolded a ${mode === 'js' ? 'JavaScript' : 'TypeScript'} project.`)}`,
-  )
+  const { projectName } = ctx.answer
   logGuids([
     {
       title: blue('Done. Now run:'),
@@ -337,24 +297,21 @@ const createCtx = async () => {
     template?: string
     install?: boolean
     'no-install'?: boolean
-    js?: boolean
-    ts?: boolean
     web?: boolean
   }>(process.argv.slice(2), {
     string: ['_', 'template'],
-    boolean: ['no-install', 'js', 'ts', 'web'],
+    boolean: ['no-install', 'web'],
   })
-  // Two flags rather than one `--mode <value>`: this is a binary choice, and `--js` is
-  // the thing someone types. `--ts` exists so a script can say "not JavaScript"
-  // regardless of what the interactive default is.
-  if (argv.js && argv.ts) {
-    throw new Error('--js and --ts contradict each other; pass one.')
+  // minimist still collects flags it was not told about. Refuse the removed language
+  // flags rather than silently scaffolding TypeScript for a caller that asked for
+  // another language.
+  const removed = argv as typeof argv & { js?: unknown; ts?: unknown }
+  if (removed.js != null || removed.ts != null) {
+    throw new Error(
+      'TypeScript is the only scaffold language; --js and --ts were removed.',
+    )
   }
-  const answer = await collectUserAnswer(
-    argv._[0],
-    argv.template,
-    argv.js ? 'js' : argv.ts ? 'ts' : undefined,
-  )
+  const answer = await collectUserAnswer(argv._[0], argv.template)
   const root = path.resolve(process.cwd(), answer.projectName)
   const projectRootDir = path.resolve(fileURLToPath(import.meta.url), '../../')
   return {

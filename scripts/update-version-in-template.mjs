@@ -2,8 +2,8 @@ import { writeFileSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 
 // Every template package that declares a workspace dependency. The backend is one
-// manifest per package per tree, the `-js` trees included: a version left behind in any of
-// them is a scaffold that installs a different CLI than the one that generated it.
+// manifest per package per framework: a version left behind in any of them is a scaffold
+// that installs a different CLI than the one that generated it.
 const TEMPLATE_TREES = ['core', 'api-v1', 'server']
 
 const templatePackagePaths = async () => {

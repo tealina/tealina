@@ -32,10 +32,9 @@ pnpm dev
 - Service: http://localhost:8000
 - API documentation: http://localhost:8000/api-doc/index.html
 
-Add `--template express|fastify|koa` to skip the framework prompt, `--js` for the
-JavaScript tree, `--no-install` to skip the install and the doc generation (it prints the
-commands instead), and `--web` for the frontend described
-[below](#-adding-a-frontend).
+Add `--template express|fastify|koa` to skip the framework prompt, `--no-install` to
+skip the install and the doc generation (it prints the commands instead), and `--web`
+for the frontend described [below](#-adding-a-frontend).
 
 ### Requirements
 
@@ -100,6 +99,48 @@ pnpm -F api-v1 gdoc                 # regenerates docs/api.json
 
 The `index.*` files under `src/api/` are **derived artifacts**. Run `align` whenever
 you add, rename or delete a handler by hand; never edit them directly.
+
+## 🟨 Keeping JavaScript handlers
+
+There is one scaffold language — TypeScript — but a project does not have to move every
+handler at once. A `.js` file is compiled and checked beside the `.ts` ones, and you can
+rename files over time.
+
+1. Set `"allowJs": true` in every backend package's `tsconfig.json` and
+   `tsconfig.build.json`. The scaffolds ship the same file in each package, but each one
+   needs the flag: `server` resolves `api-v1/mount` through that package's `types` entry,
+   which points at `src/mount.ts`, so the host compiles the route tree as well — a `.js`
+   barrel with no `allowJs` there is TS7016.
+2. In `api-v1` — the package that keeps the handlers — also add `"checkJs": true` to both
+   files and `"src/**/*.js"` to `include` in `tsconfig.json`. The include patterns are
+   explicit, so `allowJs` alone does not widen them. (The build config includes the whole
+   `src` directory, so it needs only the flags.)
+3. In `tealina.config.ts`, set `sourceExt: '.js'`. `create` then writes a JSDoc stub and
+   `align` names its barrels `index.js`.
+4. Annotate a handler through the published entry, with no globals to set up:
+
+   ```js
+   /**
+    * @typedef {object} LoginPayload
+    * @property {string} account
+    */
+
+   /** @type {import('core/handler').AuthedHandler<{ body: LoginPayload }, { token: string }>} */
+   const handler = async (req, res) => {
+     res.send({ token: 'JWT token' })
+   }
+
+   export default authedApi(handler)
+   ```
+
+5. The first `align` after switching writes `index.js` and leaves the old generated
+   `index.ts` beside it. Delete the `index.ts` barrels once — NodeNext resolves `./index.js`
+   to `index.ts` before the real `.js`, so leaving both means the generated one wins and
+   your new handler is invisible.
+
+To finish the migration, rename handlers one at a time, then remove the flags and
+`sourceExt` when no `.js` files remain. A frontend kept in JavaScript needs `allowJs` and
+`checkJs` in `packages/web/tsconfig.json`; its `include` already covers `.js`.
 
 ## 🔗 Adding a frontend
 

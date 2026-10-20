@@ -126,6 +126,15 @@ export interface TemplateContext {
   fileDir: string
   /** HTTP method (lowercase) */
   method: string
+  /**
+   * The extension the file will be written with — the configured `sourceExt`.
+   *
+   * A generator branches on it when it can emit more than one language: a project that
+   * still keeps `.js` handlers sets `sourceExt: '.js'` and needs a JavaScript stub, while
+   * a `.ts` project needs a TypeScript one.
+   * @default ".ts"
+   */
+  sourceExt?: string
 }
 
 type CodeGenerateFuntion = (ctx: TemplateContext) => string

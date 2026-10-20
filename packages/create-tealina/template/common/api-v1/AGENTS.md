@@ -26,6 +26,11 @@ lives in the `core` package. The generated stubs import it from `core/handler` a
 - Annotate the handler's type above the `const`: `OpenHandler<Payload, Response>` or
   `AuthedHandler<Payload, Response>`. Use an `interface` (not an inline object type) for
   a payload shape — the document generator reads the declaration's name.
+- A handler kept in `.js` during a migration carries the same type as a JSDoc
+  `@type {import('core/handler').OpenHandler<…>}` (or `AuthedHandler<…>`) on its `const`,
+  with an `@typedef` above it for the payload shape. There are no global aliases. The
+  package needs `allowJs`/`checkJs` and `sourceExt: '.js'` in `tealina.config`; the
+  scaffold's README has the full recipe.
 - JSDoc comments become API documentation; `//` comments do not.
 - Regenerate the API document with `pnpm gdoc` after changing a handler.
 - `src/mount`, `src/router` and `src/doc` are this package's host seam. `mount` returns a

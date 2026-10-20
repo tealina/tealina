@@ -8,6 +8,11 @@ Add `sourceExt`, and probe for a `.js` / `.mjs` tealina config
 handler stub. It defaults to `".ts"`, so an existing project sees no change. Set it to `".js"`
 for a project whose sources are JavaScript.
 
+The extension now also reaches the template config: `TemplateContext` carries `sourceExt`, so a
+`generateFn` can emit a JSDoc stub for a `.js` file instead of writing TypeScript syntax into it.
+The scaffolding template does exactly that, which is what makes a project kept in JavaScript
+work without a second template tree.
+
 It is deliberately not the same option as `suffix`. That one is what the generated `import`
 statements say, and the two are only equal by coincidence: under `moduleResolution: NodeNext` a
 TypeScript project writes `import './x.js'` and still names the file `x.ts`. Folding them into

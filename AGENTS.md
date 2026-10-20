@@ -61,9 +61,9 @@ does not have, so a Node 20 build fails at the first step. `.nvmrc`, CI, `engine
    uses the same snapshots and stops before writing.
 3. **The template is data, not this repo's source.** `packages/create-tealina/template/**` is
    shipped into user projects and is excluded from this repo's type check and lint (its imports
-   only resolve inside a scaffold). Changes must land in **all six trees per package** (express,
-   fastify, koa × TypeScript/JavaScript) where the file exists in each; `test/template-parity.test.ts`
-   enforces the sets and `test/template-manifest.test.ts` enforces the manifest.
+   only resolve inside a scaffold). Changes must land in **all three framework trees per package**
+   (express, fastify, koa) where the file exists in each; `test/template-parity.test.ts` enforces
+   the layout and `test/template-manifest.test.ts` enforces the manifest.
 4. **`src/template-manifest.ts` is the list of shipped files.** A file added under
    `template/core/`, `template/api-v1/`, `template/server/` or `template/web/` but not named
    there never ships. The three backend packages each get their own destination root —
@@ -71,7 +71,9 @@ does not have, so a Node 20 build fails at the first step. `.nvmrc`, CI, `engine
    copied wholesale, so anything placed there ships as-is.
 5. **The contract layer is `types/handler.d.ts` + one `types/alias.d.ts` per framework.** Change
    them only when you intend to change the convention for every handler in every generated
-   project. `alias.d.ts` is the only framework seam.
+   project. `alias.d.ts` is the only framework seam. Express's alias repeats its call signature
+   on purpose: a `.js` handler annotated with a JSDoc `@type`, kept while a project migrates to
+   TypeScript, is rejected by a single signature. Do not "simplify" it away.
 6. **Artifact names are fixed; `apiDir` is configuration.** `tealina.config` supplies `apiDir`
    and `apiBaseURL`, and the CLI commands take no directory argument. The type file is always
    `types/api.d.ts`, the document `docs/api.json`, the package export `./api`. Renaming the api
@@ -95,14 +97,15 @@ TEALINA_E2E=1 pnpm -F create-tealina test            # real install + server + r
 The scaffold has one entry point and one template:
 
 - `create` builds a new monorepo: three backend packages (`core`, `api-v1`, `server`), the
-  contract layer, the docs, and optionally a Vite frontend (`--web`). `--template`, `--js`,
+  contract layer, the docs, and optionally a Vite frontend (`--web`). `--template` and
   `--no-install` make it non-interactive.
 - The backend packages depend on each other in one direction: `core → api-v1 → server`.
   `pnpm -r build` is topological, so a package that imports a sibling builds after it.
 
-When changing a template file, ask which modes and frameworks carry it. The TypeScript and
-JavaScript trees are translations of each other, not copies; `types/alias.d.ts` deliberately
-repeats each call signature so JSDoc-annotated JavaScript handlers type-check (TS1065).
+When changing a template file, ask which frameworks carry it. A project that still keeps
+`.js` handlers does not have a template of its own: it enables `allowJs`/`checkJs` and sets
+`sourceExt: '.js'` in `tealina.config.ts`, which the generator honours by emitting a JSDoc
+stub. The recipe is in `packages/create-tealina/README.md`.
 
 ## Documentation
 

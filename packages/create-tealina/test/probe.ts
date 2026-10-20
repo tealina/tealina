@@ -1,14 +1,14 @@
 /**
  * The projection probes, used by T1 (`contract.test.ts`).
  *
- * T1 compiles a probe against the types derived from the shipped template, and the mutation
- * self-check is the same construct. Keeping the probe here means the fixture and the
- * self-check cannot drift apart, which is exactly the failure a self-check exists to
- * prevent.
+ * T1 compiles a probe against the types derived from the shipped template, and the
+ * mutation self-check is the same construct. Keeping the probe here means the fixture
+ * and the self-check cannot drift apart, which is exactly the failure a self-check
+ * exists to prevent.
  *
- * `PROBE_JS` does not merely import the projections — it asserts them. Without those
- * assertions the JavaScript arm would be a false green, because `ExtractApiType` can
- * degrade to `never` without a single compiler error.
+ * The probe asserts the projections rather than merely importing them: without those
+ * assertions it would be a false green, because `ExtractApiType` can degrade to `never`
+ * without a single compiler error.
  *
  * Every specifier below is written for a probe sitting at the *fixture root*, next to
  * `types/` and `src/`. T1 places it there.
@@ -41,53 +41,22 @@ export const articleDoc: ArticleDoc['response'] = { id: 1 }
 `
 
 /**
- * The same assertions, spelled the way a checked `.js` file has to spell them. Every
- * positive case is a bare `@type` with no suppression anywhere near it — that is what
- * makes it able to fail.
- *
- * `@ts-expect-error` is not used on this side for the same reason: it is a weak probe.
- * Under `never` the "wrong" assignment genuinely is an error, so the directive is legally
- * consumed and the file stays clean. The only construct that catches the degradation is
- * the unsuppressed positive assignment, which is why the negative cases are simply
- * dropped rather than transliterated — they would add lines that cannot fail.
- */
-export const PROBE_JS = `/**
- * @typedef {import('./types/api.js').ApiTypesForDoc} ApiTypesForDoc
- * @typedef {import('./types/api.js').ApiTypesForClient} ApiTypesForClient
- */
-
-/** @type {ApiTypesForDoc['get']['health']['response']} */
-export const docOk = { isOk: true }
-
-/** @type {ApiTypesForClient['post']['login']['body']} */
-export const loginOk = { account: 'a', password: 'b' }
-
-/** @type {ApiTypesForClient['post']['article']['body']} */
-export const articleOk = { title: 't', content: 'c' }
-
-/** @type {ApiTypesForDoc['post']['article']['response']} */
-export const articleDoc = { id: 1 }
-`
-
-/**
  * `openApi` / `authedApi` rewritten to the shape the shipped pair would have if someone
- * annotated the rest parameter instead of the whole tuple — the mistake this design is most
- * exposed to, and the one no compiler error points at. Returned as a plain array, the
- * per-endpoint tuple is lost: `LastElement` hands back the array itself, an array is not a
- * `HandlerAlias`, and so `ExtractApiType` degrades to `never`.
+ * annotated the rest parameter instead of the whole tuple — the mistake this design is
+ * most exposed to, and the one no compiler error points at. Returned as a plain array,
+ * the per-endpoint tuple is lost: `LastElement` hands back the array itself, an array is
+ * not a `HandlerAlias`, and so `ExtractApiType` degrades to `never`.
  *
- * Used only to prove the probe can still see that. It is `core/src/access/index.js` of a
- * JavaScript tree, so it only replaces a `.js` one and its specifiers are written from
- * that directory.
+ * Used only to prove the probe can still see that. Its specifiers are written from
+ * `core/src/access/`, where the shipped module it replaces sits.
  */
-export const WIDENED_ACCESS = `/**
- * @typedef {import('../../types/handler.js').CustomHandlerType} CustomHandlerType
- * @typedef {(...handlers: CustomHandlerType[]) => CustomHandlerType[]} EnsureHandlerType
- */
+export const WIDENED_ACCESS = `import type { CustomHandlerType } from '../../types/handler.js'
 
-/** @type {EnsureHandlerType} */
-export const openApi = (...handlers) => handlers
+type EnsureHandlerType = (
+  ...handlers: CustomHandlerType[]
+) => CustomHandlerType[]
 
-/** @type {EnsureHandlerType} */
-export const authedApi = (...handlers) => handlers
+export const openApi: EnsureHandlerType = (...handlers) => handlers
+
+export const authedApi: EnsureHandlerType = (...handlers) => handlers
 `

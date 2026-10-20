@@ -120,8 +120,9 @@ packages/web/             only with --web
 A new API version is a new package (`backend/api-v2`) that depends on `core` and is
 mounted by `server` beside `api-v1`. Nothing in `core` or in the frontend names a version.
 
-Scaffolded with `--js`, every `.ts` above is a `.js` and the annotations move into JSDoc;
-nothing else about the layout changes.
+A handler can stay in `.js` while the rest of the project is TypeScript; it is then
+annotated with a JSDoc `@type` rather than a type annotation, and nothing about the layout
+changes. The setup is in the scaffold's README under "Keeping JavaScript handlers".
 
 ## The convention
 
@@ -153,32 +154,11 @@ Which of the two you call decides whether the route is public — see
   the declaration, and an inline object type would be inlined into the document.
 - JSDoc comments become documentation; `//` comments are ignored.
 
-Scaffolded with `--js`, the same handler is written in JSDoc, with the types reached
-through a `typedef`:
-
-```js
-import { openApi } from 'core/access'
-
-/**
- * @typedef {object} LoginPayload
- * @property {string} account
- * @property {string} password
- */
-
-/** @type {import('core/handler').OpenHandler<{ body: LoginPayload }, { token: string }>} */
-const handler = async (req, res) => {
-  res.send({ token: 'JWT token' })
-}
-
-export default openApi(handler)
-```
-
-The type goes in a JSDoc block directly above the `const` — the same place the TypeScript
-tree puts `: ApiType`, and the form `align` writes for you. It stays on the `const`, not
-inline in the `openApi(...)` call: that call is how the generator finds the handler, and
-an inline annotation leaves it holding an expression instead of a name. And it stays a
-`const` — on a `function` declaration the `@type` tag *checks* the function rather than
-typing it.
+When a handler file is kept in `.js` during a migration, the same type is written as a
+JSDoc `@type` on the `const`, reaching it through `import('core/handler')` — never a
+global name. The type stays on the `const`, not inline in the `openApi(...)` call: that
+call is how the generator finds the handler, and an inline annotation leaves it holding an
+expression instead of a name.
 
 The description has to share that block. A second JSDoc block above it is not attached to
 the declaration at all, so the endpoint would appear in the documentation with no
@@ -336,9 +316,6 @@ dependency and one import:
 
    `import type` is **required**: the `exports` entry publishes a `types` condition only.
 
-A JavaScript frontend reaches the same types through a JSDoc `typedef` instead of a type
-argument; `packages/web/src/api/client.js` in a `--js` scaffold is the worked example.
-
 ## The contract layer
 
 `backend/core/types/` and `backend/api-v1/types/api.d.ts` are the part you should not
@@ -348,8 +325,8 @@ casually restructure:
   derive client and doc types. Imports `./alias.js`.
 - `core/types/alias.d.ts` — the one framework-specific file. This is where
   express/fastify/koa request and response types get bound to the generic handler shape.
-  In a JavaScript project the copy repeats the call signature, which is what keeps a
-  checked `.js` handler's `async` form from being rejected (TS1065).
+  Express's version repeats its call signature so that a `.js` handler kept during a
+  migration can carry a JSDoc `@type` while staying `async`; do not remove the repetition.
 - `core/types/common.d.ts` — shared payload/header/locals shapes.
 - `api-v1/types/api.d.ts` — the exit point. `ApiTypesForDoc` **must** stay the first
   export in this file; the doc generator picks it up by position. It is what
@@ -373,7 +350,7 @@ import, not what a frontend imports.
 | `pnpm fmt` | rewrite files with Oxfmt |
 | `pnpm lint` | report lint and type errors with Oxlint |
 | `pnpm -F api-v1 create <method> <path>` | create a handler stub |
-| `pnpm -F api-v1 align` | rewrite the generated `index.ts` files from the file tree |
+| `pnpm -F api-v1 align` | rewrite the generated `index.*` files from the file tree |
 | `pnpm -F api-v1 gdoc` | regenerate the API document |
 | `pnpm -F api-v1 dev` | watch-compile the api package |
 | `pnpm -F core dev` | watch-compile the contract layer |
@@ -382,6 +359,3 @@ import, not what a frontend imports.
 | `pnpm -F server start` | run the compiled host |
 | `pnpm -F web dev` | start the frontend dev server (with `--web`) |
 | `pnpm -F web build` | type-check and bundle the frontend (with `--web`) |
-
-In a `--js` scaffold `pnpm build` type-checks instead of compiling: the packages run their
-sources directly, so there is nothing to emit.

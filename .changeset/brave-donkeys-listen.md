@@ -12,5 +12,4 @@ held that single file and is gone.
 
 A handler's import follows: `'../../../access.js'` is `'core/access'`. Because `core` is a
 workspace package with its own `exports` map, the specifier is the same in every directory
-of every api tree, however deep the handler sits — the six template trees differ only in
-their extension.
+of every api tree, however deep the handler sits, whichever framework the project uses.

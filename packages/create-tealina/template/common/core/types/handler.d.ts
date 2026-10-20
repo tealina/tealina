@@ -116,26 +116,3 @@ export type MakeExamplesType<T> =
   T extends HandlerAlias<infer P, any>
     ? RemapToExampleType<DocTargetFirst<P>>
     : never
-
-// ---------------------------------------------------------------------------
-// Global aliases
-// ---------------------------------------------------------------------------
-
-// Aliases for JavaScript handlers.
-//
-// A `.js` handler has no `import type`, so without these each one would repeat a relative
-// import chain. `EmptyObj` is declared again here only to make the name reachable without
-// an import; it is the same type as the one this file exports above.
-declare global {
-  type EmptyObj = {}
-
-  type OpenAPI<
-    TPayload extends VariantPayload = EmptyObj,
-    TResponse = unknown,
-  > = OpenHandler<TPayload, TResponse>
-
-  type AuthedAPI<
-    TPayload extends VariantPayload = EmptyObj,
-    TResponse = unknown,
-  > = AuthedHandler<TPayload, TResponse>
-}

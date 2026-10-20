@@ -379,12 +379,18 @@ Oxlint 检查并在其上做类型检查，`pnpm fmt` / `pnpm lint` 各跑一半
 
 文件清单由 `src/template-manifest.ts` 列出，不遍历目录：一个文件只有被 manifest 点名才会
 被写出，`test/template-manifest.test.ts` 会抓住「模板里有、manifest 没点名」的文件。
-`create` 拼好项目后安装、跑 `api-v1` 的 `gdoc`；`--template`、`--js`、`--web`、
-`--no-install` 让整个运行可以完全非交互。
+`create` 拼好项目后安装、跑 `api-v1` 的 `gdoc`；`--template`、`--web`、`--no-install`
+让整个运行可以完全非交互。
 
-三套框架 × 两种语言共六棵树，每个包各有一套。结构由 `test/template-parity.test.ts` 约束：
-同一包、同一框架的 TS 与 JS 树文件集合一致，所有框架的 `src/api/` 与 `src/access/` 布局
-一致。内容可以不同——JS 是翻译而不是拷贝——但漏掉一个文件会在测试里现形。
+三个框架各一棵树，每个包各有一套。结构由 `test/template-parity.test.ts` 约束：所有框架的
+`src/api/` 与 `src/access/` 布局一致、artifact 名字固定、包间依赖只有一个方向。内容可以
+不同（fastify 有自己的模块增强），但漏掉一个文件会在测试里现形。
+
+项目保留 `.js` handler 时不需要另一棵树：在 `tsconfig.json` 与 `tsconfig.build.json` 打开
+`allowJs`/`checkJs`、把 `src/**/*.js` 加进 include，并在 `tealina.config.ts` 设
+`sourceExt: '.js'`。生成器据此写 JSDoc stub，`align` 也按 `.js` 命名 barrel；`.ts` handler
+可以逐个迁移。express 的 `alias.d.ts` 因此重复了一次调用签名——单个签名会让带 JSDoc
+`@type` 的 `async` handler 编译失败。
 
 ## 10. 已知限制
 

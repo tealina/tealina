@@ -5,12 +5,11 @@ import type { MockApi } from '../MockApi'
 // The witness is read as a type and never as a value: a JavaScript caller hands the
 // factory a `ShapeWitness<ApiTypes>` that is `undefined` at runtime, purely to give
 // the shape type parameter somewhere to be inferred from. This guards that half. The
-// other half — that it really does pin the projection — can only be shown where a
-// JavaScript tree is compiled against a server's exported types, which is what the
-// generated `web` package in create-tealina is for.
+// other half — that it really does pin the projection — needs a JavaScript caller compiled
+// against a server's exported types, which this package cannot produce on its own.
 test('a shape witness is inert', async () => {
   const mockFetchFn = vi.fn()
-  global.fetch = mockFetchFn
+  globalThis.fetch = mockFetchFn
   mockFetchFn.mockResolvedValueOnce({
     ok: true,
     json: () => Promise.resolve({ status: 'fine' }),

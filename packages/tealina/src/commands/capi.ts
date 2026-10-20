@@ -234,17 +234,21 @@ const calcRelativeFilesSnapshots = ({
     ),
   )
 
-const toApiFileSnapshot = ({
-  kind,
-  namePaths,
-  generateFn,
-  apiFileSummary: { filePath },
-}: FullSeeds): Snapshot => ({
-  group: 'api',
-  action: 'create',
-  filePath,
-  code: generateFn(parseCreationInfo(kind, namePaths, dirname(filePath))),
-})
+const toApiFileSnapshot =
+  (sourceExt: string) =>
+  ({
+    kind,
+    namePaths,
+    generateFn,
+    apiFileSummary: { filePath },
+  }: FullSeeds): Snapshot => ({
+    group: 'api',
+    action: 'create',
+    filePath,
+    code: generateFn(
+      parseCreationInfo(kind, namePaths, dirname(filePath), sourceExt),
+    ),
+  })
 
 const toApiTestSnapshot =
   (genSuite: GenTestSuiteFnType) =>
@@ -290,7 +294,7 @@ const calcApiSnpashots = (ctx: FullContext) =>
   pipe(
     ctx.seeds,
     filter(v => !v.apiFileSummary.isExists),
-    map(toApiFileSnapshot),
+    map(toApiFileSnapshot(ctx.sourceExt)),
   )
 
 const calcSnapshots = (ctx: FullContext): Snapshot[] =>
