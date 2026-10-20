@@ -64,15 +64,15 @@ src/api/
 **get/index.ts:**
 ```ts
 export default {
-  health: import('./health.ts'), // route : handler
+  health: import('./health.js'), // route : handler
 }
 ```
 
 **src/api/index.ts:**
 ```ts
 export default {
-  get: import('./get/index.ts'),
-  post: import('./post/index.ts'),
+  get: import('./get/index.js'),
+  post: import('./post/index.js'),
 }
 ```
 

@@ -3,16 +3,11 @@
 *.local
 *.log
 /.vscode/
-docs/.vitepress/dist
-docs/.vitepress/cache
 dist
 node_modules
 temp
 coverage
 
 # ignore those can be generate
-playground/shop-nexa/server/prisma/dev.db
-playground/shop-nexa/server/src/api-v1
-playground/shop-nexa/server/docs/**
 temp-*
 packages/tealina-doc-ui/static

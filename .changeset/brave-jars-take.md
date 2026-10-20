@@ -4,7 +4,7 @@
 
 Replace the full-kit scaffold with the minimal one
 
-`create-tealina` is now the scaffold developed as `create-tealina-lite`. It is a reduction
+`create-tealina` now generates the minimal scaffold. It is a reduction
 of what 2.x generated: no database layer, no Prisma or SQLite, no `shared-types` workspace
 package, no `create-vite` React frontend, no bun runtime fork — node only. What remains is
 an API server, its contract layer and its documentation generator, which is what the name

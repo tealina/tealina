@@ -28,7 +28,7 @@ const getRemoteConfig = async (): Promise<RemoteConfig | undefined> => {
 export default defineConfig(() => ({
   plugins: lazyPlugins(async () => [
     react(),
-    UnoCSS(),
+    UnoCSS({ configFile: `${__dirname}/uno.config.ts` }),
     {
       name: 'inject-tealina-config',
       apply: 'serve',

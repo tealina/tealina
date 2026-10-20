@@ -16,15 +16,10 @@
     "up-temp-versions": "node scripts/update-version-in-template.mjs"
   },
   "dependencies": {
-    "@changesets/cli": "^2.26.2",
-    "fast-glob": "^3.3.1",
-    "tealina-monorepo": "link:."
+    "@changesets/cli": "^2.26.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "catalog:",
-    "dotenv-cli": "^10.0.0",
-    "tsx": "4.19.2",
     "typescript": "^6.0.3",
     "vite": "catalog:",
     "vite-plus": "catalog:",

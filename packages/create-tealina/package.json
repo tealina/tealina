@@ -46,7 +46,7 @@
     "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
     "tealina": "workspace:*",
-    "tsx": "3.12.7",
+    "tsx": "^4.20.5",
     "typescript": "~6.0.3"
   },
   "engines": {

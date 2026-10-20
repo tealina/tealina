@@ -2,7 +2,7 @@
 "create-tealina": minor
 ---
 
-Initial release. A minimal tealina scaffold: no database, no Prisma, three backend
+A minimal tealina scaffold: no database, no Prisma, three backend
 workspace packages (`core`, `api-v1`, `server`) instead of four. The default output has no
 frontend either — the contract is published through `api-v1`'s `exports["./api"]`, so the
 types are ready for whatever client you bring. `--web` writes a minimal Vite one if you
