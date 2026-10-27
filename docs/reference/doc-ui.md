@@ -1,34 +1,36 @@
 # @tealina/doc-ui
 
-一个自包含的 API 文档页面：端点浏览器、类型表格、Markdown 注释和交互式在线调试。它可以渲染
-Tealina 的 `ApiDoc`（`tealina gdoc` 的产物）或 OpenAPI 文档，并在一页里展示多个 API 版本。
+A self-contained API documentation page: an endpoint browser, type tables, Markdown comments and an
+interactive playground. It can render Tealina's `ApiDoc` (the output of `tealina gdoc`) or an OpenAPI
+document, and show several API versions on one page.
 
-- Ctrl/Cmd+K 搜索端点
-- 根据声明的载荷类型生成表单
-- 明暗主题
-- 每个 API 版本一个来源选项
-- 可选的密码门禁和自定义请求处理器
+- Ctrl/Cmd+K searches endpoints
+- Forms generated from declared payload types
+- Light and dark themes
+- One source option per API version
+- Optional password gate and custom request handlers
 
 ```bash
 npm install @tealina/doc-ui
 ```
 
-要求 Node ≥ 22。包是 ESM，用 `node:fs` 和 `import.meta.url` 解析内置的 `static/` 目录，因此需要
-真实文件系统路径。
+Requires Node ≥ 22. The package is ESM and resolves its bundled `static/` directory with `node:fs`
+and `import.meta.url`, so it needs real filesystem paths.
 
-## 服务端
+## Server
 
-包导出两个函数和配置类型：
+The package exports two functions and the config types:
 
-| 导出 | 作用 |
+| Export | Purpose |
 | --- | --- |
-| `assembleHTML(config)` | 返回注入配置后的页面 HTML |
-| `getAssetsPath()` | 内置 `static/` 目录的绝对路径 |
-| `TealinaVdocWebConfig` | 配置类型 |
-| `TealinaVdocSource` | `config.sources` 的一项 |
-| `CommonFieldsType` | `features.playground.commonFields` 的类型 |
+| `assembleHTML(config)` | Returns the page HTML with the config injected |
+| `getAssetsPath()` | Absolute path of the bundled `static/` directory |
+| `TealinaVdocWebConfig` | Config type |
+| `TealinaVdocSource` | One item of `config.sources` |
+| `CommonFieldsType` | Type of `features.playground.commonFields` |
 
-`assembleHTML` 只生成字符串；HTML 和资源目录仍由你的服务器提供。
+`assembleHTML` only produces a string; serving the HTML and the assets directory is still up to your
+server.
 
 ### Express
 
@@ -42,7 +44,7 @@ const sources: TealinaVdocSource[] = [
   { name: 'v1', baseURL: '/api/v1', jsonURL: '/api/v1/_doc/api.json' },
 ]
 
-// 启动时构建一次：只有宿主挂载了另一个版本时来源列表才会变。
+// Build once at startup: the source list only changes when the host mounts another version.
 const html = await assembleHTML({ sources, errorMessageKey: 'message' })
 
 const docRouter = Router()
@@ -89,29 +91,30 @@ app.use(router.routes())
 app.use(mount('/api-doc', serve(getAssetsPath())))
 ```
 
-打开 `http://localhost:8000/api-doc/index.html`。
+Open `http://localhost:8000/api-doc/index.html`.
 
-## 来源
+## Sources
 
-`sources` 必填。每一项命名一个已挂载的 API 版本：
+`sources` is required. Each item names one mounted API version:
 
 ```ts
 interface TealinaVdocSource {
-  /** 在线调试页发请求时使用的前缀。 */
+  /** Prefix used by the playground when it sends requests. */
   baseURL: string
-  /** 版本选择器里的标签；默认取 `jsonURL`。 */
+  /** Label in the version selector; defaults to `jsonURL`. */
   name?: string
-  /** ApiDoc 或 OpenAPI JSON 文件的 URL。 */
+  /** URL of the ApiDoc or OpenAPI JSON file. */
   jsonURL: string
-  /** 可选文本或 Markdown，显示在菜单顶部。 */
+  /** Optional text or Markdown shown at the top of the menu. */
   introduceURL?: string
 }
 ```
 
-选中某个来源时页面才去拉取它的 `jsonURL`。带 `openapi` 键的文档按 OpenAPI 3.x 转换；否则按
-`ApiDoc` 读取。来源多于一个时出现选择器，两个来源不能同名。
+The page fetches a source's `jsonURL` only when that source is selected. A document with an `openapi`
+key is converted as OpenAPI 3.x; otherwise it is read as `ApiDoc`. The selector appears when there is
+more than one source, and two sources cannot share a name.
 
-## 配置
+## Configuration
 
 ```ts
 import type { CommonFieldsType } from '@tealina/doc-ui'
@@ -141,20 +144,21 @@ interface TealinaVdocWebConfig {
 }
 ```
 
-`CommonFieldsType` 把每个载荷字段映射为 `'string'`、`'number'`，或带 `type` 和可选 `default`
-的对象。
+`CommonFieldsType` maps each payload field to `'string'`, `'number'`, or an object with `type` and an
+optional `default`.
 
-| 选项 | 默认值 | 作用 |
+| Option | Default | Purpose |
 | --- | --- | --- |
-| `title` | `"API Document"` | 浏览器标题 |
-| `errorMessageKey` | — | 在线调试页当作错误信息读取的响应字段 |
-| `customScripts` | `[]` | 在配置之前注入的脚本 URL |
-| `customRequests` | `[]` | 在默认 fetch 之前匹配的请求处理器 |
-| `features.playground.commonFields` | — | 加到每个调试表单上的字段 |
+| `title` | `"API Document"` | Browser title |
+| `errorMessageKey` | — | Response field the playground reads as the error message |
+| `customScripts` | `[]` | Script URLs injected before the config |
+| `customRequests` | `[]` | Request handlers matched before the default fetch |
+| `features.playground.commonFields` | — | Fields added to every playground form |
 
-### 公共字段
+### Common Fields
 
-每个请求都需要相同的值（例如授权头）时用 `commonFields`。在线调试页会为它们创建一个可复用表单：
+Use `commonFields` when every request needs the same value (an authorization header, for example).
+The playground creates a reusable form for them:
 
 ```ts
 const html = await assembleHTML({
@@ -170,12 +174,13 @@ const html = await assembleHTML({
 })
 ```
 
-`'string'` 和 `'number'` 是简写；对象形式可以加默认值。
+`'string'` and `'number'` are shorthands; the object form can add a default.
 
-### 自定义请求
+### Custom Requests
 
-处理器可以替换匹配端点的默认 `fetch`——用于文件上传、流式响应或使用特殊鉴权的 API。处理器接收
-请求配置，返回带标签的结果：
+A handler can replace the default `fetch` for matching endpoints — for file uploads, streaming
+responses, or APIs with special authentication. The handler receives the request config and returns
+a tagged result:
 
 ```ts
 type VariousResponseType =
@@ -185,8 +190,8 @@ type VariousResponseType =
   | { type: 'text' | 'json'; status: number; result: string }
 ```
 
-处理器是函数，不能序列化进注入的配置。通过 `customScripts` 提供一个脚本，把处理器赋给页面读取的
-全局变量：
+Handlers are functions and cannot be serialized into the injected config. Provide a script through
+`customScripts` that assigns the handlers to the global the page reads:
 
 ```ts
 const html = await assembleHTML({
@@ -196,7 +201,7 @@ const html = await assembleHTML({
 ```
 
 ```js
-// custom-upload.js，与页面一同提供
+// custom-upload.js, served alongside the page
 window.TEALINA_VDOC_CUSTOM_REQUESTS = [
   {
     match: config => config.url.includes('/upload'),
@@ -208,13 +213,14 @@ window.TEALINA_VDOC_CUSTOM_REQUESTS = [
 ]
 ```
 
-### 密码保护
+### Password Protection
 
-`security` 在页面之前放一个密码表单。页面向 `loginURL` POST `{ password }`：
+`security` puts a password form in front of the page. The page POSTs `{ password }` to `loginURL`:
 
-- `authenticationWay: 'session'`——端点返回 `200`，浏览器保留会话 cookie。用户退出时调用
-  `logoutURL`。
-- `authenticationWay: 'headers'`——端点返回一个 JSON 对象，内容是页面拉取文档 JSON 文件时附加的请求头。
+- `authenticationWay: 'session'` — the endpoint returns `200` and the browser keeps the session
+  cookie. `logoutURL` is called when the user logs out.
+- `authenticationWay: 'headers'` — the endpoint returns a JSON object containing the request headers
+  the page attaches when fetching documentation JSON files.
 
 ```ts
 const html = await assembleHTML({
@@ -227,7 +233,7 @@ const html = await assembleHTML({
 })
 ```
 
-## 注意
+## Notes
 
-页面是静态资源。启动时构建一次 HTML，之后把同一个字符串发给每个请求——只有宿主挂载了另一个 API
-版本时配置才会变。
+The page is a static asset. Build the HTML once at startup and send the same string for every
+request — the config changes only when the host mounts another API version.

@@ -1,18 +1,20 @@
 # @tealina/doc-types
 
-Tealina API 文档的数据模型：`tealina gdoc` 写出的形状，也是 `@tealina/doc-ui`（或你自己写的
-工具）读取的形状。
+The data model for Tealina API documentation: the shape `tealina gdoc` writes, and the shape
+`@tealina/doc-ui` (or tooling you write yourself) reads.
 
-文档是一棵扁平树。端点按 HTTP 方法分组；共享或递归的类型只在数字 id 表里存一次——
-`entityRefs`、`enumRefs` 或 `tupleRefs`——所以树始终有限。
+Documentation is a flat tree. Endpoints are grouped by HTTP method; shared or recursive types are
+stored once in numeric id tables — `entityRefs`, `enumRefs` or `tupleRefs` — so the tree always stays
+finite.
 
 ```bash
 npm install @tealina/doc-types
 ```
 
-装成生产依赖而不是开发依赖：`DocKind` 是运行时 `const` 对象，不只是类型。
+Install it as a production dependency rather than a dev dependency: `DocKind` is a runtime `const`
+object, not just a type.
 
-## 文档形状
+## Document Shape
 
 ```ts
 import type { ApiDoc } from '@tealina/doc-types'
@@ -22,12 +24,13 @@ interface ApiDoc {
   entityRefs: Record<number, Entity>
   enumRefs: Record<number, EnumEntity>
   tupleRefs: Record<number, TupleEntity>
-  /** 当前是 1.1。遵循 `[major].[minor]`。 */
+  /** Currently 1.1. Follows `[major].[minor]`. */
   docTypeVersion: number
 }
 ```
 
-`DocItem` 描述一个端点。每个载荷字段都是可选的，因为处理函数可能只声明它用到的部分：
+`DocItem` describes an endpoint. Every payload field is optional, because a handler may declare only
+the parts it uses:
 
 ```ts
 interface DocItem {
@@ -42,7 +45,7 @@ interface DocItem {
 }
 ```
 
-示例：
+Example:
 
 ```json
 {
@@ -65,13 +68,14 @@ interface DocItem {
 }
 ```
 
-上面是缩写；`gdoc` 总是写全四个顶层键。
+The above is abbreviated; `gdoc` always writes all five top-level keys.
 
 ## `DocKind`
 
-`DocKind` 既是值也是类型。用 `switch` 语句判断 `node.kind`，会把 `DocNode` 收窄到对应接口。
+`DocKind` is both a value and a type. Switching on `node.kind` with a `switch` statement narrows
+`DocNode` to the matching interface.
 
-| 值 | `DocKind` 成员 | 接口 | 额外字段 |
+| Value | `DocKind` member | Interface | Extra fields |
 | --- | --- | --- | --- |
 | 0 | `Primitive` | `PrimitiveType` | `type` |
 | 1 | `NonLiteralObject` | `ObjectType` | `type` |
@@ -79,21 +83,22 @@ interface DocItem {
 | 3 | `Union` | `UnionType` | `types` |
 | 4 | `EntityRef` | `RefType` | `id` |
 | 5 | `Never` | `NeverType` | — |
-| 6 | `Record` | `RecordType` | `key`、`value` |
+| 6 | `Record` | `RecordType` | `key`, `value` |
 | 7 | `StringLiteral` | `StringLiteral` | `value: string` |
 | 8 | `NumberLiteral` | `NumberLiteral` | `value: number` |
 | 9 | `EnumRef` | `EnumRefType` | `id` |
-| 10 | `EnumMemberRef` | `EnumMemberRefType` | `enumId`、`memberId` |
+| 10 | `EnumMemberRef` | `EnumMemberRefType` | `enumId`, `memberId` |
 | 11 | `Array` | `ArrayType` | `element` |
 | 12 | `RecursionTuple` | `RecursionTuple` | `id` |
 | 13 | `RecursionEntity` | `RecursionEntity` | `id` |
-| 14 | `LiteralObject` | `LiteralEntity` | `props`，可选 `name` |
-| 15 | `ResponseEntity` | `ResponseEntity` | `statusCode?`、`headers?`、`response?` |
+| 14 | `LiteralObject` | `LiteralEntity` | `props`, optional `name` |
+| 15 | `ResponseEntity` | `ResponseEntity` | `statusCode?`, `headers?`, `response?` |
 
-所有节点都通过共享的 `Kind` 接口接受 `isOptional`、`comment` 和 `jsDoc`。`RecursionTuple` 与
-`RecursionEntity` 指回已经在引用表里的元组或实体；它们让自引用类型不会无限展开。
+All nodes accept `isOptional`, `comment` and `jsDoc` through the shared `Kind` interface.
+`RecursionTuple` and `RecursionEntity` point back to a tuple or entity already in the reference
+tables; they keep self-referential types from expanding forever.
 
-## 渲染节点
+## Rendering Nodes
 
 ```tsx
 import { DocKind, type DocNode } from '@tealina/doc-types'
@@ -123,18 +128,20 @@ function render(node: DocNode) {
 }
 ```
 
-## 引用表
+## Reference Tables
 
-| 类型 | 字段 |
+| Type | Fields |
 | --- | --- |
-| `Entity` | `name`、`props: PropType[]`，可选 `comment` |
-| `EnumEntity` | `name`、`members: EnumMember[]`，可选 `comment` |
-| `TupleEntity` | `name`、`elements: DocNode[]` |
+| `Entity` | `name`, `props: PropType[]`, optional `comment` |
+| `EnumEntity` | `name`, `members: EnumMember[]`, optional `comment` |
+| `TupleEntity` | `name`, `elements: DocNode[]` |
 | `PropType` | `{ name: string } & DocNode` |
 
-实体的 `name` 是声明打印器产出的类型文本——常常是字面对象写法，例如 `{ status: string; }`，而不是
-TypeScript 别名。`EntityRef` 和 `EnumRef` 通过对应表里的数字键解析。
+An entity's `name` is the type text produced by the declaration printer — often a literal object form
+such as `{ status: string; }` rather than a TypeScript alias. `EntityRef` and `EnumRef` resolve
+through the numeric keys in the corresponding table.
 
-## 约定
+## Conventions
 
-转换这份文档的包应带 `tealina-doc` 前缀，读者才能看出它扩展的是格式的哪一侧。
+A package that transforms this document should carry the `tealina-doc` prefix, so readers can tell
+which side of the format it extends.

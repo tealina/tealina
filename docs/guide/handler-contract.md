@@ -1,12 +1,10 @@
-# 处理函数契约
+# Handler Contract
 
-一个处理函数的类型注解，是路由、API 文档和前端客户端类型的共同来源。注解写错，三处会一起错；
-注解改了，三处会一起跟着变。
+A handler's type annotation is the shared source of truth for routing, API docs and frontend client types. If the annotation is wrong, all three are wrong; when the annotation changes, all three change with it.
 
-## 处理函数提供契约，业务逻辑放在别处
+## Handlers Provide the Contract, Business Logic Lives Elsewhere
 
-处理函数文件首先是 API 的声明：类型决定路由、文档和前端类型，JSDoc 决定描述，`examples`
-提供文档页里的示例。运行时它只负责读取请求、调用业务函数、写出响应。
+A handler file is first and foremost a declaration of the API: its types determine routing, docs and frontend types, its JSDoc determines descriptions, and `examples` supplies the samples on the docs page. At runtime it only reads the request, calls the business function and writes the response.
 
 ```ts
 // backend/api-v1/src/api/post/article.ts
@@ -16,7 +14,7 @@ import { createArticle, type ArticleInput } from 'core/services'
 
 type ApiType = AuthedHandler<{ body: ArticleInput }, { id: number }>
 
-/** 创建一篇文章。 */
+/** Create an article. */
 const handler: ApiType = async (req, res) => {
   res.send(createArticle(req.body))
 }
@@ -24,30 +22,26 @@ const handler: ApiType = async (req, res) => {
 export default authedApi(handler)
 ```
 
-校验、数据库访问、事务这些真正的工作放在服务模块里，例如
-`backend/core/src/services/article.ts`。处理函数保持薄，同一段逻辑可以被多个端点或
-`api-v2` 复用，也更容易单独测试。
+The real work — validation, database access, transactions — belongs in service modules, for example `backend/core/src/services/article.ts`. Keep handlers thin: the same logic can be reused by several endpoints or by `api-v2`, and it is easier to test on its own.
 
-服务放在 `core` 时，需要给 `core/package.json` 增加一个 `./services` 导出；只在 `api-v1`
-内部复用时，放在 `backend/api-v1/src/services/`，处理函数用相对路径导入即可。
+When the service lives in `core`, add a `./services` export to `core/package.json`. When it is reused only inside `api-v1`, put it in `backend/api-v1/src/services/` and import it from the handler with a relative path.
 
-不要在处理函数里展开业务实现。处理函数一厚，文档契约和业务细节就开始互相牵制，类型变更也会
-波及实现。
+Do not expand the business implementation inside the handler. Once a handler grows thick, the documented contract and the business details start to constrain each other, and type changes ripple into the implementation.
 
-## 两种处理函数
+## Two Kinds of Handlers
 
-`core/handler` 导出两个类型：
+`core/handler` exports two types:
 
 ```ts
 import type { OpenHandler, AuthedHandler } from 'core/handler'
 ```
 
-| 类型 | 含义 | 文件结尾 |
+| Type | Meaning | End of file |
 | --- | --- | --- |
-| `OpenHandler<Payload, Response>` | 公开端点，不安装守卫 | `openApi(handler)` |
-| `AuthedHandler<Payload, Response>` | 需要 `Authorization` 头，链首安装守卫 | `authedApi(handler)` |
+| `OpenHandler<Payload, Response>` | Public endpoint, no guard installed | `openApi(handler)` |
+| `AuthedHandler<Payload, Response>` | Requires the `Authorization` header, guard installed at the head of the chain | `authedApi(handler)` |
 
-两者的第一个泛型参数描述请求载荷，第二个描述响应：
+The first generic parameter of each describes the request payload, the second describes the response:
 
 ```ts
 interface LoginPayload {
@@ -65,7 +59,7 @@ const handler: ApiType = async (req, res) => {
 export default openApi(handler)
 ```
 
-载荷的字段都是可选的，按端点实际使用的部分声明：
+Payload fields are all optional; declare only the parts the endpoint actually uses:
 
 ```ts
 OpenHandler<
@@ -79,28 +73,25 @@ OpenHandler<
 >
 ```
 
-`AuthedHandler` 会自动把 `Authorization: string` 加进 `headers`，并给 express/koa 的
-`res.locals` 加上 `userId`。不需要在载荷里重复声明。
+`AuthedHandler` automatically adds `Authorization: string` to `headers` and `userId` to `res.locals` for Express/Koa. There is no need to declare them again in the payload.
 
-## 声明载荷用 `interface`
+## Declare Payloads with `interface`
 
 ```ts
 interface ArticlePayload {
-  /** 这条 JSDoc 会出现在文档里 */
+  /** This JSDoc appears in the docs */
   title: string
   content: string
 }
 ```
 
-- 用 `interface`，不要用内联对象类型。文档生成器读取声明的名字；内联类型会被直接展开进文档，
-  失去复用和引用。
-- `/** ... */` 注释会进入 API 文档；`// ...` 单行注释被忽略。
-- 属性上的 JSDoc 同样会保留，用来描述字段。
+- Use `interface`, not an inline object type. The docs generator reads the declared name; an inline type is expanded directly into the docs and loses reuse and references.
+- `/** ... */` comments go into the API docs; `// ...` single-line comments are ignored.
+- JSDoc on properties is preserved as well, and is used to describe the field.
 
-## 导出 `examples`
+## Exporting `examples`
 
-处理函数文件还可以导出 `examples`，为文档页提供请求示例。它和 `export default` 并列，
-不是处理函数的属性：
+A handler file can also export `examples` to supply request samples for the docs page. It sits alongside `export default` and is not a property of the handler:
 
 ```ts
 import type { AuthedHandler, MakeExamplesType } from 'core/handler'
@@ -140,28 +131,26 @@ export const examples: MakeExamplesType<ApiType> = {
 }
 ```
 
-- 数组的每一项是 `{ key, summary, value }`：`key` 是文档页里的示例标签，`summary` 用来说明
-  场景，`value` 是展示和调试时填入的值。
-- 按 `body`、`query`、`params`、`headers`、`response` 分组；端点没有示例的部分可以不写。
-- `MakeExamplesType<ApiType>` 用同一份载荷和响应类型检查示例值，字段写错会在编译时报错。
-- 修改后运行一次 `gdoc`。示例会写进 `docs/api.json`，文档页在对应标签下显示。
+- Each array item is `{ key, summary, value }`: `key` is the sample label on the docs page, `summary` explains the scenario, and `value` is the value filled in for display and debugging.
+- Group by `body`, `query`, `params`, `headers` and `response`; a part the endpoint has no samples for can be omitted.
+- `MakeExamplesType<ApiType>` type-checks the sample values against the same payload and response types, so a wrong field is a compile-time error.
+- Run `gdoc` once after changing them. The samples are written to `docs/api.json`, and the docs page shows them under the matching label.
 
-## 框架里的签名
+## Signatures by Framework
 
-`alias.d.ts` 把通用形状绑定到各自框架：
+`alias.d.ts` binds the generic shape to each framework:
 
-| 框架 | 处理函数签名 |
+| Framework | Handler signature |
 | --- | --- |
 | Express | `(req, res, next) => unknown` |
 | Fastify | `(request, reply) => unknown` |
 | Koa | `(ctx, next) => Promise<unknown>` |
 
-注解只写一次，框架差异由 `core/types/alias.d.ts` 吸收。不要在处理函数里重新声明
-`Request` / `Response`，那会绕开投影。
+Write the annotation once; `core/types/alias.d.ts` absorbs the framework differences. Do not re-declare `Request` / `Response` inside the handler — that bypasses the projection.
 
-## 中间件链
+## Middleware Chain
 
-`openApi` 与 `authedApi` 都接受可变参数，最后一个元素必须是处理函数：
+`openApi` and `authedApi` both take variadic arguments, and the last element must be the handler:
 
 ```ts
 const withAudit: MyMiddleware = async (req, res, next) => {
@@ -170,16 +159,14 @@ const withAudit: MyMiddleware = async (req, res, next) => {
 }
 
 export default authedApi(withAudit, handler)
-// 实际注册：[verifyToken, withAudit, handler]
+// Actual registration: [verifyToken, withAudit, handler]
 ```
 
-元组形状是有意的：类型投影从最后一个元素读取载荷和响应。不要把它标注成
-`CustomHandlerType[]`——数组会丢掉元组，响应会退化成 `never`。
+The tuple shape is deliberate: type projection reads the payload and response from the last element. Do not annotate it as `CustomHandlerType[]` — an array loses the tuple and the response degrades to `never`.
 
-## 响应元数据
+## Response Metadata
 
-响应可以有状态码、响应头和说明。这些包装类型来自 `tealina/utility-types`（生成项目已经安装了
-`tealina`，不必再装 `@tealina/utility-types`）：
+A response can carry a status code, response headers and a description. These wrapper types come from `tealina/utility-types` (generated projects already install `tealina`; there is no need to install `@tealina/utility-types` as well):
 
 ```ts
 import type {
@@ -196,15 +183,13 @@ type WithPagination = WithHeaders<
 >
 ```
 
-客户端投影只保留响应体：`WithStatusCode<201, T>` 的调用结果仍是 `T`；非 2xx 的状态码投影为
-`never`，因为成功路径上不会出现它。API 文档保留状态码与响应头。
+The client projection keeps only the response body: the call result of `WithStatusCode<201, T>` is still `T`; a non-2xx status code projects to `never`, because it cannot appear on the success path. The API docs keep the status code and response headers.
 
-`WithExtra` 是底层包装，通常不直接写。`ExtractResponse` / `Extract2xxResponse` 是投影用的读取器，
-客户端包会用它们。
+`WithExtra` is the underlying wrapper and is usually not written directly. `ExtractResponse` / `Extract2xxResponse` are the readers used for projection; the client package uses them.
 
-## 多目标载荷
+## Multi-Target Payloads
 
-同一端点有时需要三个不同的形状：服务端收到的、客户端发送的、文档展示的。用 `MultiTarget`：
+Sometimes the same endpoint needs three different shapes: what the server receives, what the client sends and what the docs display. Use `MultiTarget`:
 
 ```ts
 import type { MultiTarget } from 'tealina/utility-types'
@@ -216,24 +201,24 @@ type StreamResponse = MultiTarget<{
 }>
 ```
 
-`MultiTarget` 必须位于载荷或响应声明的最外层，嵌套在其他类型里不受支持。
+`MultiTarget` must sit at the outermost level of the payload or response declaration; nesting it inside other types is not supported.
 
-## 投影
+## Projection
 
-`types/api.d.ts` 把路由树投影成两种记录：
+`types/api.d.ts` projects the route tree into two records:
 
-- `ApiTypesForDoc`：`gdoc` 读取它生成 `docs/api.json`。它**必须是文件里的第一个导出**。
-- `ApiTypesForClient`：前端通过 `api-v1/api` 导入它，得到每个端点的请求载荷与响应类型。
+- `ApiTypesForDoc`: `gdoc` reads it to generate `docs/api.json`. It **must be the first export in the file**.
+- `ApiTypesForClient`: the frontend imports it through `api-v1/api` and gets the request payload and response type for every endpoint.
 
 ```ts
-// types/api.d.ts（由 align 生成或维护）
+// types/api.d.ts (generated or maintained by align)
 export type ApiTypesForDoc = { ... }
 export type ApiTypesForClient = { ... }
 ```
 
-这两个名字和顺序都是固定约定，见 [API 文档](./api-doc.md) 与 [前端客户端](./frontend.md)。
+Both names and their order are fixed conventions; see [API Docs](./api-doc.md) and [Frontend Client](./frontend.md).
 
-## 相关
+## Related
 
-- [鉴权](./authentication.md)：`openApi` / `authedApi` 的运行时行为与类型检查边界。
-- [JavaScript 处理函数](./javascript-handlers.md)：同一契约在 `.js` 文件里的 JSDoc 写法。
+- [Authentication](./authentication.md): the runtime behavior of `openApi` / `authedApi` and the type-checking boundaries.
+- [JavaScript Handlers](./javascript-handlers.md): the same contract written with JSDoc in `.js` files.

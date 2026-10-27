@@ -1,6 +1,7 @@
 # @tealina/utility-types
 
-Tealina 服务端、客户端和文档层共用的条件类型工具箱。**只有类型**，导入它不会增加打包体积。
+A toolbox of conditional types shared by Tealina's server, client and documentation layers. **Types
+only** — importing it adds nothing to your bundle.
 
 ```bash
 npm install @tealina/utility-types
@@ -16,21 +17,22 @@ import type {
 } from '@tealina/utility-types'
 ```
 
-这些类型也从 `tealina/utility-types` 再导出，所以已经安装 CLI 的生成项目不需要第二个包。
+These types are also re-exported from `tealina/utility-types`, so a generated project that already
+has the CLI installed needs no second package.
 
-## 响应元数据
+## Response Metadata
 
-处理函数的响应类型可以携带状态码、响应头和注释。下面的包装器添加元数据，同时在需要响应体的地方
-仍然投影到响应体。
+A handler's response type can carry a status code, response headers and comments. The wrappers below
+add metadata while still projecting to the response body wherever a body is expected.
 
-| 类型 | 含义 |
+| Type | Meaning |
 | --- | --- |
-| `WithExtra<T>` | `T` 加上响应标记 |
-| `WithStatusCode<StatusCode, Response>` | 带显式状态码的响应 |
-| `WithStatusCodeOnly<StatusCode, Description?>` | 只有状态码，没有响应体 |
-| `WithHeaders<Headers, Response>` | 带类型化响应头的响应 |
-| `ExtractResponse<T>` | 取 `response` 字段，否则取 `T` 本身 |
-| `Extract2xxResponse<T>` | 状态为 2xx 时取响应体，否则为 `never` |
+| `WithExtra<T>` | `T` plus response markers |
+| `WithStatusCode<StatusCode, Response>` | A response with an explicit status code |
+| `WithStatusCodeOnly<StatusCode, Description?>` | A status code only, no response body |
+| `WithHeaders<Headers, Response>` | A response with typed response headers |
+| `ExtractResponse<T>` | Takes the `response` field, otherwise `T` itself |
+| `Extract2xxResponse<T>` | The response body when the status is 2xx, otherwise `never` |
 
 ```ts
 import type {
@@ -47,17 +49,17 @@ type OkBody = Extract2xxResponse<Created> // { id: number }
 type ErrorBody = Extract2xxResponse<BadRequest> // never
 ```
 
-客户端就是用 `ExtractResponse` 和 `Extract2xxResponse` 把处理函数注解变成 Promise 解析出的值。没有
-包装的普通响应类型原样返回。
+The client uses `ExtractResponse` and `Extract2xxResponse` to turn handler annotations into the value
+a Promise resolves to. A plain response type with no wrapper is returned as is.
 
-## 形状辅助
+## Shape Helpers
 
-| 类型 | 含义 |
+| Type | Meaning |
 | --- | --- |
-| `EmptyObject` | 没有必填键的对象；`{}` 做不到这一点 |
-| `Simplify<T>` | 压平交叉类型，让编辑器显示成一个对象 |
-| `LastElement<T>` | 元组的最后一个元素；不是元组时返回 `T` |
-| `MaybeProperty<P, T>` | `P` 为 `null` 时是 `{}`，否则是 `{ [K in T]: P }` |
+| `EmptyObject` | An object with no required keys; `{}` cannot do this |
+| `Simplify<T>` | Flattens intersections so editors show a single object |
+| `LastElement<T>` | The last element of a tuple; `T` when it is not a tuple |
+| `MaybeProperty<P, T>` | `{}` when `P` is `null`, otherwise `{ [K in T]: P }` |
 
 ```ts
 import type { EmptyObject, Simplify } from '@tealina/utility-types'
@@ -69,15 +71,16 @@ declare function needsNoPayload(payload: EmptyObject): void
 needsNoPayload({}) // ok
 ```
 
-`EmptyObject` 用唯一符号而不是 `{}`，避免一个 `{}` 类型的值意外满足真实载荷槽位。
+`EmptyObject` uses a unique symbol rather than `{}`, preventing a value of type `{}` from
+accidentally satisfying a real payload slot.
 
-## 文档辅助
+## Document Helpers
 
-| 类型 | 含义 |
+| Type | Meaning |
 | --- | --- |
 | `DocDataKeys` | `'body' \| 'response' \| 'query' \| 'params' \| 'headers'` |
-| `ExampleItem<V>` | 具名示例：`{ key, summary, value }` |
-| `RemapToExampleType<T>` | 允许每个载荷字段是值或示例列表 |
+| `ExampleItem<V>` | A named example: `{ key, summary, value }` |
+| `RemapToExampleType<T>` | Lets each payload field be a value or a list of examples |
 
 ```ts
 import type { RemapToExampleType } from '@tealina/utility-types'
@@ -92,13 +95,14 @@ type Examples = RemapToExampleType<{
 // }
 ```
 
-`@tealina/doc-types` 在它的 `DocItem` 类型里使用 `DocDataKeys` 和 `ExampleItem`，但不再导出它们；
-编写文档工具时从这里导入。
+`@tealina/doc-types` uses `DocDataKeys` and `ExampleItem` in its `DocItem` type but no longer
+exports them; import them from here when writing documentation tooling.
 
-## 多目标载荷
+## Multiple-target Payloads
 
-一个端点有时需要在三个消费者那里各有不同形状：服务端收到增强后的载荷，客户端发送公开载荷，文档
-描述线上格式。
+An endpoint sometimes needs a different shape at each of three consumers: the server receives an
+enriched payload, the client sends the public payload, and the documentation describes the wire
+format.
 
 ```ts
 import type { MultiTarget, PickTarget } from '@tealina/utility-types'
@@ -112,13 +116,14 @@ type StreamResponse = MultiTarget<{
 type DocSide = PickTarget<StreamResponse, 'doc'>
 ```
 
-键由 `TargetKeys` 固定为 `'server' | 'client' | 'doc'`。对不是 `MultiTarget` 的类型，
-`PickTarget` 原样返回 `T`。
+The keys are fixed by `TargetKeys` to `'server' | 'client' | 'doc'`. For a type that is not a
+`MultiTarget`, `PickTarget` returns `T` as is.
 
-`MultiTarget` 必须用在载荷或响应声明的顶层；嵌套在别的类型里不受支持。
+`MultiTarget` must be used at the top level of a payload or response declaration; nesting it inside
+another type is not supported.
 
-## 约定
+## Conventions
 
-`WithExtra` 发出的响应标记在 `parseDeclarationFile.js` 里按名字匹配
-（`__@ResponseFlagSymbol`）。重命名这个符号仍能编译，但 `tealina gdoc` 会静默地不再识别响应
-元数据——保持声明原样。
+The response marker emitted by `WithExtra` is matched by name in `parseDeclarationFile.js`
+(`__@ResponseFlagSymbol`). Renaming this symbol still compiles, but `tealina gdoc` silently stops
+recognizing response metadata — keep the declaration as is.

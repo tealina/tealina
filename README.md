@@ -19,11 +19,15 @@ No Framework Left Behind: Seamless E2E Types for Express, Fastify, and Koa with 
 </p>
 
 <p align="center">
- <a href="https://tealina.dev">Documentation</a> | <a href="https://tealina.dev/guide/">Getting Started</a> | <a href="https://tealina.dev/why">Why Tealina?</a>
+ <a href="https://tealina.dev">Documentation</a> |
+ <a href="https://v1.tealina.dev">v1 Documentation</a> |
+ <a href="https://tealina.dev/guide/">Getting Started</a> |
+ <a href="https://tealina.dev/why">Why Tealina?</a>
 </p>
 <p align="center">
 <a href="https://cn.tealina.dev">中文文档</a> |
-<a href="https://github.com/tealina/tealina/tree/main/docs">中文文档源（仓库内）</a>
+<a href="https://v1-cn.tealina.dev">v1 中文文档</a> |
+<a href="https://github.com/tealina/tealina/tree/main/docs/zh">中文文档源（仓库内）</a>
 </p>
 
 <h4 align="center">

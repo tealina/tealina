@@ -1,24 +1,23 @@
 # @tealina/server
 
-Tealina 文件路由的运行时部分。它解析 `tealina align` 写出的惰性 `import()` 汇总导出文件，并压平成框架
-可以注册的路由列表。
+The runtime part of Tealina file routing. It resolves the lazy `import()` barrel files written by `tealina align` and flattens them into a route list that a framework can register.
 
-零依赖，只有两个导出：
+Zero dependencies, only two exports:
 
-| 导出 | 作用 |
+| Export | Purpose |
 | --- | --- |
-| `loadAPIs` | 等待两层惰性导入树，返回普通处理函数 |
-| `transformToRouteOptions` | 把它压平成 `{ method, url, handler }` 列表 |
+| `loadAPIs` | Awaits the two-level lazy import tree and returns plain handlers |
+| `transformToRouteOptions` | Flattens it into a `{ method, url, handler }` list |
 
 ```bash
 npm install @tealina/server
 ```
 
-要求 Node ≥ 22。
+Requires Node ≥ 22.
 
-## 读取的汇总导出文件
+## The Barrel Files It Reads
 
-`align` 为每个方法目录写一个汇总导出文件，再在 API 根目录写一个：
+`align` writes one barrel file per method directory, then one at the API root:
 
 ```ts
 // api/get/index.ts
@@ -34,15 +33,15 @@ export default {
 }
 ```
 
-每一层都是“一个模块的 Promise”，模块的 `default` 由下一层描述。`loadAPIs` 等待两层，返回：
+Each level is "a promise of one module," and that module's `default` is described by the next level. `loadAPIs` awaits both levels and returns:
 
 ```ts
 Record<method, Record<path, handler>>
 ```
 
-路径键保持逻辑形式——`'health'`、`'user/:id'`——不带前导斜杠。
+Path keys keep their logical form — `'health'`, `'user/:id'` — with no leading slash.
 
-## 注册路由
+## Registering Routes
 
 ### Express
 
@@ -66,7 +65,7 @@ export const buildRouter = async () => {
 }
 ```
 
-Express 接受处理函数数组作为最后一个参数，所以“守卫 + 端点”的链可以原样注册。
+Express accepts an array of handlers as its last argument, so a "guard + endpoint" chain can be registered as-is.
 
 ### Koa
 
@@ -84,7 +83,7 @@ for (const { url, method, handler } of transformToRouteOptions<unknown[]>(apiRec
 }
 ```
 
-Koa 把中间件作为独立参数接收，所以链需要展开。
+Koa receives middleware as separate arguments, so the chain needs to be spread.
 
 ### Fastify
 
@@ -101,20 +100,18 @@ for (const { url, method, handler } of transformToRouteOptions<unknown[]>(apiRec
 }
 ```
 
-Fastify 把钩子和路由处理函数分开：最后一个元素始终是处理函数，前面的都是 `preHandler`。
+Fastify separates hooks from the route handler: the last element is always the handler, and everything before it is `preHandler`.
 
 ## `transformToRouteOptions(apiRecord)`
 
-把 `{ method: { url: handler } }` 压平成 `{ method, url, handler }` 数组。两个行为需要知道：
+Flattens `{ method: { url: handler } }` into a `{ method, url, handler }` array. Two behaviors you need to know:
 
-- **URL 变成绝对路径。** 汇总导出文件的键是逻辑路径，但路由器期望前导斜杠。已经以 `/` 开头的键保持
-  不变，所以转换是幂等的。
-- **静态路径先于参数化路径注册。** 不含 `:` 的路径排在前面；组内更深的路径优先。这样 `/:id`
-  不会遮蔽同级的静态路由（如 `/health`）。
+- **URLs become absolute paths.** The barrel file's keys are logical paths, but routers expect a leading slash. Keys that already begin with `/` stay unchanged, so the transformation is idempotent.
+- **Static paths are registered before parameterized paths.** Paths without `:` come first; within a group, deeper paths take priority. This way `/:id` does not shadow a sibling static route (such as `/health`).
 
-`handler` 是泛型，传入你的框架注册时需要的形状即可；裸函数和中间件数组都合法。
+`handler` is generic; pass whatever shape your framework needs at registration time. Bare functions and middleware arrays are both valid.
 
-## 排序示例
+## Ordering Example
 
 ```ts
 const routes = transformToRouteOptions({
@@ -131,7 +128,6 @@ const routes = transformToRouteOptions({
 // ]
 ```
 
-## 这个包不做什么
+## What This Package Does Not Do
 
-鉴权、请求体解析、挂载前缀和文档都是宿主的事。处理函数链到达时已经排好序——`authedApi` 把守卫放在
-最前，`openApi` 原样保留处理函数——这个包只负责原样注册。
+Authentication, request body parsing, mount prefixes, and documentation are the host's job. The handler chain arrives already ordered — `authedApi` puts the guard first, and `openApi` keeps the handler as-is — and this package only registers it as is.

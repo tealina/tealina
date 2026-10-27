@@ -1,30 +1,33 @@
 # @tealina/client
 
-从服务端处理函数类型生成类型安全的 API 客户端。API 只有一份描述——服务端的
-`ApiTypesForClient`——路径、载荷和响应都由它推导，所以改掉一个字段会让前端编译失败。
+Generate a type-safe API client from server handler types. There is only one description of the
+API — the server's `ApiTypesForClient` — and paths, payloads and responses are all derived from it,
+so changing a field makes the frontend fail to compile.
 
-包同时提供 `fetch` 与 Axios 适配，每种再分两种调用风格：
+The package provides both `fetch` and Axios adapters, and each comes in two call styles:
 
-| 风格 | `fetch` | Axios | 调用形状 |
+| Style | `fetch` | Axios | Call shape |
 | --- | --- | --- | --- |
-| 传统 | `createFetchClient` | `createAxiosReq` | `req.get('user', payload?, config?)` |
+| Traditional | `createFetchClient` | `createAxiosReq` | `req.get('user', payload?, config?)` |
 | RPC | `createFetchRPC` | `createAxiosRPC` | `rpc.get.user()` |
 
-只有当端点声明了载荷时才会出现载荷参数；只有响应类型的端点，第二个参数直接就是可选的 config。
+A payload parameter only appears when the endpoint declares a payload; for response-only endpoints,
+the second argument is directly the optional config.
 
 ```bash
 npm install @tealina/client
 ```
 
-## API 记录
+## API Records
 
-客户端把记录类型作为第一个类型参数。从 `tealina align` 生成的 API 包里取：
+The client takes the record type as its first type parameter. Take it from the API package generated
+by `tealina align`:
 
 ```ts
 import type { ApiTypesForClient } from 'api-v1/api'
 ```
 
-手写时，记录按 HTTP 方法分层，每个逻辑路径一项：
+When writing by hand, the record is layered by HTTP method, with one entry per logical path:
 
 ```ts
 type ApiTypesForClient = {
@@ -44,12 +47,13 @@ type ApiTypesForClient = {
 }
 ```
 
-键是**逻辑路径**，不带前导斜杠。`params`、`query`、`body` 描述请求载荷；`response` 描述 Promise
-解析出的值。`headers` 属于第二个参数（config），不在载荷里。
+Keys are **logical paths**, without a leading slash. `params`, `query` and `body` describe the
+request payload; `response` describes the value the Promise resolves to. `headers` belongs to the
+second argument (config), not to the payload.
 
 ## fetch
 
-### 传统风格
+### Traditional Style
 
 ```ts
 import { createFetchClient } from '@tealina/client'
@@ -73,10 +77,10 @@ const created = await req.post('article', {
 })
 ```
 
-### RPC 风格
+### RPC Style
 
-RPC 调用按路径段嵌套，所以 `'user/:id/update'` 是 `rpc.post.user[':id'].update(...)`。不含斜杠的
-路径保持扁平。
+RPC calls nest by path segment, so `'user/:id/update'` is `rpc.post.user[':id'].update(...)`. Paths
+without slashes stay flat.
 
 ```ts
 import { createFetchRPC } from '@tealina/client'
@@ -95,9 +99,9 @@ const user = await rpc.get.user[':id']({ params: { id: 'u1' } })
 
 ## Axios
 
-自带 Axios 实例。Axios 不是这个包的运行时依赖。
+Bring your own Axios instance. Axios is not a runtime dependency of this package.
 
-### 传统风格
+### Traditional Style
 
 ```ts
 import axios, { type AxiosRequestConfig } from 'axios'
@@ -113,7 +117,7 @@ export const req = createAxiosReq<ApiTypesForClient, AxiosRequestConfig>(config 
 const user = await req.get('user/:id', { params: { id: 'u1' } })
 ```
 
-### RPC 风格
+### RPC Style
 
 ```ts
 import { createAxiosRPC } from '@tealina/client'
@@ -125,11 +129,11 @@ const rpc = createAxiosRPC<ApiTypesForClient, AxiosRequestConfig>(config =>
 const user = await rpc.get.user[':id']({ params: { id: 'u1' } })
 ```
 
-### 原始 Axios 响应
+### Raw Axios Responses
 
-`createAxiosReq` 和 `createAxiosRPC` 会解包 `response.data`。需要完整 Axios 响应（状态、头、
-`data`）时，使用 `./axios` 子路径里的原始版本。返回值类型是你的 `AxiosResponse`，其中 `data`
-收窄到该端点的响应类型：
+`createAxiosReq` and `createAxiosRPC` unwrap `response.data`. When you need the full Axios response
+(status, headers, `data`), use the raw versions from the `./axios` subpath. The return type is your
+`AxiosResponse`, with `data` narrowed to that endpoint's response type:
 
 ```ts
 import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
@@ -143,23 +147,24 @@ const response = await rpc.get.health()
 response.data.isOk // boolean
 ```
 
-传统风格对应 `createRawAxiosReq`。
+The Traditional style counterpart is `createRawAxiosReq`.
 
-## 一次调用如何编码
+## How a Call Is Encoded
 
-两种风格共用同一个 context 构造器：
+Both styles share the same context builder:
 
-| 载荷字段 | 效果 |
+| Payload field | Effect |
 | --- | --- |
-| `params` | 替换路径里的 `:name` 段；长名字优先 |
-| `query` | 用 `URLSearchParams` 追加 |
-| `body` | fetch 适配器 JSON 序列化，Axios 适配器作为 `data` 发送 |
+| `params` | Replaces `:name` segments in the path; longer names win |
+| `query` | Appended with `URLSearchParams` |
+| `body` | JSON-serialized by the fetch adapter, sent as `data` by the Axios adapter |
 
-无论记录里怎么写，请求函数收到的总是以 `/` 开头的绝对 URL。基地址在请求函数里拼接，如上面
-的例子。
+However the record is written, the request function always receives an absolute URL starting with
+`/`. The base URL is joined inside the request function, as in the examples above.
 
-fetch 适配器不会设置 `Content-Type: application/json`；在请求函数或本次调用的配置里自行
-添加。端点声明的 headers 会进入 config 参数的类型：
+The fetch adapter does not set `Content-Type: application/json`; add it yourself in the request
+function or in the config for that call. Headers declared by the endpoint make it into the type of
+the config parameter:
 
 ```ts
 type Api = {
@@ -171,10 +176,10 @@ type Api = {
 req.get('me', { headers: { authorization: `Bearer ${token}` } })
 ```
 
-## 响应投影
+## Response Projection
 
-普通 `response` 类型就是 Promise 解析出的值。用 `WithStatusCode` 或 `WithHeaders` 包装后，投影到
-响应体；非 2xx 的包装投影为 `never`：
+A plain `response` type is exactly the value the Promise resolves to. Wrapped with `WithStatusCode`
+or `WithHeaders`, it projects to the response body; a non-2xx wrapper projects to `never`:
 
 ```ts
 import type { WithStatusCode } from '@tealina/utility-types'
@@ -192,11 +197,12 @@ const created = await req.post('article', { body: { title: 'Hello' } })
 // { id: number }
 ```
 
-## JavaScript 调用方
+## JavaScript Callers
 
-类型参数是命名 API 记录的常规方式。JavaScript 没有类型参数，而未推断出的形状参数会退化为它的
-约束，静默产生 `unknown` 响应和虚假的载荷参数。改为传入 `ShapeWitness`——它只作为类型读取，运行时
-是 `undefined`：
+Type parameters are the normal way to name the API record. JavaScript has no type parameters, and an
+uninferred shape parameter degrades to its constraint, silently producing `unknown` responses and
+phantom payload parameters. Pass a `ShapeWitness` instead — it is read only as a type and is
+`undefined` at runtime:
 
 ```js
 import { createFetchClient } from '@tealina/client'
@@ -207,21 +213,22 @@ export const req = createFetchClient(
 )
 ```
 
-对初始化表达式做断言是有意为之。`const` 会收窄到初始值，所以
-`/** @type {...} */ const shape = undefined` 会丢掉注解——要断言初始值。
+Asserting the initializer expression is intentional. `const` narrows to the initial value, so
+`/** @type {...} */ const shape = undefined` loses the annotation — assert the initial value.
 
-## 子路径
+## Subpaths
 
-| 入口 | 导出 |
+| Entry | Exports |
 | --- | --- |
-| `@tealina/client` | `createFetchClient`、`createFetchRPC`、`createAxiosReq`、`createAxiosRPC`、`ShapeWitness` |
-| `@tealina/client/fetch` | `createFetchClient`、`createFetchRPC` |
-| `@tealina/client/axios` | `createAxiosReq`、`createAxiosRPC`、`createRawAxiosReq`、`createRawAxiosRPC` |
-| `@tealina/client/core` | `createReq`、`createRPC`、`makeContext`、`ToReq`、`ToRPC`、`ClientRequestContext` |
+| `@tealina/client` | `createFetchClient`, `createFetchRPC`, `createAxiosReq`, `createAxiosRPC`, `ShapeWitness` |
+| `@tealina/client/fetch` | `createFetchClient`, `createFetchRPC` |
+| `@tealina/client/axios` | `createAxiosReq`, `createAxiosRPC`, `createRawAxiosReq`, `createRawAxiosRPC` |
+| `@tealina/client/core` | `createReq`, `createRPC`, `makeContext`, `ToReq`, `ToRPC`, `ClientRequestContext` |
 
-core 里的工厂接受你自己写的请求函数，可以用它接入别的 HTTP 库或测试替身。它们接收的是
-**投影后的调用形状**，不是原始 API 记录：传统风格用 `ToReq`，RPC 风格用 `ToRPC`。fetch 和 Axios
-工厂只是替你套上投影。
+The factories in core accept a request function you write yourself, so you can plug in another HTTP
+library or a test double. They receive the **projected call shape**, not the raw API record: `ToReq`
+for Traditional style, `ToRPC` for RPC style. The fetch and Axios factories just apply the
+projection for you.
 
 ```ts
 import { createReq, type ToReq } from '@tealina/client/core'
@@ -234,6 +241,6 @@ const req = createReq<ToReq<MyApi, Config>, Config>((context, config) => {
 })
 ```
 
-## 环境要求
+## Requirements
 
-包是 ESM，要求 Node ≥ 22。`fetch` 在那里是全局的；Axios 由调用方提供。
+The package is ESM and requires Node ≥ 22. `fetch` is global there; Axios is provided by the caller.

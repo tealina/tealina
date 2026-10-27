@@ -1,26 +1,25 @@
-# 前端客户端
+# Frontend Client
 
-脚手架默认只生成后端。`--web` 会额外生成 `packages/web`：一个没有 UI 框架的 Vite 项目，用来演示
-客户端如何直接从服务端处理函数的类型得到路径、载荷和响应。
+By default the scaffold generates only the backend. `--web` additionally generates `packages/web`: a Vite project with no UI framework, used to demonstrate how a client derives paths, payloads and responses directly from the server handler types.
 
 ```bash
 pnpm create tealina my-app --web
 ```
 
-前端开发服务器是 `http://localhost:5173`，它把 API 前缀代理到 `http://localhost:8000`。
+The frontend dev server is `http://localhost:5173`, and it proxies the API prefix to `http://localhost:8000`.
 
-## 生成的两个文件
+## The Two Generated Files
 
 ```text
 packages/web/
   index.html
   vite.config.ts
   src/
-    main.ts            页面：调用 GET /health 并渲染结果
-    api/client.ts      req：类型来自 api-v1 的处理函数
+    main.ts            page: calls GET /health and renders the result
+    api/client.ts      req: types come from the api-v1 handlers
 ```
 
-`src/api/client.ts` 是重点：
+`src/api/client.ts` is the important one:
 
 ```ts
 import { createFetchClient } from '@tealina/client'
@@ -49,11 +48,11 @@ const requester = async (url: string, config: RequestInit) => {
 export const req = createFetchClient<ApiTypesForClient, RequestInit>(requester)
 ```
 
-- `ApiTypesForClient` 通过 `api-v1` 的 `exports["./api"]` 到达这里，是处理函数注解的客户端投影。
-- `API_BASE_URL` 与后端挂载、文档 JSON 文件使用同一个值，改前缀只改 `version.js`。
-- `import type` 是必需的：`./api` 只发布 `types` 条件，没有运行时模块。
+- `ApiTypesForClient` reaches here through `api-v1`'s `exports["./api"]`; it is the client projection of the handler annotations.
+- `API_BASE_URL` is the same value used by the backend mount and the documentation JSON file; to change the prefix, change only `version.js`.
+- `import type` is required: `./api` publishes only the `types` condition and has no runtime module.
 
-`src/main.ts` 只做一件事：
+`src/main.ts` does one thing:
 
 ```ts
 import { req } from './api/client'
@@ -62,14 +61,13 @@ const health = await req.get('health')
 const isOk: boolean = health.isOk
 ```
 
-`isOk` 的类型来自 `GET /health` 处理函数的响应注解。前端没有第二份 API 声明；**改了处理函数里的
-字段，这一行会编译失败**，这正是目的。
+The type of `isOk` comes from the response annotation of the `GET /health` handler. The frontend has no second copy of the API declaration; **if you change a field in the handler, this line fails to compile**, and that is exactly the point.
 
-`main.ts` 是占位页面，可以直接删掉，在 `src/` 里写自己的应用。
+`main.ts` is a placeholder page; you can delete it and write your own app under `src/`.
 
-## 调用约定
+## Calling Conventions
 
-端点键是逻辑路径，不带前导斜杠：
+Endpoint keys are logical paths without a leading slash:
 
 ```ts
 await req.get('health')
@@ -77,7 +75,7 @@ await req.get('user/:id', { params: { id: 'u1' } })
 await req.post('article', { body: { title: 'Hello' } })
 ```
 
-RPC 风格按路径段嵌套：
+RPC style nests by path segment:
 
 ```ts
 import { createFetchRPC } from '@tealina/client'
@@ -88,12 +86,11 @@ await rpc.get.health()
 await rpc.get.user[':id']({ params: { id: 'u1' } })
 ```
 
-两种风格、fetch/axios 适配器和原始响应的完整说明见
-[@tealina/client](/reference/client.md)。
+For a full description of both styles, the fetch/axios adapters and raw responses, see [@tealina/client](/reference/client.md).
 
-## 代理与同源
+## Proxy and Same-Origin
 
-`vite.config.ts` 把 `API_BASE_URL` 代理到 `http://localhost:8000`：
+`vite.config.ts` proxies `API_BASE_URL` to `http://localhost:8000`:
 
 ```ts
 import { defineConfig } from 'vite-plus'
@@ -106,11 +103,11 @@ export default defineConfig({
 })
 ```
 
-页面和 API 因此在开发时同源，后端模板不需要发送 CORS 头。`PORT` 不是 8000 时，修改这里的代理目标。
+The page and the API are therefore same-origin in development, and the backend template does not need to send CORS headers. If `PORT` is not 8000, change the proxy target here.
 
-## 没有 `--web` 时添加前端
+## Adding a Frontend Without `--web`
 
-前端没有任何脚手架特有的机制。在 `packages/web/package.json` 里声明依赖：
+The frontend has no scaffold-specific machinery. Declare the dependency in `packages/web/package.json`:
 
 ```json
 {
@@ -120,18 +117,15 @@ export default defineConfig({
 }
 ```
 
-在仓库根运行 `pnpm install` 建立链接，然后：
+Run `pnpm install` at the repository root to create the link, then:
 
 ```ts
 import type { ApiTypesForClient } from 'api-v1/api'
 ```
 
-同样必须用 `import type`。
+`import type` is required here as well.
 
-## 两点注意
+## Two Caveats
 
-- 解析这些类型会把处理函数的**源码**拉进来（`api.d.ts` → `api-v1/src/` → `core` → 框架 →
-  `tealina/utility-types`）。后端的 `tealina` 和框架类型包要一直安装着；前端的 `skipLibCheck`
-  不能掩盖这里的错误，因为解析的是 `.ts`，不是 `.d.ts`。
-- `@tealina/client` 仅支持 ESM。Axios 不是它的运行时依赖，axios 适配器只要求你传入自己的
-  请求函数。
+- Resolving these types pulls in the handlers' **source** (`api.d.ts` → `api-v1/src/` → `core` → framework → `tealina/utility-types`). The backend `tealina` and framework type packages must stay installed; the frontend's `skipLibCheck` cannot mask errors here, because it resolves `.ts`, not `.d.ts`.
+- `@tealina/client` supports ESM only. Axios is not a runtime dependency; the axios adapter only requires you to pass in your own request function.

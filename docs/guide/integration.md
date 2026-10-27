@@ -1,28 +1,25 @@
-# 整合到现有项目
+# Integrating into an Existing Project
 
-脚手架生成的是一个独立、可直接启动的项目。如果目标是一个已经有 server、目录结构和
-workspace 的仓库，更常见的做法不是把整棵生成树搬进去，而是只取需要的部分。
+The scaffold produces a standalone project that starts as-is. When the target is a repository that already has a server, a directory structure and a workspace, the more common approach is not to move the entire generated tree in, but to take only the parts you need.
 
-`--integrate` 就是为这件事准备的：
+`--integrate` exists for exactly this:
 
 ```bash
 pnpm create tealina my-app --integrate
 ```
 
-它会在项目根写入 `INTEGRATION.md`。这份文件不属于运行时，没有任何代码导入它；它是写给 AI
-助手的合并手册，合并完成后可以删除。下面说明它覆盖的两种形态和几个容易出错的点。
+It writes `INTEGRATION.md` at the project root. That file is not part of the runtime and nothing imports it; it is a merge playbook written for AI assistants, and you can delete it once the merge is done. The rest of this page describes the two shapes it covers and a few easy-to-miss details.
 
-## 两种形态
+## Two Shapes
 
-| 形态 | 复制 | 留在原处 |
+| Shape | Copy | Leave in Place |
 | --- | --- | --- |
-| **A. 挂到现有服务** | `backend/core`、`backend/api-v1` | `backend/server`、`packages/web`、根脚本 |
-| **B. 并入现有 monorepo** | `backend/core`、`backend/api-v1`、`backend/server` | `packages/web`（除非需要） |
+| **A. Mounting onto an Existing Service** | `backend/core`, `backend/api-v1` | `backend/server`, `packages/web`, root scripts |
+| **B. Merging into an Existing Monorepo** | `backend/core`, `backend/api-v1`, `backend/server` | `packages/web` (unless needed) |
 
-### A. 挂到现有服务
+### A. Mounting onto an Existing Service
 
-目标仓库已经有一个 Express/Fastify/Koa 应用、自己的入口和部署方式时用这一种。复制 `core`
-和 `api-v1`，在现有 app 上调用一次 `mount`：
+Use this when the target repository already has an Express/Fastify/Koa application, its own entry point and its own deployment. Copy `core` and `api-v1`, and call `mount` once on the existing app:
 
 ```ts
 import { mount } from '<api>/mount'
@@ -30,56 +27,46 @@ import { mount } from '<api>/mount'
 const source = await mount(app)
 ```
 
-`mount` 会装上这个版本的路由、请求体解析器和 JSON 文档路由，返回的 `TealinaVdocSource`
-只有文档页需要。文档页是可选的：把生成项目的 `server/src/doc.ts` 与 `public/` 一起复制过去，
-或者完全跳过，只保留 `<API_BASE_URL>/_doc/api.json`。
+`mount` installs that version's routes, body parsers and JSON documentation route; the returned `TealinaVdocSource` is only needed by the documentation page. The documentation page is optional: copy the generated project's `server/src/doc.ts` and `public/` over together, or skip it entirely and keep only `<API_BASE_URL>/_doc/api.json`.
 
-`backend/server` 不是要复制的东西。它展示的是宿主该怎么接，copy 它的 `app.ts` 思路即可。
+`backend/server` is not something to copy. It shows how a host should wire things up; just borrow the approach from its `app.ts`.
 
-### B. 并入现有 monorepo
+### B. Merging into an Existing Monorepo
 
-把三个后端包复制到目标仓库，按现有习惯放进 `backend/` 或 `apps/`。然后：
+Copy the three backend packages into the target repository, placing them under `backend/` or `apps/` according to existing convention. Then:
 
-- 把目录加入 workspace globs，并合并 `pnpm-workspace.yaml` 里的 `allowBuilds`、`catalog`、
-  `overrides`，不要整份替换。
-- 合并根脚本，不要覆盖。`dev` 必须先构建 `core`、再构建 `api-v1`：宿主导入的是它们的
-  `dist/`。
-- 只有目标仓库本来就用 Vite+ 时，才合并根 `vite.config.ts` 的 `fmt`/`lint` 配置。
-- 不要用脚手架的 `README.md`、`AGENTS.md` 覆盖目标仓库的同名文件，只把 `api-v1` 的规则
-  摘进去。
+- Add the directories to the workspace globs, and merge `allowBuilds`, `catalog` and `overrides` from `pnpm-workspace.yaml` rather than replacing the whole file.
+- Merge the root scripts rather than overwriting them. `dev` must build `core` first and then `api-v1`: the host imports their `dist/`.
+- Only if the target repository already uses Vite+, merge the `fmt`/`lint` configuration from the root `vite.config.ts`.
+- Do not overwrite the target repository's `README.md` or `AGENTS.md` with the scaffold's same-named files; only extract the `api-v1` rules into them.
 
-如果目标不是 Express/Fastify/Koa，先停下来。`core/types/alias.d.ts` 绑定的是这三个框架的
-请求/响应类型，换框架是新增一份 alias，不是机械迁移。
+If the target is not Express/Fastify/Koa, stop and reconsider. `core/types/alias.d.ts` binds the request/response types of those three frameworks; switching frameworks means adding a new alias, not a mechanical migration.
 
-## 改名
+## Renaming
 
-`core`、`api-v1`、`server` 都是通用名字，目标仓库里通常已经被占用。改名时除了
-`package.json` 和源码里的裸导入，还有两处类型检查看不见：
+`core`, `api-v1` and `server` are generic names, and the target repository usually already uses them. When renaming, beyond `package.json` and bare imports in the source, there are two places where type checking cannot see the problem:
 
-1. `tealina.config.ts` 的 `handlerImport`。
-2. 同一文件里 `generateTsCode` / `generateJsCode` 返回的字符串。它们决定 `create` 之后写出的
-   新处理函数导入哪个包；漏改时下一次加端点才会坏，中间没有任何报错。
+1. `handlerImport` in `tealina.config.ts`.
+2. The strings returned by `generateTsCode` / `generateJsCode` in the same file. They determine which package newly written handlers import after `create`; if you miss them, the next endpoint you add breaks, with no error in between.
 
-固定产物名不随改名变化：`types/api.d.ts`、`exports["./api"]`、`apiDir`。
+The fixed artifact names do not change with the rename: `types/api.d.ts`, `exports["./api"]`, `apiDir`.
 
-## 构建与生成物
+## Builds and Generated Artifacts
 
-`core` 的 `exports["./access"]` 和 `api-v1` 的 `exports["./mount"]` 的 `import` 条件指向
-`dist/`，所以宿主导入前必须先构建这两个包（顺序 `core → api-v1`）。
+The `import` conditions of `core`'s `exports["./access"]` and `api-v1`'s `exports["./mount"]` point at `dist/`, so the host must build these two packages before importing them (in the order `core → api-v1`).
 
-不要手工合并生成物：
+Do not merge generated artifacts by hand:
 
-| 文件 | 由谁生成 |
+| File | Generated by |
 | --- | --- |
-| `api-v1/src/api/index.*`、`api-v1/src/api/<method>/index.*` | `align` |
+| `api-v1/src/api/index.*`, `api-v1/src/api/<method>/index.*` | `align` |
 | `api-v1/docs/api.json` | `gdoc` |
 
-两条命令都支持 `--check`（只比较，过期时退出码 1）和 `--json`。把 `--check` 接进目标仓库
-的 CI，否则文档过期时页面仍然渲染，只是内容是旧的。
+Both commands support `--check` (compare only, exit code 1 when stale) and `--json`. Wire `--check` into the target repository's CI; otherwise, when the docs go stale the page still renders, just with old content.
 
-## 验证清单
+## Verification Checklist
 
-在目标仓库根目录，把 `<core>`、`<api>` 换成改名后的包名：
+At the target repository root, replace `<core>` and `<api>` with the renamed package names:
 
 ```bash
 pnpm install
@@ -88,35 +75,29 @@ pnpm -F <api> build
 
 pnpm -F <api> align --check
 pnpm -F <api> gdoc --check
-# 任一退出 1 时
+# if either exits 1
 pnpm -F <api> align
 pnpm -F <api> gdoc
 ```
 
-然后启动目标服务，依次确认：
+Then start the target service and confirm, in order:
 
-1. `curl -i <API_BASE_URL>/health` 返回 200。
-2. 受保护端点在没有 `Authorization` 时返回 401 —— 脚手架的守卫是占位实现，
-   替换 `core/src/access/verifyToken.ts`。
-3. `curl <API_BASE_URL>/_doc/api.json` 能取到文档。
-4. 如果接了文档页，`/api-doc/index.html` 可打开。
-5. 前端仍然能对 `<api>/api` 做类型检查。
+1. `curl -i <API_BASE_URL>/health` returns 200.
+2. A protected endpoint returns 401 without `Authorization` — the scaffold's guard is a placeholder; replace `core/src/access/verifyToken.ts`.
+3. `curl <API_BASE_URL>/_doc/api.json` returns the documentation.
+4. If the documentation page is wired up, `/api-doc/index.html` opens.
+5. The frontend still type-checks against `<api>/api`.
 
-脚手架自带的 `get/health`、`post/login`、`post/article` 是示例。第 1 步通过后，删除不需要的
-端点并重新运行 `align` 与 `gdoc`。
+The scaffold's `get/health`, `post/login` and `post/article` are examples. Once step 1 passes, delete the endpoints you do not need and rerun `align` and `gdoc`.
 
-## 会静默失败的地方
+## Where It Fails Silently
 
-- **复制了包但没有构建。** `core/access` 和 `api-v1/mount` 在运行时解析到 `dist/`，缺失时是
-  `ERR_MODULE_NOT_FOUND`，而类型检查仍然是绿的。
-- **`handlerImport` 或 stub 字符串还写着旧的 `core`。** 类型检查通过，下一次 `create`
-  才写出坏导入。
-- **手工改过生成的 barrel。** 下一次 `align` 会悄悄覆盖。
-- **改了处理函数但没有 `gdoc`。** 文档页照常渲染，只是内容过期。
-- **两个路由占用了同一前缀。** 请求落到先注册的那个，另一个 404，而两边的类型都是对的。
-- **目标框架的大版本与模板不同。** `alias.d.ts` 可能仍然能编译，但描述的是另一套
-  `req`/`res`；要对比安装的类型，而不是版本号。
-- **Node < 22。** 失败点通常在依赖的构建或运行时，而不是在类型检查里。
+- **Copied the packages but did not build them.** `core/access` and `api-v1/mount` resolve to `dist/` at runtime; when missing, you get `ERR_MODULE_NOT_FOUND`, while type checking stays green.
+- **`handlerImport` or the stub strings still say the old `core`.** Type checking passes, and the next `create` writes a broken import.
+- **Edited a generated barrel by hand.** The next `align` silently overwrites it.
+- **Changed a handler but did not run `gdoc`.** The documentation page renders as usual, just with stale content.
+- **Two routes claim the same prefix.** Requests land on the one registered first, and the other returns 404, while both sides type-check.
+- **The target framework's major version differs from the template's.** `alias.d.ts` may still compile, but it describes a different set of `req`/`res`; compare the installed types, not the version number.
+- **Node < 22.** Failures usually show up in a dependency's build or at runtime, not in type checking.
 
-完整的分步手册（含两种形态的复制范围、改名搜索命令、各框架的挂载示例）在生成项目的
-`INTEGRATION.md` 中，可以直接交给执行合并的 AI 助手。
+The full step-by-step playbook (copy scope for both shapes, rename search commands, mount examples for each framework) lives in the generated project's `INTEGRATION.md`, ready to hand to the AI assistant performing the merge.

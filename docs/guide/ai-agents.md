@@ -1,70 +1,61 @@
-# AI 助手
+# AI Assistants
 
-Tealina 的约定对人和对 AI 是同一套，但有几条规则容易被忽略，所以生成的项目会随代码发布说明文件。
+Tealina's conventions are the same for people and for AI, but a few rules are easy to overlook, so generated projects ship instruction files alongside the code.
 
-## 随项目发布的 `AGENTS.md`
+## The Shipped `AGENTS.md`
 
-脚手架写两个：
+The scaffold writes two:
 
-- `AGENTS.md`（项目根）：包职责、依赖方向、常用脚本。
-- `backend/api-v1/AGENTS.md`：编辑端点前必须知道的规则。
+- `AGENTS.md` (project root): package responsibilities, dependency direction, common scripts.
+- `backend/api-v1/AGENTS.md`: the rules you must know before editing endpoints.
 
-第二份的核心内容：
+The core of the second file:
 
-- 用 CLI 加端点，不要手写：在 `api-v1` 里运行 `pnpm run create <method> <path>`，或在仓库根运行
-  `pnpm -F api-v1 run create <method> <path>`。`run` 不能省略。
-- `src/api/index.*` 和 `src/api/<method>/index.*` 是生成物，永远不要编辑；增删改处理函数后运行
-  `pnpm align`。
-- `apiDir` 与 `apiBaseURL` 来自 `tealina.config`；前缀本身写在 `version.js`。
-- 公共产物名固定：`types/api.d.ts` 与 `exports["./api"]` 不随目录改名。
-- 文件默认导出 `openApi(handler)` 或 `authedApi(handler)`；新端点默认私有。
-- 类型注解写在 `const` 上；载荷用 `interface`；JSDoc 成文档，`//` 不成。
-- 改完处理函数运行 `pnpm gdoc`。
-- `src/mount`、`src/router`、`src/doc` 是包对宿主的封口，`core` 不能反向导入它们。
+- Add endpoints with the CLI, never by hand: run `pnpm run create <method> <path>` inside `api-v1`, or `pnpm -F api-v1 run create <method> <path>` at the repository root. `run` cannot be omitted.
+- `src/api/index.*` and `src/api/<method>/index.*` are generated artifacts; never edit them. After adding, removing or changing a handler, run `pnpm align`.
+- `apiDir` and `apiBaseURL` come from `tealina.config`; the prefix itself lives in `version.js`.
+- Public artifact names are fixed: `types/api.d.ts` and `exports["./api"]` do not change when directories are renamed.
+- Files export `openApi(handler)` or `authedApi(handler)` by default; new endpoints are private by default.
+- Type annotations go on the `const`; payloads use `interface`; JSDoc becomes documentation, `//` does not.
+- After changing a handler, run `pnpm gdoc`.
+- `src/mount`, `src/router` and `src/doc` are the package's interface to the host; `core` must not import them in the opposite direction.
 
-让助手在改任何端点之前先读这份文件。仓库自己的 `AGENTS.md` 描述的是本仓库的维护规则，不要把两者
-混用。
+Have the assistant read this file before changing any endpoint. The repository's own `AGENTS.md` describes the maintenance rules of this repo; do not mix the two up.
 
-## `--integrate`：把生成的项目并进现有仓库
+## `--integrate`: Merging a Generated Project into an Existing Repository
 
 ```bash
 pnpm create tealina my-app --integrate
 ```
 
-项目根会多出一个 `INTEGRATION.md`，专供执行合并的 AI 助手阅读。它不参与运行时，合并完成后
-可以删除。内容按“先读目标仓库 → 选形态 → 复制 → 改名 → 合并 workspace/脚本 → 安装与生成 →
-接线 → 验证”的顺序组织，覆盖两种形态：
+An extra `INTEGRATION.md` appears at the project root, written for the AI assistant performing the merge. It plays no part at runtime and can be deleted once the merge is complete. Its content follows the order "read the target repository first → choose a shape → copy → rename → merge workspace/scripts → install and generate → wire up → verify", covering two shapes:
 
-- 只把 `core` + `api-v1` 挂到现有 Express/Fastify/Koa 实例，保留目标仓库自己的 server；
-- 把三个后端包整体并入现有 monorepo。
+- Mount only `core` + `api-v1` onto an existing Express/Fastify/Koa instance, keeping the target repository's own server;
+- Merge all three backend packages into the existing monorepo.
 
-手册特意写明了类型检查看不见的坑：`tealina.config.ts` 里 `handlerImport` 和生成器 stub
-的字符串、`core`/`api-v1` 必须先构建、`src/api/**/index.*` 与 `docs/api.json` 只能重新生成、
-以及两边路由占用同一前缀时的表现。让助手从这份文件开始，不要只给它一份目录树。
+The playbook deliberately calls out the pitfalls that type checking cannot see: the strings for `handlerImport` and the generator stubs in `tealina.config.ts`, the need to build `core`/`api-v1` first, the fact that `src/api/**/index.*` and `docs/api.json` can only be regenerated, and how both sides behave when their routes occupy the same prefix. Have the assistant start from this file; do not just give it a directory tree.
 
-人体阅读的版本见 [整合到现有项目](./integration.md)。
+A human-readable version is at [Integrating into an Existing Project](./integration.md).
 
-## 适合自动化的命令
+## Commands for Automation
 
 ```bash
 pnpm -F api-v1 align --check
 pnpm -F api-v1 gdoc --check
 ```
 
-两条命令都只比较、不写文件；生成物过期时退出码为 1。加上 `--json` 后标准输出只有一个对象：
+Both commands compare only and write no files; they exit with code 1 when a generated artifact is stale. With `--json`, standard output contains a single object:
 
 ```json
 { "ok": false, "changed": [{ "action": "update", "file": "src/api/get/index.ts" }] }
 ```
 
-错误信息始终走标准错误，所以标准输出可以直接解析。适合放进 CI、提交前钩子或代理循环里。
+Error messages always go to standard error, so standard output can be parsed directly. These commands fit into CI, pre-commit hooks or agent loops.
 
-## 本仓库的 `llms.txt`
+## This Repository's `llms.txt`
 
-仓库根目录的 `llms.txt` 按 LLM 习惯列出了入口：README、脚手架说明、架构文档、各包 README。
-它指向的是文档源文件，不是站点 URL。
+The `llms.txt` at the repository root lists the entry points the way LLMs expect them: README, scaffold instructions, architecture docs and each package README. It points to documentation source files, not site URLs.
 
-## 环境
+## Environment
 
-Node ≥ 22 是硬性要求。类型检查器是最后的安全网：破坏客户端类型或文档投影的改动会让 `tsc` 失败，
-而不是在运行时才暴露。
+Node ≥ 22 is a hard requirement. The type checker is the last safety net: a change that breaks client types or the documentation projection fails `tsc` instead of surfacing only at runtime.

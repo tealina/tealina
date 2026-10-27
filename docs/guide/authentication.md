@@ -1,31 +1,28 @@
-# 鉴权
+# Authentication
 
-**每个端点默认要求 `Authorization` 头。** 一个端点是否公开，由它自己的文件结尾决定，而不是由
-路由器里的路径表决定。
+**Every endpoint requires the `Authorization` header by default.** Whether an endpoint is public is decided by the end of its own file, not by a path table in the router.
 
 ```ts
-// src/api/get/health.ts —— 公开
+// src/api/get/health.ts — public
 export default openApi(handler)
 
-// src/api/post/article.ts —— 需要 Authorization
+// src/api/post/article.ts — requires Authorization
 export default authedApi(handler)
 ```
 
-`authedApi` 不是路由器识别的标记：它在运行时把 `verifyToken` 放到中间件链首位，守卫会和其他
-中间件一起被注册。一个新端点在你明确说“公开”之前，一直是私有的。
+`authedApi` is not a marker the router recognizes: at runtime it puts `verifyToken` at the head of the middleware chain, and the guard is registered along with the other middleware. A new endpoint stays private until you explicitly say it is public.
 
-## 鉴权由三块组成
+## Authentication Has Three Parts
 
-`openApi` 和 `authedApi` 是脚手架附带的通用实现，也是自定义鉴权时最小、可参考的实现。真正把
-鉴权接进路由的，是下面三块：
+`openApi` and `authedApi` are the generic implementations that ship with the scaffold, and also the smallest reference implementation to build custom authentication from. What actually wires authentication into routing is these three parts:
 
-| 部件 | 位置 | 作用 |
+| Part | Location | Role |
 | --- | --- | --- |
-| `headers` | 处理函数类型 | 描述请求头。`gdoc` 把它写进 API 文档，前端也从同一份类型得到请求头类型 |
-| `locals` | 处理函数类型、守卫 | 声明处理函数能读到的框架上下文：Express 的 `res.locals`、Koa 的 `ctx.state`、Fastify 的 `request.locals` |
-| 守卫 | `authedApi` | 在运行时被放到中间件链首位；它校验凭证，并把结果写进 `locals` |
+| `headers` | Handler type | Describes request headers. `gdoc` writes them into the API docs, and the frontend gets header types from the same type |
+| `locals` | Handler type, guard | Declares the framework context the handler can read: Express's `res.locals`, Koa's `ctx.state`, Fastify's `request.locals` |
+| Guard | `authedApi` | Placed at the head of the middleware chain at runtime; it validates credentials and writes the result into `locals` |
 
-`backend/core/types/common.d.ts` 定义默认的形状：
+`backend/core/types/common.d.ts` defines the default shapes:
 
 ```ts
 export type AuthedLocals = {
@@ -41,31 +38,30 @@ export type JsonHeaders = {
 }
 ```
 
-`AuthedHandler` 在载荷之外带上 `AuthHeaders & JsonHeaders` 和 `AuthedLocals`；`OpenHandler`
-只带 `JsonHeaders`。因此：
+`AuthedHandler` carries `AuthHeaders & JsonHeaders` and `AuthedLocals` in addition to the payload; `OpenHandler` carries only `JsonHeaders`. Therefore:
 
-- 守卫写入的字段必须出现在 `AuthedLocals` 里，处理函数才能直接读取。
-- 请求头的形状只写一次：API 文档和前端类型都从处理函数类型派生。
-- 类型不负责运行时。`openApi` 与 `authedApi` 的差别，只在有没有把守卫放进链里。
+- Fields written by the guard must appear in `AuthedLocals` for the handler to read them directly.
+- Header shapes are written once: the API docs and frontend types are both derived from the handler type.
+- Types do not govern runtime. The only difference between `openApi` and `authedApi` is whether the guard is placed in the chain.
 
-## 默认守卫做什么
+## What the Default Guard Does
 
-`verifyToken` 位于 `backend/core/src/access/verifyToken.ts`：
+`verifyToken` lives in `backend/core/src/access/verifyToken.ts`:
 
-- 没有 `Authorization` 头时直接返回 `401`，响应体是：
+- When the `Authorization` header is missing it returns `401` directly, with the body:
 
   ```json
   { "code": "Unauthorized", "message": "Authorization header is missing." }
   ```
 
-- 有头时写入用户上下文，然后继续：
-  - Express：`res.locals.userId`
-  - Koa：`ctx.state.userId`
-  - Fastify：`request.locals.userId`
+- When the header is present, it writes the user context and continues:
+  - Express: `res.locals.userId`
+  - Koa: `ctx.state.userId`
+  - Fastify: `request.locals.userId`
 
-脚手架里的守卫只检查头是否存在，并把 `userId` 设为占位值。把 `TODO` 替换成真正的 token 校验。
+The scaffold's guard only checks that the header exists and sets `userId` to a placeholder. Replace the `TODO` with real token validation.
 
-## 验证
+## Verification
 
 ```bash
 curl -i -X POST localhost:8000/api/v1/article
@@ -76,7 +72,7 @@ curl -i -X POST localhost:8000/api/v1/article \
 # 200
 ```
 
-登录端点是公开的，前端先调用它拿到 token，再把 token 交给客户端：
+The login endpoint is public; the frontend calls it first to get a token, then hands the token to the client:
 
 ```ts
 import { req, setToken } from './api/client'
@@ -89,31 +85,28 @@ setToken(token)
 await req.post('article', { body: { title: 'hello', content: '...' } })
 ```
 
-## 类型检查的边界
+## Type-checking Boundaries
 
-默认的两个调用名也对应两个处理函数类型：`openApi` 链声明为 `OpenHandler`，`authedApi` 链声明为
-`AuthedHandler`。在 Express 和 Koa 上，这对关系会被检查：
+The two default call names also correspond to two handler types: an `openApi` chain is declared as `OpenHandler`, an `authedApi` chain as `AuthedHandler`. On Express and Koa this pairing is checked:
 
-- `openApi(anAuthedHandler)` 无法编译：读取 `res.locals.userId` 的处理函数不能放在公开路由上。
+- `openApi(anAuthedHandler)` does not compile: a handler that reads `res.locals.userId` cannot be placed on a public route.
 
-仍有两个已测量过的缺口：
+Two measured gaps remain:
 
-- `authedApi(anOpenHandler)` 在所有框架上都能编译，并且照样安装守卫。路由会比类型声明的更严格，
-  这是安全方向上的偏差。
-- Fastify 两种都不检查。`FastifyRequest` 通过模块增强带上了 `locals`，两种处理函数解析成同一个
-  请求类型，因此两个调用接受相同的集合。
+- `authedApi(anOpenHandler)` compiles on every framework, and still installs the guard. The route is stricter than the type declaration says — a deviation in the safe direction.
+- Fastify checks neither. `FastifyRequest` gains `locals` through module augmentation, and both handler types resolve to the same request type, so both calls accept the same set.
 
-## 自定义鉴权
+## Custom Authentication
 
-### 替换默认实现
+### Replacing the Default Implementation
 
-如果整个项目只需要一种鉴权，直接改默认的三处即可：
+If the whole project needs only one kind of authentication, just change the three default places:
 
-1. `backend/core/types/common.d.ts` 里的 `AuthHeaders` 和 `AuthedLocals`
-2. `backend/core/src/access/verifyToken.ts` 里的校验和上下文写入
-3. 需要时，修改 `401` 的响应体
+1. `AuthHeaders` and `AuthedLocals` in `backend/core/types/common.d.ts`
+2. the validation and context writes in `backend/core/src/access/verifyToken.ts`
+3. when needed, the `401` response body
 
-例如改成 API Key（下面以 Express 为例）：
+For example, switching to an API key (Express shown below):
 
 ```ts
 // backend/core/types/common.d.ts
@@ -144,13 +137,11 @@ export const verifyToken: RequestHandler = (req, res, next) => {
 }
 ```
 
-现有的 `authedApi(handler)` 和 `AuthedHandler` 不需要改调用处：处理函数类型里的 `headers` 与
-`locals` 会跟着 `common.d.ts` 一起变化，API 文档和前端类型也随之更新。
+Existing `authedApi(handler)` and `AuthedHandler` call sites do not need to change: the `headers` and `locals` in the handler type change along with `common.d.ts`, and the API docs and frontend types follow.
 
-### 新增一套 `AuthByKeyApi`
+### Adding a Second `AuthByKeyApi`
 
-需要让两种鉴权并存时，不要改默认定义，另写一个守卫和包装函数。它和 `authedApi` 的结构相同：
-**类型声明请求头和上下文，包装函数把守卫放到链首。**
+When two kinds of authentication need to coexist, do not change the default definitions; write another guard and wrapper function. Its structure matches `authedApi`: **the type declares the request headers and context, and the wrapper puts the guard at the head of the chain.**
 
 ```ts
 // backend/core/src/access/authByKey.ts
@@ -165,7 +156,7 @@ export type ApiKeyLocals = {
   apiKey: string
 }
 
-// 复用 OpenHandler：它不带 Authorization，只带 JsonHeaders 和这里声明的 key 头。
+// Reuse OpenHandler: it carries no Authorization, only JsonHeaders and the key header declared here.
 export type ApiKeyHandler<
   TPayload extends { body?: unknown; params?: unknown; query?: unknown } = {},
   TResponse = unknown,
@@ -188,7 +179,7 @@ export const verifyKey: RequestHandler = (req, res, next) => {
   next()
 }
 
-// 载荷字段写成 any：约束不能反过来收窄处理函数自己声明的 body。
+// Payload fields are typed as any: the constraint must not narrow the body the handler declares itself.
 type AnyKeyPayload = {
   body: any
   params: any
@@ -206,13 +197,13 @@ type AuthByKeyApiType = <
 ) => T
 
 export const AuthByKeyApi: AuthByKeyApiType = (...handlers) => {
-  // 和 authedApi 一样原地 unshift：处理函数必须留在末位，文档生成器从末位读取类型。
+  // Unshift in place like authedApi: the handler must stay last, and the docs generator reads the type from the last position.
   handlers.unshift(verifyKey)
   return handlers
 }
 ```
 
-再从 `backend/core/src/access/index.ts` 导出，项目里就能通过 `core/access` 使用：
+Then export it from `backend/core/src/access/index.ts`, and the project can use it through `core/access`:
 
 ```ts
 export { AuthByKeyApi, verifyKey } from './authByKey.js'
@@ -223,7 +214,7 @@ export type {
 } from './authByKey.js'
 ```
 
-处理函数声明 `ApiKeyHandler`，就能直接读到类型化的请求头和上下文：
+Declaring a handler as `ApiKeyHandler` gives it typed request headers and context directly:
 
 ```ts
 // backend/api-v1/src/api/get/orders.ts
@@ -245,34 +236,25 @@ const handler: Handler = async (req, res) => {
 export default AuthByKeyApi(handler)
 ```
 
-`ApiKeyHandler` 是 `OpenHandler` 的一个具体别名：它只描述这一套鉴权的请求头和上下文，名字让调用处
-更清楚。真正安装守卫的是 `AuthByKeyApi`，而 `AnyKeyPayload` 让包装函数只接受声明了 `x-api-key`
-的处理函数。
+`ApiKeyHandler` is a concrete alias of `OpenHandler`: it describes only the request headers and context of this authentication scheme, and the name makes call sites clearer. What actually installs the guard is `AuthByKeyApi`, and `AnyKeyPayload` makes the wrapper accept only handlers that declare `x-api-key`.
 
-在 Express 和 Koa 上，默认的 `openApi` 和 `authedApi` 都不接受 `ApiKeyHandler`：它们的约束没有
-声明 `x-api-key`，而 `ApiKeyHandler` 要求它。因此需要 API Key 的处理函数不会被误接到公开路由上，
-也就不会漏装 `verifyKey`。
+On Express and Koa, neither the default `openApi` nor `authedApi` accepts an `ApiKeyHandler`: their constraints do not declare `x-api-key`, and `ApiKeyHandler` requires it. So a handler that needs an API key cannot be mistakenly attached to a public route, and `verifyKey` cannot be forgotten.
 
-反方向是允许的：`AuthByKeyApi(anOpenHandler)` 可以编译，因为一个只读普通请求头的处理函数，
-放进要求更多请求头的链里是安全的。这和 `authedApi(anOpenHandler)` 的偏差方向相同。Fastify 的
-类型本来就不检查请求头，默认包装函数和 `AuthByKeyApi` 接受同一组处理函数。
+The reverse is allowed: `AuthByKeyApi(anOpenHandler)` compiles, because a handler that only reads ordinary request headers is safe to place in a chain that requires more headers. This is the same direction of deviation as `authedApi(anOpenHandler)`. Fastify's types do not check request headers in the first place, so the default wrappers and `AuthByKeyApi` accept the same set of handlers.
 
-### 其他框架
+### Other Frameworks
 
-上面的例子以 Express 为例。换成 Koa 或 Fastify 时，替换守卫的签名和上下文位置：
+The examples above use Express. For Koa or Fastify, change the guard's signature and its context location:
 
-| 框架 | 守卫类型 | 上下文 |
+| Framework | Guard type | Context |
 | --- | --- | --- |
 | Express | `RequestHandler` | `res.locals` |
 | Koa | `Middleware` | `ctx.state` |
 | Fastify | `preHandlerAsyncHookHandler` | `request.locals` |
 
-包装函数最后的约束要使用对应框架的 `OpenHandler`。Fastify 的守卫还需要把
-`res.status(...).json(...)` 换成 `reply.code(...).send(...)`。另外，Fastify 通过
-`backend/core/types/fastify.d.ts` 把 `request.locals` 固定声明成 `AuthedLocals`；新增一套
-`locals` 时，要同步调整这个模块增强，否则守卫写入新字段会通不过类型检查。
+The wrapper function's final constraint must use the `OpenHandler` for that framework. Fastify's guard also needs `res.status(...).json(...)` replaced with `reply.code(...).send(...)`. In addition, Fastify fixes `request.locals` to `AuthedLocals` through `backend/core/types/fastify.d.ts`; when adding another `locals` shape, update that module augmentation as well, or a guard that writes the new field will fail type-checking.
 
-## 相关
+## Related
 
-- [处理函数契约](./handler-contract.md)
-- [前端客户端](./frontend.md)
+- [Handler Contract](./handler-contract.md)
+- [Frontend Client](./frontend.md)

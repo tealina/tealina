@@ -1,20 +1,16 @@
-# 快速开始
+# Getting Started
 
-Tealina 把一个目录树和一个处理函数的类型注解，变成路由、客户端类型和 API 文档。脚手架生成的是
-一个可以直接编译、启动的 Node API 服务，支持 Express、Fastify 和 Koa。
+Tealina turns a directory tree and a handler's type annotation into routes, client types and API documentation. The scaffold produces a Node API service that compiles and starts as-is, with Express, Fastify and Koa supported.
 
-## 环境要求
+## Requirements
 
-- **Node ≥ 22**。这是仓库与生成项目的支持下限；两者的默认版本是 24（见 `.nvmrc`）。
-- **TypeScript 5.6.2 至 6.x**。CLI 通过 TypeScript Compiler API 读取声明文件；TypeScript 7
-  是 Go 原生重写，当前最新版 7.0.2 仍未提供该 API，因此暂不支持。等上游提供后再放宽版本上界。
-- **pnpm 12.x**（用于 `pnpm install`）：生成的 `package.json` 声明 `engines.pnpm`，且
-  `pnpm-workspace.yaml` 使用 `allowBuilds`，更早的 pnpm 会忽略它。脚手架本身不安装依赖，
-  只打印首次运行的命令。
+- **Node ≥ 22**. This is the supported floor for the repository and for generated projects; the default version for both is 24 (see `.nvmrc`).
+- **TypeScript 5.6.2 through 6.x**. The CLI reads declaration files through the TypeScript Compiler API. TypeScript 7 is the Go-native rewrite, and the current latest version, 7.0.2, does not provide that API yet, so it is not supported for now. The upper bound will be relaxed once upstream provides it.
+- **pnpm 12.x** (for `pnpm install`). The generated `package.json` declares `engines.pnpm`, and `pnpm-workspace.yaml` uses `allowBuilds`, which earlier pnpm versions ignore. The scaffold itself does not install dependencies; it only prints the command for the first run.
 
-脚手架不包含数据库层，也不依赖 Prisma。
+The scaffold includes no database layer and does not depend on Prisma.
 
-## 创建项目
+## Creating a Project
 
 ```bash
 # pnpm
@@ -27,8 +23,7 @@ npm create tealina@latest my-app
 bun create tealina my-app
 ```
 
-随后会询问项目目录和服务器框架。脚手架只写文件，不安装依赖，也不运行 `gdoc`；它结束时会打印
-首次运行的命令。安装并生成文档后，文档页才可用：
+Next it asks for the project directory and the server framework. The scaffold only writes files: it does not install dependencies and does not run `gdoc`. When it exits, it prints the command for the first run. The documentation page becomes available only after you install dependencies and generate the docs:
 
 ```bash
 cd my-app
@@ -37,54 +32,52 @@ pnpm -F api-v1 gdoc
 pnpm dev
 ```
 
-### 非交互运行
+### Non-interactive Runs
 
-| 参数 | 作用 |
+| Flag | Effect |
 | --- | --- |
-| `--template express\|fastify\|koa` | 跳过框架选择 |
-| `--web` | 额外生成 `packages/web`，一个最小的 Vite 前端 |
-| `--integrate` | 在项目根写入 `INTEGRATION.md`，一份供 AI 助手使用的整合手册 |
+| `--template express\|fastify\|koa` | Skips the framework prompt |
+| `--web` | Also generates `packages/web`, a minimal Vite frontend |
+| `--integrate` | Writes `INTEGRATION.md` at the project root, an integration playbook for AI assistants |
 
-项目名与 `--template` 同时给出时完全不提问：
+With both the project name and `--template` given, it asks no questions at all:
 
 ```bash
 pnpm create tealina my-app --template fastify --web
 ```
 
-脚手架只生成 TypeScript。如果项目里仍有 `.js` 处理函数，见
-[JavaScript 处理函数](./javascript-handlers.md)。
+The scaffold only generates TypeScript. If the project still has `.js` handlers, see [JavaScript Handlers](./javascript-handlers.md).
 
-目标目录非空时，脚手架会先确认是否删除；非交互运行请指向新目录或空目录。
+When the target directory is not empty, the scaffold first asks whether to delete it; for a non-interactive run, point it at a new or empty directory.
 
-## 启动
+## Starting the Server
 
 ```bash
 cd my-app
 pnpm dev
 ```
 
-| 地址 | 内容 |
+| Address | Content |
 | --- | --- |
-| `http://localhost:8000` | API 服务 |
-| `http://localhost:8000/api-doc/index.html` | API 文档与在线调试 |
-| `http://localhost:5173` | 前端，仅在 `--web` 时存在 |
+| `http://localhost:8000` | API service |
+| `http://localhost:8000/api-doc/index.html` | API documentation and playground |
+| `http://localhost:5173` | Frontend, present only with `--web` |
 
-端口来自 `backend/server/.env`。把 `.env.example` 复制为 `.env` 后修改 `PORT`；前端代理的
-目标也在 `packages/web/vite.config.ts` 中。
+The port comes from `backend/server/.env`. Copy `.env.example` to `.env` and change `PORT`; the frontend proxy target is also set in `packages/web/vite.config.ts`.
 
-## 添加第一个端点
+## Adding Your First Endpoint
 
-方法名和文件名就是 HTTP 方法和路径：
+The method name and the file name are the HTTP method and the path:
 
 ```bash
-pnpm -F api-v1 run create post/user   # 写入 src/api/post/user.ts
-pnpm -F api-v1 align                  # 重建生成的 index 文件
-pnpm -F api-v1 gdoc                   # 重新生成 docs/api.json
+pnpm -F api-v1 run create post/user   # writes src/api/post/user.ts
+pnpm -F api-v1 align                  # rebuilds the generated index files
+pnpm -F api-v1 gdoc                   # regenerates docs/api.json
 ```
 
-`run` 不能省略：`pnpm create` 是 pnpm 自己的项目脚手架，不是这里的脚本。
+`run` cannot be omitted: `pnpm create` is pnpm's own project scaffold, not the script here.
 
-打开刚生成的文件，补上处理函数：
+Open the file just generated and fill in the handler:
 
 ```ts
 import type { AuthedHandler } from 'core/handler'
@@ -103,15 +96,12 @@ const handler: ApiType = async (req, res) => {
 export default authedApi(handler)
 ```
 
-处理函数只负责声明接口契约和调用业务逻辑。数据库、校验、事务等实现应放在服务模块里，例如
-`backend/core/src/services/`；处理函数里只留下读取请求和发送响应。文档页需要的示例值可以通过
-文件里的 `examples` 导出提供，详见 [处理函数契约](./handler-contract.md)。
+A handler only declares the interface contract and calls business logic. Implementation such as databases, validation and transactions belongs in service modules, for example under `backend/core/src/services/`; the handler keeps only reading the request and sending the response. Example values needed by the documentation page can come from the file's `examples` export — see [Handler Contract](./handler-contract.md).
 
-新端点默认要求 `Authorization` 头。要公开它，把 `AuthedHandler` 换成 `OpenHandler`，并把
-`authedApi` 换成 `openApi`，详见 [鉴权](./authentication.md)。
+New endpoints require an `Authorization` header by default. To make one public, replace `AuthedHandler` with `OpenHandler` and `authedApi` with `openApi`; see [Authentication](./authentication.md).
 
-## 接下来
+## Next Steps
 
-- [项目结构](./project-structure.md)：三个后端包各自负责什么。
-- [文件即路由](./routing.md)：`create`、`delete`、`align` 与生成文件的规则。
-- [处理函数契约](./handler-contract.md)：类型注解如何驱动路由、文档和客户端。
+- [Project Structure](./project-structure.md): what each of the three backend packages is responsible for.
+- [File-based Routing](./routing.md): the rules for `create`, `delete`, `align` and generated files.
+- [Handler Contract](./handler-contract.md): how type annotations drive routes, docs and the client.

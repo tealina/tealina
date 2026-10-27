@@ -1,7 +1,6 @@
 # create-tealina
 
-Tealina 的脚手架。生成一个可直接编译、启动的 Node API 服务，文件即路由，处理函数的类型注解
-是路由、文档和客户端类型的唯一来源。
+The scaffold for Tealina. It generates a Node API service that compiles and starts right away, where files are routes, and handler type annotations are the single source of truth for routes, documentation, and client types.
 
 ```bash
 pnpm create tealina my-app
@@ -9,77 +8,70 @@ npm create tealina@latest my-app
 bun create tealina my-app
 ```
 
-## 参数
+## Arguments
 
-| 参数 | 作用 |
+| Argument | Purpose |
 | --- | --- |
-| `--template express\|fastify\|koa` | 跳过框架选择 |
-| `--web` | 额外生成 `packages/web`，一个最小的 Vite 前端 |
-| `--integrate` | 在项目根写入 `INTEGRATION.md`，一份供 AI 助手使用的整合手册 |
+| `--template express\|fastify\|koa` | Skip framework selection |
+| `--web` | Also generate `packages/web`, a minimal Vite frontend |
+| `--integrate` | Write `INTEGRATION.md` at the project root, an integration playbook for AI assistants |
 
-项目名与 `--template` 同时给出时完全非交互：
+When both a project name and `--template` are given, the scaffold is fully non-interactive:
 
 ```bash
 pnpm create tealina my-app --template fastify --web
 ```
 
-目标目录非空时，脚手架会询问是否删除；非交互运行请使用新目录或空目录。
+If the target directory is not empty, the scaffold asks whether to delete it; for non-interactive runs, use a new or empty directory.
 
-### 环境要求
+### Environment Requirements
 
-- Node ≥ 22（默认 24，生成项目的 `.nvmrc` 记录的就是它）。
-- TypeScript `>=5.6.2 <7`。生成的 `tealina` 命令需要 TypeScript Compiler API；TypeScript 7
-  当前最新版 7.0.2 尚未提供该 API，暂不支持。
-- pnpm 12.x，用于 `pnpm install`——生成的 `package.json` 声明 `engines.pnpm`，且
-  `pnpm-workspace.yaml` 使用 `allowBuilds`，更早的 pnpm 会忽略它。脚手架本身不安装依赖，
-  只打印首次运行的命令。
+- Node ≥ 22 (defaults to 24, which is what the generated project's `.nvmrc` records).
+- TypeScript `>=5.6.2 <7`. The generated `tealina` command needs the TypeScript Compiler API; the current latest version of TypeScript 7, 7.0.2, does not yet provide that API and is not supported.
+- pnpm 12.x for `pnpm install` — the generated `package.json` declares `engines.pnpm`, and `pnpm-workspace.yaml` uses `allowBuilds`, which earlier pnpm versions ignore. The scaffold itself does not install dependencies; it only prints the command for the first run.
 
-## 生成内容
+## Generated Contents
 
 ```text
 my-app/
-  package.json            脚本委托给三个后端包
-  pnpm-workspace.yaml     backend/* 与 packages/*
-  INTEGRATION.md          仅 --integrate，给 AI 助手的整合手册
+  package.json            scripts delegate to the three backend packages
+  pnpm-workspace.yaml     backend/* and packages/*
+  INTEGRATION.md          only with --integrate, an integration playbook for AI assistants
   backend/
-    core/                 契约层
-    api-v1/               一个 API 版本
-    server/               宿主
-  packages/web/           仅 --web
+    core/                 contract layer
+    api-v1/               one API version
+    server/               host
+  packages/web/           only with --web
 ```
 
-- `core`、`api-v1`、`server` 的职责见 [项目结构](/guide/project-structure.md)。
-- 默认端点：`GET /health`、`POST /login`（公开），`POST /article`（需要鉴权，带请求体和类型化响应）。
-- 默认没有前端；`--web` 才会创建 `packages/web`。
-- 默认没有数据库或 Prisma 层。
-- 不附带错误处理和 404 处理，未知路由和抛出的错误交给框架默认行为。
-- `--integrate` 写入的 `INTEGRATION.md` 覆盖两种整合形态：只把 `core` + `api-v1` 挂到现有
-  Express/Fastify/Koa 实例，或把三个后端包整体并入现有 monorepo。它不属于运行时，合并完成后
-  可以删除。完整说明见 [整合到现有项目](/guide/integration.md)。
+- For the responsibilities of `core`, `api-v1`, and `server`, see [Project Structure](/guide/project-structure.md).
+- Default endpoints: `GET /health`, `POST /login` (public), `POST /article` (requires authentication, with a request body and a typed response).
+- No frontend by default; `--web` creates `packages/web`.
+- No database or Prisma layer by default.
+- Error handling and 404 handling are not included; unknown routes and thrown errors go to the framework's default behavior.
+- The `INTEGRATION.md` written by `--integrate` covers two integration shapes: mounting only `core` + `api-v1` onto an existing Express/Fastify/Koa instance, or merging all three backend packages into an existing monorepo. It is not part of the runtime and can be deleted once the merge is done. For the full explanation, see [Integrating into an Existing Project](/guide/integration.md).
 
-## 根脚本
+## Root Scripts
 
-| 命令 | 作用 |
+| Command | Purpose |
 | --- | --- |
-| `pnpm dev` | 构建 `core` 与 `api-v1`，然后并行启动所有 watcher |
-| `pnpm build` | 构建所有包 |
-| `pnpm start` | 运行编译后的服务器 |
-| `pnpm check` | 格式化、lint 和类型检查（Vite+） |
-| `pnpm fmt` / `pnpm lint` | 只运行 `check` 的一半 |
-| `pnpm -F api-v1 run create <method> <path>` | 创建处理函数存根 |
-| `pnpm -F api-v1 align` | 重建生成的 `index.*` |
-| `pnpm -F api-v1 gdoc` | 重新生成 API 文档 |
+| `pnpm dev` | Build `core` and `api-v1`, then start all watchers in parallel |
+| `pnpm build` | Build all packages |
+| `pnpm start` | Run the compiled server |
+| `pnpm check` | Format, lint, and type-check (Vite+) |
+| `pnpm fmt` / `pnpm lint` | Run only half of `check` |
+| `pnpm -F api-v1 run create <method> <path>` | Create a handler stub |
+| `pnpm -F api-v1 align` | Rebuild the generated `index.*` |
+| `pnpm -F api-v1 gdoc` | Regenerate API documentation |
 
-各包暴露自己的子集：`core` 有 `dev` / `build`，`server` 额外有 `start`，`web`（`--web`）有
-`dev` / `build` / `preview`。
+Each package exposes its own subset: `core` has `dev` / `build`, `server` additionally has `start`, and `web` (with `--web`) has `dev` / `build` / `preview`.
 
-## 生成项目的工具链
+## Toolchain of the Generated Project
 
-生成的 `pnpm-workspace.yaml` 自带依赖目录，把 `vite` 别名到与 `vite-plus` 1.3.0 匹配的
-`@voidzero-dev/vite-plus-core`。这是项目自己的版本固定；升级全局 `vp` 不会改变它。
+The generated `pnpm-workspace.yaml` comes with its own dependency catalog, aliasing `vite` to the `@voidzero-dev/vite-plus-core` that matches `vite-plus` 1.3.0. This is the project's own version pin; upgrading the global `vp` does not change it.
 
-## 部署前
+## Before Deployment
 
-- `pnpm -F server build` 之后用 `pnpm start` 运行。
-- 文档 JSON 文件由 `gdoc` 生成，不手工编辑；页面提示文件缺失时先运行 `gdoc`。
-- 鉴权守卫只是占位实现，替换 `backend/core/src/access/verifyToken.ts` 里的 `TODO`。
+- After `pnpm -F server build`, run with `pnpm start`.
+- The documentation JSON file is generated by `gdoc` and is not edited by hand; when a page reports the file is missing, run `gdoc` first.
+- The auth guard is a placeholder implementation; replace the `TODO` in `backend/core/src/access/verifyToken.ts`.

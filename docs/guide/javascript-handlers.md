@@ -1,11 +1,10 @@
-# JavaScript 处理函数
+# JavaScript Handlers
 
-脚手架生成 TypeScript，但 tealina 也支持 `.js` 处理函数。`.js` 文件可以和 `.ts` 文件一起编译、
-一起检查，也可以按文件逐步迁移。
+The scaffold generates TypeScript, but tealina also supports `.js` handlers. `.js` files compile and type-check alongside `.ts` files, and you can migrate file by file.
 
-## 1. 打开 `allowJs`
+## 1. Turn On `allowJs`
 
-在每个后端包的 `tsconfig.json` 和 `tsconfig.build.json` 里设置：
+Set this in each backend package's `tsconfig.json` and `tsconfig.build.json`:
 
 ```json
 {
@@ -15,12 +14,11 @@
 }
 ```
 
-三个包都要改。`server` 通过 `api-v1/mount` 的 `types` 入口解析到 `src/mount.ts`，会连带编译整棵
-路由树；`server` 里没有 `allowJs` 时，一个 `.js` 汇总导出文件会报 TS7016。
+All three packages need the change. `server` resolves through the `types` entry of `api-v1/mount` to `src/mount.ts` and compiles the whole route tree along with it; without `allowJs` in `server`, a `.js` barrel file reports TS7016.
 
-## 2. 在处理函数所在包打开 `checkJs`
+## 2. Turn On `checkJs` in the Package That Holds the Handlers
 
-在 `api-v1`（处理函数所在的包）的两个配置里再加上：
+Add this to both configs in `api-v1` (the package that holds the handlers):
 
 ```json
 {
@@ -32,12 +30,11 @@
 }
 ```
 
-`include` 是显式列出的，单靠 `allowJs` 不会扩大匹配范围。构建配置本来包含整个 `src`，只需要两个
-开关。
+`include` is listed explicitly; `allowJs` alone does not widen what is matched. The build config already includes the whole of `src`; only the two switches are needed.
 
-## 3. 设置 `sourceExt`
+## 3. Set `sourceExt`
 
-在 `api-v1/tealina.config.ts` 里：
+In `api-v1/tealina.config.ts`:
 
 ```ts
 export default defineConfig({
@@ -46,14 +43,11 @@ export default defineConfig({
 })
 ```
 
-`sourceExt` 决定 tealina 生成的文件扩展名：后续的 `create` 会写 JSDoc 版本的存根，`align` 会把
-汇总导出文件命名为 `index.js`。它和 `suffix` 不是同一个选项：`suffix` 是生成 import 语句里的扩展名
-（默认 `.js`），在 NodeNext 下 TypeScript 项目写 `import './x.js'`，而文件名仍是 `x.ts`。
+`sourceExt` determines the file extension tealina generates: a later `create` writes JSDoc-style stubs, and `align` names the barrel file `index.js`. It is not the same option as `suffix`: `suffix` is the extension in generated import statements (default `.js`) — under NodeNext a TypeScript project writes `import './x.js'` while the file name is still `x.ts`.
 
-## 4. 用全局类型写 JSDoc
+## 4. Write JSDoc with Global Types
 
-推荐把处理函数类型声明成项目内的全局别名，这样每个 `.js` 文件都能直接写 `AuthedHandler<...>`，
-不必重复 `import('core/handler')`。新建 `api-v1/src/global.d.ts`：
+It is recommended to declare the handler types as project-wide global aliases, so every `.js` file can write `AuthedHandler<...>` directly without repeating `import('core/handler')`. Create `api-v1/src/global.d.ts`:
 
 ```ts
 import type {
@@ -78,7 +72,7 @@ declare global {
 export {}
 ```
 
-`tsconfig.json` 与 `tsconfig.build.json` 都包含 `src`，不需要再改配置。之后处理函数直接使用全局名字：
+Both `tsconfig.json` and `tsconfig.build.json` include `src`; no config change is needed. Afterwards handlers use the global names directly:
 
 ```js
 import { authedApi } from 'core/access'
@@ -90,7 +84,7 @@ import { authedApi } from 'core/access'
  */
 
 /**
- * 登录并返回 token。
+ * Log in and return a token.
  * @type {AuthedHandler<{ body: LoginPayload }, { token: string }>}
  */
 const handler = async (req, res) => {
@@ -100,29 +94,23 @@ const handler = async (req, res) => {
 export default authedApi(handler)
 ```
 
-不想增加全局声明时，也可以继续内联导入：
-`@type {import('core/handler').AuthedHandler<...>}`。类型必须放在 `const` 上，不能写在
-`openApi(...)` / `authedApi(...)` 的参数位置。
+If you do not want to add global declarations, you can keep importing inline: `@type {import('core/handler').AuthedHandler<...>}`. The type must go on the `const`, not in the argument position of `openApi(...)` / `authedApi(...)`.
 
-- 载荷形状用 `@typedef` 声明，文档生成器才能保留名字。
-- 描述必须和 `@type` 在同一个 JSDoc 块里；被空行隔开的第二个块不会附着到声明上，端点会失去描述。
-- 类型放在 `const` 上，不要内联到 `openApi(...)` / `authedApi(...)` 的参数位置：生成器靠这两个
-  调用找到处理函数，内联注解会让它拿到一个表达式而不是名字。
+- Declare payload shapes with `@typedef`, so the docs generator can keep the name.
+- The description must be in the same JSDoc block as `@type`; a second block separated by a blank line does not attach to the declaration, and the endpoint loses its description.
+- Put the type on the `const`, not inline in the argument position of `openApi(...)` / `authedApi(...)`: the generator finds the handler through these two calls, and an inline annotation gives it an expression instead of a name.
 
-## 5. 清理残留的 `index.ts`
+## 5. Clean Up the Leftover `index.ts`
 
-从 `.ts` 切换到 `.js` 后第一次运行 `align`，它会写 `index.js`，但之前生成的 `index.ts` 仍在旁边。
-NodeNext 会把 `import './index.js'` 解析到 `index.ts`，于是生成物获胜，新处理函数不可见。
+The first time you run `align` after switching from `.ts` to `.js`, it writes `index.js`, but the previously generated `index.ts` is still sitting next to it. NodeNext resolves `import './index.js'` to `index.ts`, so the generated artifact wins and the new handler is invisible.
 
-删除残留的 `index.ts` 汇总导出文件，只保留一份。
+Delete the leftover `index.ts` barrel file and keep only one.
 
-## 改回 TypeScript
+## Switching Back to TypeScript
 
-处理函数逐个改名回 `.ts`，全部完成后移除 `allowJs`、`checkJs` 和 `sourceExt`。前端的 `.js` 源码
-需要在 `packages/web/tsconfig.json` 里同样打开 `allowJs` 和 `checkJs`；它的 `include` 已经覆盖
-`.js`。
+Rename the handlers back to `.ts` one by one; when they are all done, remove `allowJs`, `checkJs` and `sourceExt`. Frontend `.js` source needs `allowJs` and `checkJs` turned on in `packages/web/tsconfig.json` as well; its `include` already covers `.js`.
 
-## 相关
+## Related
 
-- [处理函数契约](./handler-contract.md)：TypeScript 写法下的同一套规则。
-- [tealina CLI](/reference/cli.md)：`sourceExt`、`suffix` 与配置探测。
+- [Handler Contract](./handler-contract.md): the same rules written in TypeScript.
+- [tealina CLI](/reference/cli.md): `sourceExt`, `suffix` and config detection.
