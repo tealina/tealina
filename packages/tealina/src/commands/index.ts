@@ -1,79 +1,136 @@
 import { cac } from 'cac'
-import { exitIfHasDeprecated } from '../utils/exitIfHasDeprecated'
-import { loadConfigFromPath, mergeInlineOptions } from '../utils/tool'
+import { existsSync, readFileSync } from 'node:fs'
+import {
+  kDefaultConfigPath,
+  loadConfigFromPath,
+  mergeInlineOptions,
+  resolveConfigPath,
+} from '../utils/tool'
 import { createApis } from './capi'
 import { deleteApis } from './dapi'
 import { pickOption4gdoc, startGenerateDoc } from './gdoc'
 import { generatePureTypes, pickOption4gtype } from './gtype'
 import { pickOption4align, syncApiByFile } from './sapi'
-import { existsSync } from 'node:fs'
 
 export interface RawOptions {
-  apiDir: string
   route?: string
   model: boolean
   output?: string
-  input: string
+  input?: string
   templateAlias?: string
   withTest: boolean
   tsconfigPath: string
   configPath: string
   namespace: string
-  align: boolean
-  deleteApi: boolean
+  /** Compare generated output with disk and exit non-zero on drift; never writes. */
+  check: boolean
+  /** Machine-readable output: one JSON object on stdout, errors on stderr. */
+  json: boolean
 }
 
 const kDefaultGtypeInput = './prisma/schema.prisma'
-const distribuite = async (...rawArgs: unknown[]) => {
-  const options = rawArgs.pop() as Omit<RawOptions, 'apiDir' | 'route'>
-  const args = rawArgs as ReadonlyArray<string>
-  const [apiDir, route] = args
-  exitIfHasDeprecated(apiDir, route, options)
-  const inlineOptions = { ...options, apiDir, route }
-  const basicConfig = await loadConfigFromPath(options.configPath)
-  const config = mergeInlineOptions(basicConfig, inlineOptions)
-  if (options.align) {
-    return syncApiByFile(pickOption4align(config))
+
+/** The config is the single source of the api directory, so every command loads it. */
+const loadOptions = async (options: RawOptions) => {
+  const basicConfig = await loadConfigFromPath(
+    resolveConfigPath(options.configPath),
+  )
+  return mergeInlineOptions(basicConfig, options)
+}
+
+const runCreate = async (route: string | undefined, options: RawOptions) => {
+  if (!options.model && route == null) {
+    throw new Error(
+      'tealina create needs a route, for example `tealina create post/order`.',
+    )
   }
-  if (route === 'gdoc') {
-    return startGenerateDoc(pickOption4gdoc(config))
-  }
-  if (route === 'gtype') {
-    const prismaConfigPath = './prisma.config.ts'
-    const { input } = config
-    if (input == null) {
-      let final = kDefaultGtypeInput
-      if (existsSync(prismaConfigPath)) {
-        const configFromFile = await loadConfigFromPath(prismaConfigPath)
-        final = configFromFile.schema ?? kDefaultGtypeInput
-      }
-      config.input = final
-    }
-    return generatePureTypes(pickOption4gtype(config))
-  }
-  if (options.deleteApi) {
-    return deleteApis(config)
-  }
+  const config = await loadOptions({ ...options, route })
   return createApis(config)
+}
+
+const runDelete = async (route: string, options: RawOptions) =>
+  deleteApis(await loadOptions({ ...options, route }))
+
+const runAlign = async (options: RawOptions) =>
+  syncApiByFile(pickOption4align(await loadOptions(options)))
+
+const runGdoc = async (options: RawOptions) =>
+  startGenerateDoc(pickOption4gdoc(await loadOptions(options)))
+
+const runGtype = async (options: RawOptions) => {
+  const config = await loadOptions(options)
+  if (config.input == null) {
+    const prismaConfigPath = './prisma.config.ts'
+    let final = kDefaultGtypeInput
+    if (existsSync(prismaConfigPath)) {
+      const configFromFile = await loadConfigFromPath(prismaConfigPath)
+      final = configFromFile.schema ?? kDefaultGtypeInput
+    }
+    config.input = final
+  }
+  return generatePureTypes(pickOption4gtype(config))
 }
 
 const cli = cac('tealina')
 
-cli.command('<api-dir> gdoc [options]', 'Generate API document (json format)')
-
-cli.command(
-  '<api-dir> gtype [options]',
-  'Generate purified types based on *.prisma',
-)
-cli.command('gtype [options]', 'Generate purified types based on schema.prisma')
+cli.option('--config-path <path>', 'Tealina config path', {
+  default: kDefaultConfigPath,
+})
+cli.option('--verbose', 'Show execution stack when error')
 
 cli
-  .command('<api-dir> [route] [options]', 'Create APIs')
+  .command('create [route]', 'Create APIs')
+  .option('-m,--model', 'Batch create APIs by model name in the .prisma file.')
   .option(
-    '-a,--align',
-    'Align APIs, update all related files according to files in --api-dir',
+    '-i,--input <path>',
+    'Prisma schema path, default:  ./prisma/schema.prisma',
   )
-  .option('-d,--delete-api', 'Delete APIs')
+  .option('-t,--template-alias <alias>', 'Template alias')
+  .option('--with-test', 'Create the integration test file too')
+  .option('--tp,--tsconfig-path <path>', 'TypeScript config path', {
+    default: './tsconfig.json',
+  })
+  // `cac` passes positionals first and the options object last.
+  .action((...args) => {
+    const options = args.pop() as RawOptions
+    return runCreate(args[0] as string | undefined, options)
+  })
+
+cli
+  .command('delete <route>', 'Delete APIs')
+  .option('--with-test', 'Delete the integration test file too')
+  .option('--tp,--tsconfig-path <path>', 'TypeScript config path', {
+    default: './tsconfig.json',
+  })
+  .action((...args) => {
+    const options = args.pop() as RawOptions
+    return runDelete(args[0] as string, options)
+  })
+
+cli
+  .command('align', 'Align APIs, rebuilding the route barrels')
+  .option(
+    '--check',
+    'Compare generated output with disk, write nothing, exit 1 on drift',
+  )
+  .option('--json', 'Machine-readable output (one JSON object on stdout)')
+  .action((options: RawOptions) => runAlign(options))
+
+cli
+  .command('gdoc', 'Generate the API document (json format)')
+  .option('-o,--output <string>', 'Output directory')
+  .option(
+    '--check',
+    'Compare the document with disk, write nothing, exit 1 on drift',
+  )
+  .option('--json', 'Machine-readable output (one JSON object on stdout)')
+  .option('--tp,--tsconfig-path <path>', 'TypeScript config path', {
+    default: './tsconfig.json',
+  })
+  .action((options: RawOptions) => runGdoc(options))
+
+cli
+  .command('gtype', 'Generate purified types based on *.prisma')
   .option(
     '-i,--input <path>',
     'Prisma schema path, default:  ./prisma/schema.prisma',
@@ -81,22 +138,14 @@ cli
   .option('-n,--namespace <name>', 'Namespace of purified types', {
     default: 'Pure',
   })
-  .option('-m,--model', 'Batch create APIs by model name in the .prisma file.')
-  .option(
-    '-o,--output <string>',
-    'Output directory (gdoc) or file path (gtype)',
-  )
-  .option('-t,--template-alias <alias>', 'Template alias')
-  .option('--with-test', 'Affects test file too when create or delete APIs')
-  .option('--tp,--tsconfig-path <path>', 'TypeScript config path', {
-    default: './tsconfig.json',
-  })
-  .option('--config-path <path>', 'Tealina config path', {
-    default: './tealina.config.ts',
-  })
-  .option('--verbose', 'Show execution stack when error')
-  .action(distribuite)
+  .option('-o,--output <string>', 'Output file path')
+  .action((options: RawOptions) => runGtype(options))
 
 cli.help()
-cli.version('2.0.0')
+// The package is built with `unbundle`, so this file sits at `dist/commands/index.mjs`
+// and `../../package.json` is the package root in both the source and built trees.
+const { version } = JSON.parse(
+  readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
+) as { version: string }
+cli.version(version)
 export { cli }

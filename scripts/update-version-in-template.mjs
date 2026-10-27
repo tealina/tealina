@@ -1,23 +1,30 @@
 import { writeFileSync } from 'node:fs'
-import { readdir, readFile, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { readdir, readFile } from 'node:fs/promises'
 
-const TEMP_LIST = [
-  'packages/create-tealina/template/server/express/package.json',
-  'packages/create-tealina/template/server/fastify/package.json',
-  'packages/create-tealina/template/server/koa/package.json',
-]
+// Every template package that declares a workspace dependency. The backend is one
+// manifest per package per framework: a version left behind in any of them is a scaffold
+// that installs a different CLI than the one that generated it.
+const TEMPLATE_TREES = ['core', 'api-v1', 'server']
 
-const updateTeamplateDependance = updates =>
-  TEMP_LIST.map(dest => updatePackageContent(updates, dest))
+const templatePackagePaths = async () => {
+  const base = 'packages/create-tealina/template'
+  const out = [`${base}/web/package.json`]
+  for (const tree of TEMPLATE_TREES) {
+    const dir = `${base}/${tree}`
+    for (const rel of await readdir(dir, { recursive: true })) {
+      if (rel === 'package.json' || rel.endsWith('/package.json')) {
+        out.push(`${dir}/${rel}`)
+      }
+    }
+  }
+  return out
+}
+
+const updateTeamplateDependance = (paths, updates) =>
+  paths.map(dest => updatePackageContent(updates, dest))
 
 const readJsonFile = dest =>
   readFile(dest, { encoding: 'utf-8' }).then(v => JSON.parse(v.toString()))
-const writeJson = (dest, data) => writeFileSync(dest, JSON.stringify(data, null, 2), {
-  encoding: 'utf-8',
-})
-const deepValueEqual = (a, b) => Object.entries(b).every(([k, v]) => a[k] === v)
-
 const formatLog = (dest, result) => {
   console.log('  -', dest)
   console.log('  ', result)
@@ -25,10 +32,17 @@ const formatLog = (dest, result) => {
 const updatePackageContent = async (updates, dest) => {
   const pkg = await readJsonFile(dest)
   let hasUpdate = false
+  // Only touch dependencies the template already declares. One shared list then serves
+  // every tree: the server templates pick up tealina/server/doc-ui, web picks up client,
+  // and neither grows a dependency the other one owns.
   const actual = updates.reduce((acc, cur) => {
-    if (deepValueEqual(acc[cur.key], cur.value)) return acc
-    Object.assign(acc[cur.key], cur.value)
-    hasUpdate = true
+    const section = acc[cur.key]
+    if (section == null) return acc
+    for (const [name, version] of Object.entries(cur.value)) {
+      if (!(name in section) || section[name] === version) continue
+      section[name] = version
+      hasUpdate = true
+    }
     return acc
   }, pkg)
   if (!hasUpdate) return formatLog(dest, 'Nothing updated')
@@ -51,9 +65,19 @@ const latestTealina = async () => {
 const latestTealinaServer = async () => {
   const next = await readJsonFile('packages/tealina-server/package.json')
   return {
-    key: 'devDependencies',
+    key: 'dependencies',
     value: {
-      "@tealina/server": `^${next.version}`,
+      '@tealina/server': `^${next.version}`,
+    },
+  }
+}
+
+const latestTealinaClient = async () => {
+  const next = await readJsonFile('packages/tealina-client/package.json')
+  return {
+    key: 'dependencies',
+    value: {
+      '@tealina/client': `^${next.version}`,
     },
   }
 }
@@ -69,35 +93,16 @@ const latestDocUI = async () => {
 }
 
 const workflow = async () => {
-  const pkgsDir = 'packages'
-  const packagesNames = await readdir(pkgsDir)
-  const subPkgMaps = new Map()
-  for (const subPkg of packagesNames) {
-    const subDir = join(pkgsDir, subPkg)
-    const sta = await stat(subDir)
-    if (!sta.isDirectory()) continue
-    const pkgJson = await readJsonFile(join(pkgsDir, subPkg, 'package.json'))
-    subPkgMaps.set(pkgJson.name, pkgJson)
-  }
-  const kVersionMapPath = 'packages/create-tealina/template/versionMaps.json'
-  const versionMaps = await readJsonFile(kVersionMapPath)
-  for (const key in versionMaps) {
-    const project = versionMaps[key]
-    for (const depKey in project) {
-      const depend = project[depKey]
-      for (const pkgName of Object.keys(depend)) {
-        const latest = subPkgMaps.get(pkgName)
-        if (latest == null) throw new Error(`sub pkg not found,${pkgName}`)
-        depend[pkgName] = `^${latest.version}`
-      }
-    }
-  }
-  writeJson(kVersionMapPath, versionMaps)
-  // console.log('Intent to update version No. in templates:')
-  // const updates = await Promise.all([latestTealina(), latestDocUI()])
-  // await Promise.all(updateTeamplateDependance(updates))
-  console.log('Template dependancies version updated =>\n', versionMaps)
-  // execSync('pnpm test -F create-tealina', { stdio: 'inherit' })
+  console.log(`Updating workspace dependency versions in template packages:`)
+  const updates = await Promise.all([
+    latestTealina(),
+    latestTealinaServer(),
+    latestTealinaClient(),
+    latestDocUI(),
+  ])
+  await Promise.all(
+    updateTeamplateDependance(await templatePackagePaths(), updates),
+  )
 }
 
 workflow()

@@ -1,38 +1,43 @@
 import react from '@vitejs/plugin-react'
 import { setTimeout } from 'timers/promises'
 import UnoCSS from 'unocss/vite'
-import { defineConfig } from 'vitest/config'
+import { defineConfig, lazyPlugins } from 'vite-plus'
 import axios from 'axios'
 import path from 'path/posix'
 
-const kDocFactory = 'http://localhost:6001'
-let kConfigPromise = null
-const getRemoteConfig = async () => {
+// The playground the dev server fetches its config and proxies its api to. Override it
+// to point `pnpm -F @tealina/doc-ui-src dev` at another instance.
+const kDocFactory = process.env.DOC_FACTORY_URL ?? 'http://localhost:8000'
+type RemoteConfig = { customScripts?: string[] } & Record<string, unknown>
+let kConfigPromise: Promise<RemoteConfig | undefined> | null = null
+const getRemoteConfig = async (): Promise<RemoteConfig | undefined> => {
   if (kConfigPromise) return kConfigPromise
-  kConfigPromise = await setTimeout(1000).then(() =>
-    axios
-      .get(`${kDocFactory}/api-doc/config.json`)
-      .then(res => res.data)
-      .catch(e => {
-        console.log(e)
-      }),
-  )
-  return kConfigPromise
+  await setTimeout(1000)
+  const pending = axios
+    .get<RemoteConfig>(`${kDocFactory}/api-doc/config.json`)
+    .then(res => res.data)
+    .catch(e => {
+      console.log(e)
+      return undefined
+    })
+  kConfigPromise = pending
+  return pending
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(env => ({
-  plugins: [
+export default defineConfig(() => ({
+  plugins: lazyPlugins(async () => [
     react(),
-    UnoCSS(),
+    UnoCSS({ configFile: `${__dirname}/uno.config.ts` }),
     {
       name: 'inject-tealina-config',
       apply: 'serve',
       transformIndexHtml: {
         order: 'pre',
-        handler: async html => {
+        handler: async (html: string) => {
           try {
-            const { customScripts = [], ...json } = await getRemoteConfig()
+            const { customScripts = [], ...json } =
+              (await getRemoteConfig()) ?? {}
             const index = html.indexOf('<div') - 4
             const left = html.slice(0, index)
             return [
@@ -49,7 +54,7 @@ export default defineConfig(env => ({
         },
       },
     },
-  ],
+  ]),
   // base: fv(env.command === 'build' ? VDOC_BASENAME : '/doc'),
   base: './',
   test: {
@@ -58,7 +63,7 @@ export default defineConfig(env => ({
     globals: true,
     deps: {
       optimizer: {
-        web: {
+        client: {
           include: ['vitest-canvas-mock'],
         },
       },

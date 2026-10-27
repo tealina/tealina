@@ -1,6 +1,6 @@
 import { existsSync, rmSync } from 'fs'
 import path from 'node:path'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, describe, expect, test } from 'vite-plus/test'
 import { Snapshot, effectFiles } from '../../src/utils/effectFiles.js'
 import { ensureWrite } from '../../src/utils/tool.js'
 

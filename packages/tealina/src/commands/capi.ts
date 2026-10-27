@@ -13,12 +13,12 @@ import {
   unique,
   waitAll,
 } from 'fp-lite'
-import { basename, join } from 'pathe'
+import { basename, dirname, join } from 'pathe'
 import type { RawOptions } from '.'
 import type {
   ApiTemplateType,
   GenTestSuiteFnType,
-  TealinaConifg,
+  TealinaConfig,
   TemplateConfig,
 } from '../index'
 import { genIndexProp, genTopIndexProp, genWithWrapper } from '../utils/codeGen'
@@ -58,7 +58,8 @@ interface FullSeeds extends Seeds {
 type FullOptions = Omit<RawOptions, 'route' | 'suffix'> & {
   route: string
   suffix: string
-} & TealinaConifg
+  sourceExt: string
+} & TealinaConfig
 
 interface FullContext {
   seeds: FullSeeds[]
@@ -69,6 +70,7 @@ interface FullContext {
   testHelperInfo: { isExists: boolean; filePath: string }
   testTemplate: TemplateConfig['test']
   suffix: string
+  sourceExt: string
 }
 
 const parseByAlias = (
@@ -118,7 +120,7 @@ const parseByRoute = (route: string, tempConfig: ApiTemplateType[]): Seeds => {
   const strategies = makeStrategies(kind, name)
   const template = tempConfig.find(t => strategies.some(f => f(t))) ?? {
     name: '',
-    generateFn: ctx => '',
+    generateFn: () => '',
   }
   const { generateFn } = template
   return { generateFn, namePaths, kind }
@@ -128,11 +130,16 @@ const prepareKindArgsByModel = async (
   opt: RawOptions,
   tempConfig: ApiTemplateType[],
 ): Promise<Seeds[]> => {
-  const { templateAlias } = opt
+  const { templateAlias, input } = opt
   if (templateAlias == null) {
     throw new Error('Missing template alias')
   }
-  const nameGroup = await extraModelNames(opt.input)
+  if (input == null) {
+    throw new Error(
+      'Batch creation by model needs -i/--input (the prisma schema)',
+    )
+  }
+  const nameGroup = await extraModelNames(input)
   const rawNames = nameGroup.get('model') ?? []
   return parseByAlias(rawNames.map(unCapitalize), tempConfig, templateAlias)
 }
@@ -151,17 +158,18 @@ const getTouchedKinds = (opt: FullOptions) => {
   )
 }
 
-const gatherIndexContent = (apiDir: string) => (kinds: string[]) =>
-  asyncPipe(
-    Promise.resolve(kinds),
-    map(kind =>
-      readIndexFile(join(apiDir, kind, 'index.ts')).then(
-        content => [kind, content] as const,
+const gatherIndexContent =
+  (apiDir: string, sourceExt: string) => (kinds: string[]) =>
+    asyncPipe(
+      Promise.resolve(kinds),
+      map(kind =>
+        readIndexFile(join(apiDir, kind, `index${sourceExt}`)).then(
+          content => [kind, content] as const,
+        ),
       ),
-    ),
-    waitAll,
-    kvs => new Map(kvs),
-  )
+      waitAll,
+      kvs => new Map(kvs),
+    )
 
 const toKeyMapTrue = flow(
   map((x: string) => [x, true] as const),
@@ -172,6 +180,7 @@ const getTopIndexSnapshot = (
   xs: { kind: string }[],
   topIndexContent: string[],
   suffix: string,
+  sourceExt: string,
 ): Snapshot | null =>
   pipe(
     xs,
@@ -183,14 +192,14 @@ const getTopIndexSnapshot = (
       return {
         group: 'api',
         action: topIndexContent.length ? 'update' : 'create',
-        filePath: 'index.ts',
+        filePath: `index${sourceExt}`,
         code: genWithWrapper([...newImps, ...topIndexContent]),
       }
     },
   )
 
 const toIndexSnapshot =
-  (kindIndexMap: Map<string, string[]>, suffix: string) =>
+  (kindIndexMap: Map<string, string[]>, suffix: string, sourceExt: string) =>
   (v: { kind: string; namePathsArray: string[][] }): Snapshot | null => {
     const imps = v.namePathsArray.map(pathArr => genIndexProp(suffix)(pathArr))
     const { kind } = v
@@ -201,7 +210,7 @@ const toIndexSnapshot =
     return {
       group: 'api',
       action: isEmpty(contents) ? 'create' : 'update',
-      filePath: join(kind, 'index.ts'),
+      filePath: join(kind, `index${sourceExt}`),
       code: genWithWrapper([...newImps, ...contents]),
     }
   }
@@ -212,27 +221,34 @@ const calcRelativeFilesSnapshots = ({
   topIndexContent,
   options: dirInfo,
   suffix,
+  sourceExt,
 }: FullContext): Snapshot[] =>
   pipe(seeds2kindScope(seeds), kinds =>
     pipe(
-      [getTopIndexSnapshot(kinds, topIndexContent, suffix)],
-      concat(kinds.map(toIndexSnapshot(kindIndexContentMap, suffix))),
+      [getTopIndexSnapshot(kinds, topIndexContent, suffix, sourceExt)],
+      concat(
+        kinds.map(toIndexSnapshot(kindIndexContentMap, suffix, sourceExt)),
+      ),
       filter(notNull),
       map(completePath(dirInfo)),
     ),
   )
 
-const toApiFileSnapshot = ({
-  kind,
-  namePaths,
-  generateFn,
-  apiFileSummary: { filePath },
-}: FullSeeds): Snapshot => ({
-  group: 'api',
-  action: 'create',
-  filePath,
-  code: generateFn(parseCreationInfo(kind, namePaths)),
-})
+const toApiFileSnapshot =
+  (sourceExt: string) =>
+  ({
+    kind,
+    namePaths,
+    generateFn,
+    apiFileSummary: { filePath },
+  }: FullSeeds): Snapshot => ({
+    group: 'api',
+    action: 'create',
+    filePath,
+    code: generateFn(
+      parseCreationInfo(kind, namePaths, dirname(filePath), sourceExt),
+    ),
+  })
 
 const toApiTestSnapshot =
   (genSuite: GenTestSuiteFnType) =>
@@ -243,7 +259,7 @@ const toApiTestSnapshot =
     code: genSuite({
       method: kind,
       route: namePaths.join('/'),
-      relative2ancestor: Array(namePaths.length).fill('..').join('/'),
+      fileDir: dirname(testFileSummary.filePath),
     }),
   })
 
@@ -251,13 +267,12 @@ const toTestHelperSnapshot = ({
   testHelperInfo: { filePath },
   testTemplate,
   options: { apiDir, typesDir },
-  seeds: [{ namePaths }],
 }: FullContext): Snapshot => ({
   group: 'test',
   action: 'create',
   filePath,
   code: testTemplate?.genHelper?.({
-    relative2ancestor: Array(namePaths.length).fill('..').join('/'),
+    fileDir: dirname(filePath),
     typesDirName: basename(typesDir),
     apiDirName: basename(apiDir),
   }),
@@ -279,7 +294,7 @@ const calcApiSnpashots = (ctx: FullContext) =>
   pipe(
     ctx.seeds,
     filter(v => !v.apiFileSummary.isExists),
-    map(toApiFileSnapshot),
+    map(toApiFileSnapshot(ctx.sourceExt)),
   )
 
 const calcSnapshots = (ctx: FullContext): Snapshot[] =>
@@ -314,7 +329,7 @@ const seeds2kindScope = flow(
   })), //only care about kind and pathArrList
 )
 
-const getTestHeplerPath = (opt: DirInfo) =>
+const getTestHelperPath = (opt: DirInfo) =>
   join(opt.testDir, basename(opt.apiDir), 'helper.ts')
 
 const getTestFilePath = (
@@ -323,9 +338,9 @@ const getTestFilePath = (
 ) => `${join(testDir, basename(apiDir), kind, ...namePaths)}.test.ts`
 
 const getApiFilePath = (
-  { apiDir }: Pick<DirInfo, 'apiDir'>,
+  { apiDir, sourceExt }: Pick<DirInfo, 'apiDir'> & { sourceExt: string },
   { kind, namePaths }: Seeds,
-) => `${join(apiDir, kind, ...namePaths)}.ts`
+) => `${join(apiDir, kind, ...namePaths)}${sourceExt}`
 
 const getFileSummary = (filePath: string): Promise<FileSummary> =>
   pathExists(filePath).then(isExists => ({ filePath, isExists }))
@@ -371,7 +386,7 @@ const checkTestHelper = async (
   opt: FullOptions,
 ): Promise<FullContext['testHelperInfo']> => {
   if (opt.testDir == null) return { isExists: true, filePath: '' }
-  const filePath = getTestHeplerPath(opt as DirInfo)
+  const filePath = getTestHelperPath(opt as DirInfo)
   const isExists = opt.withTest ? await pathExists(filePath) : false
   return { isExists, filePath }
 }
@@ -385,10 +400,11 @@ const collectContext = asyncFlow(
   config =>
     [
       getSeeds(config, config.template?.handlers).then(toKeyValue('seeds')),
-      pipe(getTouchedKinds(config), gatherIndexContent(config.apiDir)).then(
-        toKeyValue('kindIndexContentMap'),
-      ),
-      readIndexFile(join(config.apiDir, 'index.ts')).then(
+      pipe(
+        getTouchedKinds(config),
+        gatherIndexContent(config.apiDir, config.sourceExt),
+      ).then(toKeyValue('kindIndexContentMap')),
+      readIndexFile(join(config.apiDir, `index${config.sourceExt}`)).then(
         toKeyValue('topIndexContent'),
       ),
       collectTypeFileInfo(config).then(toKeyValue('typeFileInfo')),
@@ -396,6 +412,7 @@ const collectContext = asyncFlow(
       toKeyValue('testTemplate')(config.template?.test),
       toKeyValue('options')(config),
       ['suffix', config.suffix],
+      ['sourceExt', config.sourceExt],
     ] as const,
   waitAll,
   kvs => Object.fromEntries(kvs) as FullContext,
@@ -416,7 +433,7 @@ export {
   getApiFilePath,
   getSeeds,
   getTestFilePath,
-  getTestHeplerPath,
+  getTestHelperPath,
   parseByAlias,
   parseByRoute,
   prepareKindArgs,

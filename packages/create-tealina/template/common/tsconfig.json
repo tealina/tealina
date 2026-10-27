@@ -2,6 +2,10 @@
   "compilerOptions": {
     "target": "ES2023",
     "module": "NodeNext",
+    // TypeScript 6 stops auto-including every `@types/*` package — the list is empty
+    // unless it is spelled out. `src/config/env.ts` reads `process.env` and calls
+    // `process.loadEnvFile()`, so the Node globals have to be named.
+    "types": ["node"],
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
@@ -11,4 +15,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
+  // The same file lands in every backend package. `tealina.config.ts` and the version
+  // constants exist only in `api-v1`, and `types/` only in some; a pattern that matches
+  // nothing costs nothing, which is what lets one file serve all three.
+  "include": ["types/**/*.d.ts", "src/**/*.ts", "*.ts", "*.d.ts"]
 }

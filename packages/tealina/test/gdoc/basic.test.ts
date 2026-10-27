@@ -8,42 +8,43 @@ import {
   TupleType,
   UnionType,
 } from '@tealina/doc-types'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 
 describe('test genereta api documentation api/post/createUser', () => {
   const mockDir = 'test/gdoc/mock'
   const configpath = path.join(mockDir, 'tsconfig.json')
   const result = parseDeclarationFile({
-    entries: [path.join(mockDir, 'basic', 'api-v1.d.ts')],
+    entries: [path.join(mockDir, 'basic', 'api.d.ts')],
     tsconfigPath: configpath,
   })
   const {
     apis: { post, get },
     entityRefs,
-    tupleRefs: {},
     enumRefs,
   } = result
   const [[url, doc]] = Object.entries(post)
 
   test('examples exists', () => {
-    expect(get.user).not.null
+    expect(get.user).not.toBeNull()
     const userDoc = get.user
-    expect(userDoc.examples).not.null
+    expect(userDoc.examples).not.toBeNull()
     expect(userDoc.examples).toHaveProperty('query')
   })
   test('all apperence entities', () => {
-    expect(post).not.null
+    expect(post).not.toBeNull()
     expect(url).eq('user/create')
     expect(doc.comment).eq('create an user')
     const { body, response, headers } = doc
     const entities = [body, response, headers]
-    expect(entities.every(v => v != null)).true
-    expect(entities.map(v => v?.kind).every(v => v == DocKind.EntityRef)).true
+    expect(entities.every(v => v != null)).toBe(true)
+    expect(entities.map(v => v?.kind).every(v => v == DocKind.EntityRef)).toBe(
+      true,
+    )
   })
   test('body detail', () => {
     const bodyType = entityRefs[(doc.body as RefType).id]
-    expect(bodyType).not.null
+    expect(bodyType).not.toBeNull()
     expect(bodyType.name).eq('UserCreateInput')
     expect(bodyType.props.length).eq(3)
     const [emailProp, nameProp, roleProp] = bodyType.props
@@ -68,7 +69,7 @@ describe('test genereta api documentation api/post/createUser', () => {
 
   test('response detail', () => {
     const responseType = entityRefs[(doc.response as RefType).id]
-    expect(responseType).not.null
+    expect(responseType).not.toBeNull()
     expect(responseType).contains({
       name: 'User',
       comment: 'Model User',
@@ -106,9 +107,9 @@ describe('test genereta api documentation api/post/createUser', () => {
   test('regular enum prop', () => {
     const responseType = entityRefs[(doc.response as RefType).id]
     expect(responseType.props).length.gte(4)
-    const [, , , , stateProp, badgeProp] = responseType.props
+    const [, , , , stateProp] = responseType.props
     expect(stateProp).contains({ kind: DocKind.EnumRef, name: 'state' })
-    const { name, members } = enumRefs[(stateProp as EnumRefType).id]
+    const { members } = enumRefs[(stateProp as EnumRefType).id]
     const [active, disabled] = members
     expect(active).deep.contains({
       key: 'Active',
@@ -133,7 +134,7 @@ describe('test genereta api documentation api/post/createUser', () => {
     expect(responseType.props).length.gte(4)
     const [, , , , , badgeProp] = responseType.props
     expect(badgeProp).contains({ kind: DocKind.EnumRef, name: 'badge' })
-    const { name, members } = enumRefs[(badgeProp as EnumRefType).id]
+    const { members } = enumRefs[(badgeProp as EnumRefType).id]
     const [blue, gold] = members
     expect(blue).deep.contains({
       key: 'Blue',
@@ -147,7 +148,7 @@ describe('test genereta api documentation api/post/createUser', () => {
 
   test('headers detail', () => {
     const headersType = entityRefs[(doc.headers as RefType).id]
-    expect(headersType).not.null
+    expect(headersType).not.toBeNull()
     expect(headersType.name).eq('AuthHeaders')
     expect(headersType.props.length).eq(1)
     const [prop] = headersType.props
@@ -159,19 +160,12 @@ describe('test genereta api documentation api/post/createUser', () => {
 
   test('edge case', () => {
     const variety = post['variety']
-    const { body, response } = variety!
+    const { body } = variety!
     // console.log(entityRefs['540']['props'].at(-1))
     expect(body!.kind).eq(DocKind.EntityRef)
     const bodyEntity = entityRefs[(body as RefType).id]
-    const [
-      limitRecord,
-      unionKeysRecord,
-      recordProp,
-      tupleProp,
-      intersactionProp,
-      unioiProp,
-      enumProp,
-    ] = bodyEntity.props
+    const [limitRecord, , recordProp, tupleProp, , , enumProp] =
+      bodyEntity.props
     expect(enumProp).contains({
       kind: DocKind.EnumRef,
       name: 'newEnum',
@@ -228,6 +222,6 @@ describe('test genereta api documentation api/post/createUser', () => {
     const targetMember = targetEnum.members.find(
       v => v.memberId == enumMemberRef.memberId,
     )
-    expect(targetMember).not.null
+    expect(targetMember).not.toBeNull()
   })
 })

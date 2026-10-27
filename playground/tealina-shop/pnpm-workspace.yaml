@@ -1,0 +1,31 @@
+packages:
+  - 'backend/*'
+  - 'packages/*'
+
+# esbuild (pulled in by tsx) needs its postinstall to fetch the platform binary.
+# Without this, pnpm >= 11 writes a placeholder here and fails the install with
+# ERR_PNPM_IGNORED_BUILDS until you answer it. Older pnpm ignores the key.
+allowBuilds:
+  esbuild: true
+
+# Vite+ is the toolchain: one `vite-plus` supplies `vp`, and everything that asks for
+# `vite` gets the copy Vite+ bundles rather than a second one.
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.3.0
+  vite-plus: 1.3.0
+overrides:
+  # This playground is checked out beside the packages it runs. Linking them here keeps
+  # `dev` pointed at the workspace source, so a fix in tealina or the doc UI shows up
+  # without a publish-and-reinstall round trip.
+  tealina: link:../../packages/tealina
+  '@tealina/server': link:../../packages/tealina-server
+  '@tealina/doc-ui': link:../../packages/tealina-doc-ui
+  '@tealina/doc-types': link:../../packages/tealina-doc-types
+  '@tealina/utility-types': link:../../packages/utility-types
+  '@tealina/client': link:../../packages/tealina-client
+  vite@*: 'catalog:'
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: '*'

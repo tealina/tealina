@@ -1,4 +1,55 @@
 packages:
-  - 'packages/*'
-  - '!temp/**'
-  - '!temp-*'
+  - "packages/*"
+  - "!temp/**"
+  - "!temp-*"
+
+# Moved out of .npmrc and package.json, which pnpm >= 11 no longer reads for
+# these settings. The workspace file is their only home now.
+autoInstallPeers: false
+saveWorkspaceProtocol: rolling
+
+# Keep the pre-12 behaviour: a version published minutes ago still resolves.
+# The e2e fixtures install freshly published packages, and the release flow
+# reinstalls right after changesets publishes.
+minimumReleaseAge: 0
+
+overrides:
+  tealina: workspace:*
+  create-tealina: workspace:*
+  "@tealina/doc-types": workspace:*
+  "@tealina/doc-ui": workspace:*
+  "@tealina/server": workspace:*
+  "@tealina/client": workspace:*
+  vite@*: "catalog:"
+  vitest@*: "catalog:"
+# Dependency build scripts are not run by default since pnpm 10. These are the
+# ones this repo relies on; every other dependency's scripts stay off.
+# esbuild (pulled in by tealina, tsx and vitest) fetches its platform binary here,
+# msw prints its notice.
+allowBuilds:
+  esbuild: true
+  msw: true
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.3.0
+  vitest: 5.0.5
+  vite-plus: 1.3.0
+  "@vitest/coverage-v8": 5.0.5
+  "@vitest/web-worker": 5.0.5
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: "*"
+    vitest: "*"
+minimumReleaseAgeExclude:
+  - vite-plus
+  - "@voidzero-dev/*"
+  - oxlint
+  - "@oxlint/*"
+  - oxlint-tsgolint
+  - "@oxlint-tsgolint/*"
+  - oxfmt
+  - "@oxfmt/*"
+  - vitest
+  - "@vitest/*"

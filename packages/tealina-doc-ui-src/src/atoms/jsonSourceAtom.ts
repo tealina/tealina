@@ -88,8 +88,9 @@ export const apiDocAtom = atom<Promise<ApiDoc>>(async get => {
   }
   const result = await fetch(curSource.jsonURL, { headers: kHeadersForAuth })
   if (result.status != 200) {
+    // `||`, not `??`: an empty body is `''`, so the status text never showed through.
     const msg = await result.text().then(
-      x => x ?? result.statusText,
+      x => x || result.statusText,
       () => result.statusText,
     )
     throw new Error(msg)

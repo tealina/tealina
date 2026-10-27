@@ -1,0 +1,20 @@
+{
+  "name": "tealina-shop",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "start": "pnpm -F server start",
+    "check": "vp check",
+    "fmt": "vp fmt",
+    "lint": "vp lint"
+  },
+  "devDependencies": {
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

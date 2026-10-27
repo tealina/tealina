@@ -1,18 +1,30 @@
 import { MenuProps, Tag } from 'antd'
-import type { ItemType, SubMenuType } from 'antd/es/menu/hooks/useItems'
-import { flow, isEmpty, map, separeBy } from 'fp-lite'
+import { flow, map, separeBy } from 'fp-lite'
 import { useAtom, useAtomValue } from 'jotai'
-import { useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { curShowApiAtom } from '../../atoms/jsonSourceAtom'
 import { apiSummariesAtom, ApiSummary } from '../../atoms/summaryAtom'
 import { getMethodColor } from '../../utils/methodColors'
 
 /**
+ * A built menu node: a leaf (`key` + `label`) or a group that also carries `children`.
+ *
+ * Deliberately narrower than antd's `ItemType`, which allows `null`, makes `key` and
+ * `label` optional, and — through `SubMenuType` — demands a `children` array that a
+ * leaf does not have. Everything below reads `key` and `children` as required, so the
+ * concrete shape is what the file works with; it stays assignable to `ItemType`, which
+ * is all `MenuProps` asks for.
+ */
+type MenuItem = {
+  key: string
+  label: ReactNode
+  children?: MenuItem[]
+}
+
+/**
  * craete menu item by api route\
  */
-const toMenuItem = (
-  vmList: ApiSummary[],
-): SubMenuType | Omit<SubMenuType, 'children'> => {
+const toMenuItem = (vmList: ApiSummary[]): MenuItem => {
   const [first] = vmList
   if (first.module == '' && vmList.length == 1) {
     return {
@@ -48,14 +60,10 @@ const genMenuItems = flow(
   map(toMenuItem),
 )
 
-const gatherFirstElement = (x: ItemType, records: string[] = []): string[] => {
-  if (x == null) return records
-  records.push(x.key as string)
-  if ('children' in x) {
-    const { children } = x
-    if (children != null && children.length > 0) {
-      return gatherFirstElement(children[0], records)
-    }
+const gatherFirstElement = (x: MenuItem, records: string[] = []): string[] => {
+  records.push(x.key)
+  if (x.children != null && x.children.length > 0) {
+    return gatherFirstElement(x.children[0]!, records)
   }
   return records
 }
@@ -70,35 +78,39 @@ export const useMenus = () => {
     }
     const [headOne] = items
     const defaultOpenKeys = [headOne.key]
+    const { children } = headOne
     const defaultSelectedKeys =
-      'children' in headOne
-        ? isEmpty(headOne.children)
-          ? defaultOpenKeys
-          : [headOne.children[0]!.key as string, ...defaultOpenKeys]
-        : []
+      children == null
+        ? [] // a leaf at the root: nothing to preselect under it
+        : children.length > 0
+          ? [children[0]!.key, ...defaultOpenKeys]
+          : defaultOpenKeys
     return { items, defaultOpenKeys, defaultSelectedKeys }
   }, [summaries])
-  const [openKeys, setOpenKeys] = useState(defaultOpenKeys)
-  const [selectedKeys, setSelectedKeys] = useState(defaultSelectedKeys)
-  const updateCurShowApi = (key: string) => {
-    const [method, ...rest] = key.split('/')
-    const nextPath = rest.join('/')
-    setCurShowApi({ method, path: nextPath })
-    return
-  }
+  const derivedOpenKeys = useMemo(() => {
+    if (curShowApi == null) return defaultOpenKeys
+    const itemKey = [curShowApi.method, curShowApi.path].join('/')
+    const [, part] = curShowApi.path.split('/')
+    return [itemKey, part]
+  }, [curShowApi, defaultOpenKeys])
+  const [openState, setOpenState] = useState<{
+    source: typeof curShowApi
+    keys: string[]
+  }>(() => ({ source: curShowApi, keys: derivedOpenKeys }))
+  // `curShowApi` is the source of truth for the selection, so the keys derived
+  // from it replace the stored ones whenever it changes. The stored copy exists
+  // only to keep sub-menus the reader opened or closed by hand.
+  const selectedKeys =
+    curShowApi == null
+      ? defaultSelectedKeys
+      : [[curShowApi.method, curShowApi.path].join('/')]
+  const openKeys =
+    openState.source === curShowApi ? openState.keys : derivedOpenKeys
   useEffect(() => {
-    if (curShowApi == null) {
-      const keys = gatherFirstElement(items[0])
-      updateCurShowApi(keys.at(-1)!)
-      return
-    }
-    const { method, path } = curShowApi
-    const _keys = [method, path].join('/')
-    const [, part] = path.split('/')
-    const _open = [_keys, part]
-    setSelectedKeys([_keys])
-    setOpenKeys(_open)
-  }, [curShowApi])
+    if (curShowApi != null) return
+    const [method, ...rest] = gatherFirstElement(items[0]).at(-1)!.split('/')
+    setCurShowApi({ method, path: rest.join('/') })
+  }, [curShowApi, items, setCurShowApi])
   const menuProps: MenuProps = {
     items,
     selectedKeys,
@@ -106,12 +118,13 @@ export const useMenus = () => {
     defaultOpenKeys,
     defaultSelectedKeys,
     onSelect: info => {
-      setOpenKeys(info.keyPath)
-      setSelectedKeys(info.selectedKeys)
-      updateCurShowApi(info.key)
+      const [method, ...rest] = info.key.split('/')
+      const next = { method, path: rest.join('/') }
+      setCurShowApi(next)
+      setOpenState({ source: next, keys: info.keyPath })
     },
     onOpenChange: keys => {
-      setOpenKeys(keys)
+      setOpenState({ source: curShowApi, keys })
     },
   }
   return menuProps

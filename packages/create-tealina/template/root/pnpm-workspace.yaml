@@ -1,0 +1,22 @@
+packages:
+  - 'backend/*'
+  - 'packages/*'
+
+# esbuild (pulled in by tsx) needs its postinstall to fetch the platform binary.
+# Without this, pnpm >= 11 writes a placeholder here and fails the install with
+# ERR_PNPM_IGNORED_BUILDS until you answer it. Older pnpm ignores the key.
+allowBuilds:
+  esbuild: true
+
+# Vite+ is the toolchain: one `vite-plus` supplies `vp`, and everything that asks for
+# `vite` gets the copy Vite+ bundles rather than a second one.
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.3.0
+  vite-plus: 1.3.0
+overrides:
+  vite@*: 'catalog:'
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: '*'

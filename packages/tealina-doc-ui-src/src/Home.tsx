@@ -28,4 +28,3 @@ export function HomePage() {
     </Layout>
   )
 }
-

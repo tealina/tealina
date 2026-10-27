@@ -1,5 +1,10 @@
 import { createRPC, createReq, type ToRPC } from '../core/index'
-import type { ApiRecordShape, ClientRequestContext, ToReq } from '../core/types'
+import type {
+  ApiRecordShape,
+  ClientRequestContext,
+  ShapeWitness,
+  ToReq,
+} from '../core/types'
 
 const payload2config = (payload: ClientRequestContext) => {
   const { body, raw: _ignore, ...rest } = payload
@@ -21,13 +26,15 @@ const createHandler =
  * Create a type-safe request object,
  * with the actual request handled by Fetch.
  * @param requester the acutal handler for send request
+ * @param shape a JavaScript caller's way to name the API record type — it is read as
+ * a type and never as a value, see {@link ShapeWitness}
  *
  * @example
  * ```ts
  * import { createFetchClient } from '@tealina/client'
- * import type { ApiTypesRecord } from 'server/api/v1'
+ * import type { ApiTypesForClient } from 'api-v1/api'
  *
- * const req = createFetchClient<ApiTypesRecord, RequestInit>(async (url, config) => {
+ * const req = createFetchClient<ApiTypesForClient, RequestInit>(async (url, config) => {
  *    const response = await fetch(url, config)
  *    const data = await response.json()
  *    return data
@@ -36,10 +43,12 @@ const createHandler =
  */
 export const createFetchClient = <T extends ApiRecordShape, C>(
   requester: (url: string, config: C) => unknown,
+  _shape?: ShapeWitness<T>,
 ) => createReq<ToReq<T, C>, C>(createHandler(requester))
 
 export function createFetchRPC<T extends ApiRecordShape, C>(
   requester: (url: string, config: C) => unknown,
+  _shape?: ShapeWitness<T>,
 ) {
   return createRPC<ToRPC<T, C>, C>(createHandler(requester))
 }

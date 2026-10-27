@@ -1,0 +1,20 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "tsc --noEmit && vp build",
+    "preview": "vp preview"
+  },
+  "dependencies": {
+    "@tealina/client": "^1.0.3"
+  },
+  "devDependencies": {
+    "api-v1": "workspace:*",
+    "typescript": "~6.0.3",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

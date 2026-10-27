@@ -4,7 +4,9 @@ Hi! We are really excited that you are interested in contributing to Tealina. Be
 
 ## Repo Setup
 
-The Tealina repo is a monorepo using pnpm workspaces. The package manager used to install and link dependencies must be [pnpm](https://pnpm.io/).
+The Tealina repo is a monorepo using pnpm workspaces. The package manager used to install and link dependencies must be [pnpm](https://pnpm.io/) **12** — the root `packageManager` field pins `pnpm@12.5.1`, and the committed lockfile is `lockfileVersion: '9.0'`, which pnpm 8 cannot read.
+
+Most settings live in `pnpm-workspace.yaml` rather than `.npmrc`: since pnpm 11 the `pnpm` field of `package.json` is no longer read, and `.npmrc` holds auth and registry only.
 
 To develop and test:
 
@@ -16,12 +18,18 @@ To develop and test:
 
 The other commands declared in package.json also run in the same format
 
-## Hints for create new scafold template
+## Hints for create new scaffold template
 
-A scafold template include two parts below:
+A scaffold template has two parts:
 
-1. dynamic [handler file](./packages/create-tealina/src/template-factory)
-2. static [files](./packages/create-tealina/template/server)
+1. the manifest that names the files it writes — [`src/template-manifest.ts`](./packages/create-tealina/src/template-manifest.ts)
+2. the files themselves — [`template/`](./packages/create-tealina/template)
+
+A backend or web template file is one the manifest names; a file added under
+`template/core/`, `template/api-v1/`, `template/server/` or `template/web/` but not to the
+manifest never ships. `template/root/` is copied wholesale, so everything in it is shipped
+as-is. The retired full-kit scaffold built every list by walking directories; that approach
+was dropped along with the package.
 
 ## Debugging
 

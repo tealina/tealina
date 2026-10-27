@@ -1,6 +1,6 @@
 const matchers = require('@testing-library/jest-dom/matchers')
 import { cleanup } from '@testing-library/react'
-import { afterEach, expect, vi } from 'vitest'
+import { afterEach, expect, vi } from 'vite-plus/test'
 import 'vitest-canvas-mock'
 import { VDOC_CONFIG } from './mockConfig'
 expect.extend(matchers)

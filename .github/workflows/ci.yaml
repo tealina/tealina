@@ -6,20 +6,45 @@ on:
   pull_request:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      # setup-vp 一并装好 Vite+、Node 和包管理器，所以原来的两个 setup-node、
+      # corepack enable、以及 pnpm 缓存配置全删了。
+      # 版本要写精确版本号：官方文档明确说 `v1` 这个 tag 不再更新（停在 v1.15.0）。
+      - uses: voidzero-dev/setup-vp@v1.20.0
         with:
-          node-version: 18
-      - run: corepack enable
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: 'pnpm'
-          cache-dependency-path: '**/pnpm-lock.yaml'
-      - run: pnpm install --frozen-lockfile --prefer-offline
-      - run: pnpm build
-      - run: pnpm test
+          # 默认工具链是 Node 24（与 .nvmrc 一致）。各包 engines.node ">=22" 与
+          # pack 的 target 'node22' 是支持下限，不跟着默认版本上调。
+          node-version: '24'
+          cache: true
+          # 关掉 action 自带的 install（它默认带，且不带 --frozen-lockfile），
+          # 否则它会先把 lockfile 改掉，下一行的 --frozen-lockfile 就形同虚设。
+          run-install: false
+
+      - run: vp --version
+      - run: vp install --frozen-lockfile --prefer-offline
+
+      # build 必须排在 check 前面：全新 clone 里一个 dist/ 都没有，而 workspace
+      # 包之间的类型是走 dist 解析的，直接 `vp check` 会报 14 个 TS2307。
+      # 本地之所以没暴露，是因为 dist/ 一直留着上次构建的产物。
+      - run: vp run -r build
+
+      - run: vp check
+
+      # 根目录的 vp test 跑根 vite.config.ts 里登记的全部 projects。
+      # 不用递归的 `vp run -r test`：它比这里多出来的只有 tealina-doc-types 那条
+      # `tsc --noEmit`，而那个文件本来就在 vp check 的类型检查范围内。
+      - run: vp test
+
+      # docs/ 是独立 pnpm 项目，根 `vp install` 不安装它。VitePress 构建时
+      # 默认在死链上报错，所以这一步同时检查了站内链接。
+      - run: pnpm --dir docs install --frozen-lockfile
+      - run: pnpm --dir docs run build

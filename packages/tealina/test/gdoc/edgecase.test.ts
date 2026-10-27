@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 
 const mockDir = 'test/gdoc/mock'
@@ -25,7 +25,7 @@ describe('test error handling', () => {
       hasError = true
       expect(String(error)).includes('Export symbol not found')
     }
-    expect(hasError).true
+    expect(hasError).toBe(true)
   })
   test('error when no valid export found', () => {
     let hasError = false
@@ -38,6 +38,6 @@ describe('test error handling', () => {
       hasError = true
       expect(String(error)).includes('Export default should be a function')
     }
-    expect(hasError).true
+    expect(hasError).toBe(true)
   })
 })

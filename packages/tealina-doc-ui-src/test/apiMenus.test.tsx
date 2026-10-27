@@ -1,9 +1,10 @@
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
+import { useEffect } from 'react'
 import { useAtomValue } from 'jotai'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { DocKind } from '@tealina/doc-types'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, describe, expect, test } from 'vite-plus/test'
 import { curShowApiAtom } from '../src/atoms/jsonSourceAtom'
 import { ApiMenus } from '../src/components/menus/ApiMenus'
 import { JSON_URL } from './mockConfig'
@@ -29,7 +30,7 @@ const defaultApiDoc = {
 }
 
 const server = setupServer(
-  http.get(JSON_URL, (_ctx) => {
+  http.get(JSON_URL, _ctx => {
     return HttpResponse.json(defaultApiDoc)
   }),
 )
@@ -42,25 +43,36 @@ describe('test use menus hook', () => {
   afterAll(() => server.close())
 
   test('show menu and click to effect atom', async () => {
-    let curApi: any = null
+    const observed: { current: any } = { current: null }
     const ContentSection = () => {
       const cur = useAtomValue(curShowApiAtom)
-      curApi = cur
-      return <div>{cur?.method}, {cur?.path}</div>
-    }
-    const result = render(
-      <div>
-        <ApiMenus />
+      useEffect(() => {
+        observed.current = cur
+      }, [cur])
+      return (
         <div>
-          <ContentSection />
+          {cur?.method}, {cur?.path}
         </div>
-      </div>,
+      )
+    }
+    // `<ApiMenus>` suspends while the api doc loads. React only retries a
+    // boundary that first suspended inside an *awaited* act scope, so a bare
+    // `render` would leave the spinner up forever.
+    const result = await act(async () =>
+      render(
+        <div>
+          <ApiMenus />
+          <div>
+            <ContentSection />
+          </div>
+        </div>,
+      ),
     )
     const list = await result.findAllByText('health')
     const el = list.find(v => v.classList.contains('ant-menu-title-content'))
-    expect(el != null).true
+    expect(el != null).toBe(true)
     fireEvent.click(el!)
     fireEvent.click(result.getByText('health'))
-    expect(curApi).toMatchObject({ method: 'get', path: 'health' })
+    expect(observed.current).toMatchObject({ method: 'get', path: 'health' })
   })
 })

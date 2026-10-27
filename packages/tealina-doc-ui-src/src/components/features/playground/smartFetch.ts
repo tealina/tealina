@@ -6,7 +6,6 @@ const kJSON_Type = /json/
 const kDisposition = 'content-disposition'
 const kSimpleJSON = 'application/json'
 const kOctetStream = 'application/octet-stream'
-const kStreamTypes = ['text/event-stream', kOctetStream]
 const kPDF_Type = 'application/pdf'
 const kZipType = 'application/zip'
 const kBinaryTypes = [kOctetStream, kZipType, kPDF_Type]
@@ -25,7 +24,8 @@ export async function smartFetch(
       status,
       contentType,
       type: 'error',
-      result: msg ?? response.statusText,
+      // `||`, not `??`: an empty body is `''`, so the status text never showed through.
+      result: msg || response.statusText,
     }
   }
   const isChunked = checkIsChunked(response.headers)
@@ -127,10 +127,6 @@ function isBinary(contentType: string) {
     kDownloadPattern.test(contentType) ||
     kMediaTypePattern.test(contentType)
   )
-}
-
-function isStream(contentType: string) {
-  return kStreamTypes.some(c => contentType.includes(c))
 }
 
 function isSorfOfJSON(contentType: string) {

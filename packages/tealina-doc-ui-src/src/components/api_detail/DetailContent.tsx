@@ -6,15 +6,25 @@ import {
   type DocNode,
   type Entity,
   type ObjectType,
-  type TupleEntity
+  type TupleEntity,
 } from '@tealina/doc-types'
-import { Button, Card, Segmented, Spin, Tabs, Tag, Typography, type TabsProps } from 'antd'
+import {
+  Button,
+  Card,
+  Segmented,
+  Spin,
+  Tabs,
+  Tag,
+  Typography,
+  type TabsProps,
+} from 'antd'
 import { useAtomValue } from 'jotai'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useId } from 'react'
 import { curJsonSourceAtom } from '../../atoms/jsonSourceAtom'
 import { syntaxColorAtom } from '../../atoms/themeAtom'
 import { type2cell } from '../../transformer/type2cell'
 import { getMethodColor } from '../../utils/methodColors'
+import { nodeKey } from '../../utils/nodeKey'
 import { Anchor } from '../Anchor'
 import { ColorText } from '../ColorText'
 import { EntityTable } from '../EntityTable'
@@ -70,6 +80,10 @@ export function DetailContent(summary: OneApiSummary) {
     useDetailState(doc, docItem)
   const source = useAtomValue(curJsonSourceAtom)
   const color = getMethodColor(identity.method)
+  const url = [
+    source.baseURL.replace(/\/$/, ''),
+    identity.path.replace(/^\//, ''),
+  ].join('/')
   return (
     <div className="p-3 h-screen flex flex-col">
       <div className="text-lg flex-shrink-0">
@@ -78,14 +92,14 @@ export function DetailContent(summary: OneApiSummary) {
             {identity.method}
           </Tag>
           <ColorText type="string" className="tracking-wider">
-            {[source.baseURL, identity.path].join('')}
+            {url}
           </ColorText>
           <CopyButton
             identity={identity}
             className="invisible group-hover:visible pl-2"
           />
         </div>
-        <Card className="mt-3 min-h-18" bodyStyle={{ padding: '10px' }}>
+        <Card className="mt-3 min-h-18" styles={{ body: { padding: '10px' } }}>
           <MarkdownView>{docItem.comment}</MarkdownView>
         </Card>
       </div>
@@ -134,6 +148,7 @@ function PlayloadPanel({
   keyPrefix: string
 }) {
   const key = curTab as PayloadKeys
+  const uid = useId()
   const targetNode = docItem[key]
   if (targetNode == null) {
     return null
@@ -186,15 +201,15 @@ function PlayloadPanel({
           )
         }
         case 'literal': {
-          const key = Math.random().toString(16)
+          const literalKey = `${uid}-${nodeKey(k.value)}`
           if (k.value.props.length <= 0) {
-            return <ColorText type='object'>{`{ }`}</ColorText>
+            return <ColorText key={literalKey} type="object">{`{ }`}</ColorText>
           }
           return (
             <EntityTable
               entity={k.value}
-              key={key}
-              id={key}
+              key={literalKey}
+              id={literalKey}
               doc={parsedDoc}
             />
           )
@@ -206,11 +221,14 @@ function PlayloadPanel({
 
   const renderWithLeader = (d: DocNode) => (
     <div className="flex flex-col gap-3 pb-10">
-      <div className='flex gap-3 items-center'>
-        <Typography.Text className='text-1.8em'>
+      <div className="flex gap-3 items-center">
+        <Typography.Text className="text-1.8em">
           {type2cell(d, doc, false)}
         </Typography.Text>
-        <ExapmleBtn exampleItem={docItem.examples?.[key]} title={`${capitalize(curTab)} Examples`} />
+        <ExapmleBtn
+          exampleItem={docItem.examples?.[key]}
+          title={`${capitalize(curTab)} Examples`}
+        />
       </div>
       {renderContent(d)}
     </div>
@@ -222,19 +240,25 @@ function PlayloadPanel({
       case DocKind.ResponseEntity: {
         const statusCode = String(v.statusCode ?? 200)
         if (v.response == null) {
-          return { key: statusCode, label: statusCode, children: <p>{v.comment}</p> }
+          return {
+            key: statusCode,
+            label: statusCode,
+            children: <p>{v.comment}</p>,
+          }
         }
         return {
           key: statusCode,
           label: statusCode,
-          children: <div>
-            {v.comment && <p>{v.comment}</p>}
-            {renderWithLeader(v.response)}
-          </div>
+          children: (
+            <div>
+              {v.comment && <p>{v.comment}</p>}
+              {renderWithLeader(v.response)}
+            </div>
+          ),
         }
       }
       default: {
-        const key = Math.random().toString(16)
+        const key = `${uid}-${nodeKey(v)}`
         return {
           key,
           tabKey: key,
@@ -249,7 +273,9 @@ function PlayloadPanel({
   }
   const isUnion = targetNode.kind === DocKind.Union
   if (isUnion) {
-    const hasResponseEntity = targetNode.types.some(t => t.kind === DocKind.ResponseEntity)
+    const hasResponseEntity = targetNode.types.some(
+      t => t.kind === DocKind.ResponseEntity,
+    )
     if (!hasResponseEntity) {
       return renderWithLeader(targetNode)
     }
@@ -342,4 +368,3 @@ function PlaygroundPanel({
     </Suspense>
   )
 }
-

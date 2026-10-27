@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# 项目自有钩子，由 .vite-hooks/_/h 的分发器调用（core.hooksPath 指向 .vite-hooks/_）。
+# 具体跑什么写在 vite.config.ts 的 staged 块里，不在这里。
+vp staged

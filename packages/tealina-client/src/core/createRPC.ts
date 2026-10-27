@@ -1,5 +1,5 @@
 import { Extract2xxResponse } from '@tealina/utility-types'
-import { makeContext } from './makeContext'
+import { makeContext, toAbsoluteUrl } from './makeContext'
 import type {
   ApiClientShape,
   ApiRecordShape,
@@ -7,24 +7,23 @@ import type {
   FullPayload,
   MakeParameters,
   PayloadType,
-  RemoveBeginSlash,
   UnionToIntersection,
 } from './types'
 
+/**
+ * One route becomes one level of nesting per segment, so `'user/:id/update'` is reached
+ * as `user[':id'].update()`. A route with no slash stays flat: `'health'` is `health()`.
+ */
 type PathToObject<
   RoutePath extends string,
   Payload extends FullPayload,
   Config,
-> = RoutePath extends `/${infer Head}/${infer Tail}`
+> = RoutePath extends `${infer Head}/${infer Tail}`
   ? {
-      [K in RemoveBeginSlash<Head> as K extends '' ? never : K]: PathToObject<
-        Tail,
-        Payload,
-        Config
-      >
+      [K in Head]: PathToObject<Tail, Payload, Config>
     }
   : {
-      [K in RemoveBeginSlash<RoutePath> as K extends '' ? never : K]: (
+      [K in RoutePath]: (
         ...args: MakeParameters<Payload, Config>
       ) => Promise<Extract2xxResponse<Payload['response']>>
     }
@@ -58,7 +57,7 @@ export const createRPC = <T extends ApiClientShape, RequestConfig>(
       },
       apply(_target, _thisArg, args) {
         const [method, ...endpoints] = path
-        const url = endpoints.join('/')
+        const url = toAbsoluteUrl(endpoints.join('/'))
         if (args.length < 1) return requester({ method, url })
         const [payload, config] = args
         const context = makeContext(url, method, payload as PayloadType)

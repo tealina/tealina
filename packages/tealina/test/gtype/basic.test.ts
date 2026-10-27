@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, test } from 'vite-plus/test'
 import { workflow } from '../../src/commands/gtype'
 
 test('relation database', async () => {

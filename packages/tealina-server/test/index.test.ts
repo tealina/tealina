@@ -1,12 +1,12 @@
-import { expect, test } from 'vitest'
+import { expect, test } from 'vite-plus/test'
 import { loadAPIs, transformToRouteOptions } from '../src/index.js'
 
 test('load and transform APIs', async () => {
   type Handler1 = (x: string) => string
   type Handler2 = (x: number) => number
   type MockHandler = Handler1 | Handler2
-  const getStutas = (x: string): string => 'fine'
-  const createUer = (x: number) => 200
+  const getStutas = (_x: string): string => 'fine'
+  const createUer = (_x: number) => 200
   const apiRecords = await loadAPIs({
     get: Promise.resolve({
       default: {
@@ -26,14 +26,14 @@ test('load and transform APIs', async () => {
   })
   const options = transformToRouteOptions<MockHandler>(apiRecords)
   expect(options).deep.eq([
-    { method: 'get', url: 'status', handler: getStutas },
-    { method: 'post', url: 'user/create', handler: createUer },
+    { method: 'get', url: '/status', handler: getStutas },
+    { method: 'post', url: '/user/create', handler: createUer },
   ])
 })
 
 test('test smart reorder', async () => {
   type MockHandler = (x: string) => string
-  const mockHandler = (x: string) => 'mock'
+  const mockHandler = (_x: string) => 'mock'
   const apiRecords = await loadAPIs({
     post: Promise.resolve({
       default: {
@@ -49,9 +49,9 @@ test('test smart reorder', async () => {
   })
   const options = transformToRouteOptions<MockHandler>(apiRecords)
   expect(options).deep.eq([
-    { method: 'post', url: 'user/self/changePassword', handler: mockHandler }, //more slash first
-    { method: 'post', url: 'user/create', handler: mockHandler }, //no params first
-    { method: 'post', url: 'user/:id/address/:phone', handler: mockHandler },
-    { method: 'post', url: 'user/:id/update', handler: mockHandler },
+    { method: 'post', url: '/user/self/changePassword', handler: mockHandler }, //more slash first
+    { method: 'post', url: '/user/create', handler: mockHandler }, //no params first
+    { method: 'post', url: '/user/:id/address/:phone', handler: mockHandler },
+    { method: 'post', url: '/user/:id/update', handler: mockHandler },
   ])
 })

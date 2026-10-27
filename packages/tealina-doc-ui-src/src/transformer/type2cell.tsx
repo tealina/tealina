@@ -2,19 +2,28 @@ import type { ApiDoc, DocNode } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 import { type ReactElement, type ReactNode, cloneElement } from 'react'
 import { ColorText } from '../components/ColorText'
+import { keyedNodes, nodeKey } from '../utils/nodeKey'
 
 const id2name = (id: number) => ['{', id, '}'].join(' ')
 
-function injectDivider([first, ...rest]: ReactElement[], divider = ' | ') {
-  return [first]
-    .concat(rest.flatMap((v, i) => [<span key={i}>{divider}</span>, v]))
-    .map((e: ReactElement, i: number) => cloneElement(e, { key: i }))
+type Cell = { key: string; element: ReactElement }
+
+/** Joins cells with a divider; every cell keeps the key it was given. */
+function injectDivider(cells: Cell[], divider = ' | ') {
+  return cells.flatMap(({ key, element }, i) =>
+    i === 0
+      ? [cloneElement(element, { key })]
+      : [
+          <span key={`divider-${key}`}>{divider}</span>,
+          cloneElement(element, { key }),
+        ],
+  )
 }
 
 export function type2cell(
   d: DocNode,
   doc: Pick<ApiDoc, 'entityRefs' | 'enumRefs' | 'tupleRefs'>,
-  isExpandLiterialObj = true
+  isExpandLiterialObj = true,
 ): ReactElement {
   const { entityRefs, enumRefs } = doc
   switch (d.kind) {
@@ -44,8 +53,11 @@ export function type2cell(
       const target = enumRefs[d.id]
       const eShowName = target.name
       if (eShowName === '') {
-        const textList = target.members.map(v => type2cell(v.value, doc, isExpandLiterialObj))
-        return <>{injectDivider(textList)}</>
+        const cells = target.members.map(v => ({
+          key: `${v.memberId}-${nodeKey(v.value)}`,
+          element: type2cell(v.value, doc, isExpandLiterialObj),
+        }))
+        return <>{injectDivider(cells)}</>
       }
       return (
         <ColorText type="object">
@@ -77,7 +89,16 @@ export function type2cell(
         />
       )
     case DocKind.Union:
-      return <>{injectDivider(d.types.map(t => type2cell(t, doc, isExpandLiterialObj)))}</>
+      return (
+        <>
+          {injectDivider(
+            keyedNodes(d.types).map(({ key, node }) => ({
+              key,
+              element: type2cell(node, doc, isExpandLiterialObj),
+            })),
+          )}
+        </>
+      )
     case DocKind.Tuple:
       return (
         <span className="inline-flex gap-[3px]">
@@ -85,7 +106,10 @@ export function type2cell(
           {d.elements.length ? (
             <span>
               {injectDivider(
-                d.elements.map(t => type2cell(t, doc, isExpandLiterialObj)),
+                keyedNodes(d.elements).map(({ key, node }) => ({
+                  key,
+                  element: type2cell(node, doc, isExpandLiterialObj),
+                })),
                 ', ',
               )}
             </span>
@@ -127,7 +151,8 @@ export function type2cell(
       const nest = d.props.map(n => (
         <div key={n.name} className="pl-4">
           <ColorText type="prop">{n.name}</ColorText>
-          <span>{n.isOptional ? '?' : ''}</span>: {type2cell(n, doc, isExpandLiterialObj)}
+          <span>{n.isOptional ? '?' : ''}</span>:{' '}
+          {type2cell(n, doc, isExpandLiterialObj)}
           {','}
         </div>
       ))

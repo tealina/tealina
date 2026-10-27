@@ -1,0 +1,118 @@
+// The demo's data model. Nothing connects to a database at runtime — the core package
+// keeps its state in memory so `pnpm dev` works with no setup. This file is the source
+// the `gtype` command reads, and its output (`types/pure.d.ts`) is what the services,
+// the handlers and the web client are typed against.
+//
+//   pnpm -F api-v1 gtype
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  /// Display name shown on comments and orders
+  name      String
+  /// Sign-in address; unique in the demo store
+  email     String
+  /// Demo only: the seed passwords are written in `src/services/seed.ts`
+  password  String
+  role      Role     @default(CUSTOMER)
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  orders   Order[]
+  comments Comment[]
+}
+
+model Category {
+  /// Name shown in the storefront's filter row
+  name        String
+  /// URL-friendly identifier
+  slug        String
+  description String
+  id          Int    @id @default(autoincrement())
+
+  products Product[]
+}
+
+model Product {
+  /// Product name as shown on the card
+  name        String
+  /// URL-friendly identifier
+  slug        String
+  description String
+  /// Price in USD
+  price       Float
+  /// Units available; zero renders as "Sold out"
+  stock       Int
+  /// Placeholder art: a gradient tile built from this emoji and `accent`
+  emoji       String
+  /// Tile colour, e.g. `#b4552d`
+  accent      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+
+  category Category    @relation(fields: [categoryId], references: [id])
+  comments Comment[]
+  items    OrderItem[]
+}
+
+model Order {
+  /// Human-readable order number, e.g. `TS-2026-0042`
+  orderNo   String
+  status    OrderStatus @default(PENDING)
+  /// Total in USD, fixed at checkout time
+  total     Float
+  note      String?
+  createdAt DateTime    @default(now())
+  id        Int         @id @default(autoincrement())
+  userId    Int
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+}
+
+model OrderItem {
+  quantity  Int
+  /// Price at the time the order was placed
+  unitPrice Float
+  id        Int   @id @default(autoincrement())
+  orderId   Int
+  productId Int
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Comment {
+  /// 1 to 5 stars
+  rating    Int
+  text      String
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  productId Int
+  userId    Int
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+}

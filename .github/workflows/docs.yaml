@@ -1,0 +1,68 @@
+name: Docs
+
+# 只跟着 docs/ 走：CI 已经在每次 push 时构建文档，这里只负责把产物推到
+# Cloudflare Pages。main 上是生产部署，其他分支/PR 是预览部署。
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yaml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  # 生产部署不取消：要保证 main 上最后一次提交的产物才是线上版本。
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  deploy:
+    # fork 的 PR 拿不到 secrets，只给同仓库分支做预览部署。
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PROJECT_NAME: tealina-docs
+      # CI 里没有 TTY，仍然显式关掉，免得 wrangler 在日志里问遥测。
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+
+      # 与 ci.yaml 同一套工具链：默认 Node 24 + packageManager 指定的 pnpm。
+      # run-install 关掉，因为这里只需要 docs/ 这一个独立项目的依赖。
+      - uses: voidzero-dev/setup-vp@v1.20.0
+        with:
+          node-version: '24'
+          cache: true
+          run-install: false
+
+      - name: Install docs dependencies
+        run: pnpm --dir docs install --frozen-lockfile --prefer-offline
+
+      - name: Build docs
+        run: pnpm --dir docs run build
+
+      # wrangler pages deploy 不会自己建项目。项目已存在时这条会报错，
+      # 交给 continue-on-error 吃掉；真正建不出来会在下一步部署时暴露。
+      - name: Ensure Pages project exists
+        continue-on-error: true
+        run: pnpm dlx wrangler@4 pages project create "$PROJECT_NAME" --production-branch=main
+
+      # 用 dlx 而不是把 wrangler 装进仓库：它跑在临时目录里，不会改
+      # docs/package.json 或锁文件。
+      - name: Deploy to Cloudflare Pages
+        env:
+          BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+        run: |
+          pnpm dlx wrangler@4 pages deploy docs/.vitepress/dist \
+            --project-name="$PROJECT_NAME" \
+            --branch="$BRANCH"

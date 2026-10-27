@@ -1,0 +1,42 @@
+# tealina
+
+> Tealina turns a directory tree plus handler type annotations into routes, client types, and
+> API documentation. The tree under `src/api/` is the route table; the handler's type is
+> the single source of truth. No framework is taken over: one mount line is the whole
+> integration for Express, Fastify, or Koa.
+
+## Start
+
+- [README](./README.md): what the project is, how to scaffold, and the AI-assistant entry points.
+- [Scaffold README](./packages/create-tealina/README.md): `create`, its flags, and the three
+  backend packages a generated project contains.
+- [AGENTS.md](./AGENTS.md): instructions for changing this repository, including the
+  constraints that fail silently.
+- [Generated project instructions](./packages/create-tealina/template/common/api-v1/AGENTS.md):
+  the file a scaffolded API package receives.
+- [Integration playbook](./packages/create-tealina/template/integration/INTEGRATION.md):
+  the `--integrate` file for merging a scaffold into an existing project.
+- [Integration guide](https://tealina.dev/guide/integration): the same ground in Chinese.
+
+## Understand
+
+- [Architecture](./docs/architecture.md): current design, subsystem by subsystem.
+- [Architecture notes](./docs/architecture-notes.md): couplings, what not to change casually,
+  and what CI does not cover.
+- [History](./docs/history.md): dated decisions, only when you need the "why".
+
+## Package READMEs
+
+- [tealina](./packages/tealina/README.md): the CLI.
+- [@tealina/server](./packages/tealina-server/README.md): `loadAPIs` and
+  `transformToRouteOptions`.
+- [@tealina/client](./packages/tealina-client/README.md): fetch and axios RPC clients.
+- [@tealina/utility-types](./packages/utility-types/README.md): response wrappers and
+  `MultiTarget`.
+- [@tealina/doc-types](./packages/tealina-doc-types/README.md): the API document shape.
+- [@tealina/doc-ui](./packages/tealina-doc-ui/README.md): serving the documentation site.
+
+## Optional
+
+- [Contributing](./.github/CONTRIBUTING.md)
+- [Docs site](https://tealina.dev) | [中文](https://cn.tealina.dev)

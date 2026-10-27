@@ -21,9 +21,9 @@ const Playground = (props: {
     return entity.props.length > 0 ? (
       entity.props.map(p => prop2item(doc, p))
     ) : (
-      <Typography className='text-center mt-20'>No payload required</Typography>
+      <Typography className="text-center mt-20">No payload required</Typography>
     )
-  }, [])
+  }, [entity.props, doc])
   console.log(states.contentType?.includes('json') ? 'json' : void 0)
   return (
     <div className="flex gap-3 h-full">
@@ -43,13 +43,17 @@ const Playground = (props: {
           <span>Status Code: </span>
           {states.status}
         </div>
-        <div className='max-w-50vw h-full'>
+        <div className="max-w-50vw h-full">
           {states.type === 'error' ? (
             <p className="h-full p-3 whitespace-pre-wrap dark:bg-[rgb(30,30,30)] text-red-500 bg-white">
               {states.result}
             </p>
           ) : (
-            <JsonView value={preview} language={states.contentType?.includes('json') ? 'json' : void 0} className="h-full w-full" />
+            <JsonView
+              value={preview}
+              language={states.contentType?.includes('json') ? 'json' : void 0}
+              className="h-full w-full"
+            />
           )}
         </div>
       </div>
@@ -58,4 +62,3 @@ const Playground = (props: {
 }
 
 export default Playground
-

@@ -2,7 +2,7 @@ import { map, pipe, unique } from 'fp-lite'
 import fs from 'node:fs'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import type { Snapshot } from '../../src/utils/effectFiles.js'
 import { ensureWrite } from '../../src/utils/tool.js'
 import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
@@ -94,6 +94,22 @@ describe('full test cai', () => {
     fs.rmSync(dirInfo.apiDir, { recursive: true })
   })
 
+  test('the generator is told the configured sourceExt', async () => {
+    const route = 'book/getList'
+    const dirInfo = prepareTempDir('source-ext')
+    const { cli } = parseCommandArgs(
+      route,
+      dirInfo,
+      'test/mock/config/tealina.source-ext.config.ts',
+    )
+    await cli.runMatchedCommand()
+    const filePath = path.join(dirInfo.apiDir, 'post', 'book/getList.js')
+    expect(fs.readFileSync(filePath).toString()).eq(
+      ['post', '.js', path.dirname(filePath)].join('|'),
+    )
+    fs.rmSync(dirInfo.apiDir, { recursive: true })
+  })
+
   test('no thing change when duplicate run', async () => {
     const route = 'book/read'
     const dirInfo = prepareTempDir('nothing-change')
@@ -106,7 +122,7 @@ describe('full test cai', () => {
       dirInfo,
     )
     expect(result).deep.eq(fullResult)
-    expect(result2).is.empty
+    expect(result2).toHaveLength(0)
     fs.rmSync(dirInfo.apiDir, { recursive: true })
   })
 
@@ -218,44 +234,38 @@ function makeFullResult(
     seeds,
     map(v => v.method),
     unique,
-    map(
-      (method): Snapshot => ({
-        group: 'api',
-        action: 'create',
-        filePath: path.join(apiDir, method, 'index.ts'),
-      }),
-    ),
+    map((method): Snapshot => ({
+      group: 'api',
+      action: 'create',
+      filePath: path.join(apiDir, method, 'index.ts'),
+    })),
   )
   const preNames = [route].flat()
   const handlerList = preNames.map(preName =>
-    seeds.map(
-      (v): Snapshot => ({
-        group: 'api',
-        action: 'create',
-        filePath: path.join(
-          apiDir,
-          v.method,
-          v.name.length ? `${preName}/${v.name}.ts` : `${preName}.ts`,
-        ),
-      }),
-    ),
+    seeds.map((v): Snapshot => ({
+      group: 'api',
+      action: 'create',
+      filePath: path.join(
+        apiDir,
+        v.method,
+        v.name.length ? `${preName}/${v.name}.ts` : `${preName}.ts`,
+      ),
+    })),
   )
   const testList = withTest
     ? preNames.map(preName =>
-        seeds.map(
-          (v): Snapshot => ({
-            group: 'test',
-            action: 'create',
-            filePath: path.join(
-              testDir,
-              path.basename(apiDir),
-              v.method,
-              v.name.length
-                ? `${preName}/${v.name}.test.ts`
-                : `${preName}.test.ts`,
-            ),
-          }),
-        ),
+        seeds.map((v): Snapshot => ({
+          group: 'test',
+          action: 'create',
+          filePath: path.join(
+            testDir,
+            path.basename(apiDir),
+            v.method,
+            v.name.length
+              ? `${preName}/${v.name}.test.ts`
+              : `${preName}.test.ts`,
+          ),
+        })),
       )
     : []
   const typeFile: Snapshot = {

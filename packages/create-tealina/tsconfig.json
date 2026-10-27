@@ -6,14 +6,14 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    // TypeScript 6 stops auto-including `@types/*`; the CLI and its tests read
+    // `process`/`node:*`, and the staged-file check lints a file without the rest of the
+    // project to infer them from.
+    "types": ["node"],
     "noEmit": true,
     "skipLibCheck": true,
-    "outDir": "dist",
+    "resolveJsonModule": true,
+    "outDir": "dist"
   },
-  "exclude": [
-    "template",
-    "temp",
-    "test",
-    "vitest.config.ts"
-  ]
+  "exclude": ["template", "temp", "vitest.config.ts"]
 }

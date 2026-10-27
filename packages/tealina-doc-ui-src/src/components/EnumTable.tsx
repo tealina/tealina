@@ -5,7 +5,6 @@ import { DocKind } from '@tealina/doc-types'
 import { syntaxColorAtom } from '../atoms/themeAtom'
 import { ColorText } from './ColorText'
 import { CommentSummary } from './CommentSummary'
-import { OneApiScopeEntitie } from './api_detail/useDetailState'
 
 export function EnumTable({
   enumEntity,

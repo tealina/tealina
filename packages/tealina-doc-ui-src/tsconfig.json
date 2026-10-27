@@ -3,10 +3,12 @@
     "target": "ES2022",
     "useDefineForClassFields": true,
     "lib": [
-      "ES2020",
+      "ES2022",
       "DOM",
       "DOM.Iterable",
     ],
+    // TS 6 起 `types` 默认为空，`test/setup.ts` 里的 `require` 需要它。
+    "types": ["node"],
     "module": "ESNext",
     "skipLibCheck": true,
     /* Bundler mode */

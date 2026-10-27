@@ -1,17 +1,33 @@
 import chalk from 'chalk'
 import minimist from 'minimist'
-import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import ora from 'ora'
 import prompts from 'prompts'
-import versionMap from '../template/versionMaps.json'
+import { type Pkg, backendFiles, webFiles } from './template-manifest.js'
 
 const { blue, green, reset } = chalk
 const { join } = path
-const kInitDemo = 'init-demo.mjs'
-const kInitCommand = 'init-demo'
+
+export const kServerTemplates = ['express', 'fastify', 'koa'] as const
+export type ServerTemplate = (typeof kServerTemplates)[number]
+
+/**
+ * This package's own `template/` directory. Resolved off `import.meta.url` the same way
+ * `createCtx` resolves the project root below — the file sits directly in `src/` when run
+ * through tsx and directly in `dist/` after `vp pack`, so `../..` is the package root in
+ * both.
+ */
+export const templateRootDir = path.resolve(
+  fileURLToPath(import.meta.url),
+  '../../template',
+)
+
+// ---------------------------------------------------------------------------
+// Copied from the retired full-kit scaffold, which is no longer part of this
+// repository. Neither package ships an `exports` map, so these helpers cannot
+// be imported from anywhere — they have to be duplicated here.
+// ---------------------------------------------------------------------------
 
 const copy = (src: string, dest: string) =>
   fs.statSync(src).isDirectory()
@@ -26,270 +42,6 @@ const copyDir = (srcDir: string, destDir: string) => {
     const destFile = path.resolve(destDir, file)
     copy(srcFile, destFile)
   }
-}
-
-const GIT_IGNORE_CONTNET = [
-  'node_modules',
-  '# Keep environment variables out of version control',
-  '.env',
-].join('\n')
-
-const updateServerPackageJson = (serverDestDir: string, runtime: string) => {
-  const pkgPath = join(serverDestDir, 'package.json')
-  let pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
-  pkg.name = path.basename(serverDestDir)
-  pkg.scripts['init-demo'] = `${runtime} ${kInitDemo}`
-  const { server } = versionMap
-  Object.assign(pkg.dependencies, server.dependencies)
-  Object.assign(pkg.devDependencies, server.devDependencies)
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
-}
-const createProject = (dest: string) => {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true })
-  }
-}
-
-const setupLines = [
-  'import { execSync } from "node:child_process"',
-  "import { fileURLToPath } from 'node:url'",
-  "import { dirname } from 'node:path'",
-  'const __filename = fileURLToPath(import.meta.url)',
-  'const __dirname = dirname(__filename)',
-  '',
-  'const $ = (strs) => {',
-  "  const command = strs.join(' ')",
-  "  execSync(command,{ stdio: 'inherit', encoding: 'utf-8', cwd: __dirname })",
-  '}',
-  '',
-]
-const kCommandsForInit = [
-  'install',
-  'prisma generate',
-  '// Initialize sqlite database',
-  'prisma db push',
-  '// Align index.ts exports with the actual file structure',
-  'v1 -a',
-  '// Generating shareable types from schema.prisma',
-  'v1 gtype',
-  '// Generating API document',
-  'v1 gdoc',
-]
-
-const getInitCommands = (leader: ContextType['leader']) => {
-  if (leader.startsWith('bun')) {
-    return [
-      'await Bun.$`bun install`',
-      ...kCommandsForInit.slice(1).map(e => {
-        if (e.startsWith('//')) return e
-        return `await Bun.$\`bun run ${e}\``
-      }),
-    ]
-  }
-  const command = (...args: string[]) => ['$`', leader, ...args, '`'].join('')
-  const initCommands = kCommandsForInit.map(e => {
-    if (e.startsWith('//')) return e
-    return command(` ${e}`)
-  })
-
-  return [...setupLines, ...initCommands]
-}
-
-const copyTemplates = (dest: string, webExtraTemplateDir: string) => {
-  const write = (file: string) => {
-    const targetPath = join(dest, file)
-    copy(join(webExtraTemplateDir, file), targetPath)
-  }
-  const files = fs.readdirSync(webExtraTemplateDir)
-  for (const file of files) {
-    write(file)
-  }
-}
-
-const logGuids = (guids: { title?: string; items: string[] }[]) => {
-  const all = [
-    '',
-    green('     Scaffold project is ready.'),
-    guids
-      .flatMap(v => [
-        v.title,
-        v.items.map((s, i) => `  ${i + 1}. ${s}`).join('\n'),
-      ])
-      .filter(v => v != null)
-      .join('\n'),
-  ]
-  console.log(all.join('\n'))
-}
-
-const showGuide = ({ answer, leader }: ContextType) => {
-  const { projectName } = answer
-  return logGuids([
-    {
-      title: blue('Done. Now run:'),
-      items: [
-        `cd ${projectName}`,
-        `${leader} ${kInitCommand}`,
-        `${leader} dev`,
-      ],
-    },
-  ])
-}
-
-const mayCopyCommonDir = (templateDir: string, destDir: string) => {
-  const commonDir = join(templateDir, 'common')
-  if (fs.existsSync(commonDir)) {
-    copyDir(commonDir, destDir)
-  }
-}
-
-const formatDestDir = (dest: string) => dest.trim().replace(/\/+$/g, '')
-
-const collectUserAnswer = (argProjectName: string | undefined) =>
-  prompts(
-    [
-      {
-        message: reset('Project name:'),
-        name: 'projectName',
-        type: argProjectName ? null : 'text',
-        initial: argProjectName ?? 'tealina-project',
-      },
-      {
-        message: reset('Select a server template:'),
-        name: 'server',
-        type: 'select',
-        choices: [
-          { title: 'Express', value: 'express' },
-          { title: 'Fastify', value: 'fastify' },
-          { title: 'Koa', value: 'koa' },
-        ],
-      },
-      // {
-      //   message: reset('Select an API style:'),
-      //   name: 'apiStyle',
-      //   type: 'select',
-      //   choices: [
-      //     { title: 'RESTful', value: 'restful' },
-      //     { title: 'POST + GET', value: 'post-get' },
-      //   ],
-      // },
-      {
-        message: reset('Select a web template:'),
-        name: 'web',
-        type: 'select',
-        choices: [
-          { title: 'React', value: 'react-ts' },
-          { title: 'React + SWC', value: 'react-swc-ts' },
-          { title: 'Vue', value: 'vue-ts' },
-          { title: 'Svelte', value: 'svelte-ts' },
-          { title: 'Lit', value: 'lit-ts' },
-          { title: 'Preact', value: 'preact-ts' },
-          { title: 'Vanilla', value: 'vanilla-ts' },
-          { title: 'None', value: 'none' },
-        ],
-        hint: 'Templates from create-vite',
-      },
-    ],
-    {
-      onCancel: () => {
-        throw 'Canceled'
-      },
-    },
-  ).then(v => ({
-    ...v,
-    projectName: formatDestDir(v.projectName ?? argProjectName),
-  }))
-
-type ContextType = Awaited<ReturnType<typeof createCtx>>
-
-const getRunLeader = (pkgManager: string) => {
-  switch (pkgManager) {
-    case 'bun':
-      return 'bun run'
-    case 'deno':
-      return 'deno task'
-    default:
-      return 'pnpm'
-  }
-}
-
-const pkgFromUserAgent = (userAgent = '') => {
-  const pkgSpec = userAgent.split(' ')[0].split('/')[0]
-  return pkgSpec.length < 1 ? 'npm' : pkgSpec
-}
-
-const updatePkgJsonForBun = (pkgJsonPath: string) => {
-  const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath).toString())
-  pkgJson.scripts.dev = 'bun --watch src'
-  delete pkgJson.devDependencies.tsx
-  fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2))
-}
-const createServerProject = async (ctx: ContextType) => {
-  const { projectRootDir, answer } = ctx
-  const { server } = answer
-  const destServerDir = join(ctx.dest, 'server')
-  await mayOverwrite(destServerDir)
-  const templateDir = join(projectRootDir, 'template')
-  const templateServerDir = join(templateDir, 'server', server)
-  mayCopyCommonDir(templateDir, destServerDir)
-  copyDir(templateServerDir, destServerDir)
-  createProject(templateServerDir)
-  updateServerPackageJson(destServerDir, ctx.runtime)
-  //init-demo.mjs
-  const initCommands = getInitCommands(ctx.leader)
-  fs.writeFileSync(join(destServerDir, kInitDemo), initCommands.join('\n'))
-  if (ctx.runtime === 'bun') {
-    updatePkgJsonForBun(path.join(destServerDir, 'package.json'))
-  }
-}
-
-const runCreateVite = async (ctx: ContextType, webDest: string) =>
-  new Promise<void>(res => {
-    const { answer, pkgManager } = ctx
-    const name = path.basename(webDest)
-    const leader = pkgManager === 'npm' ? 'npx' : pkgManager
-    const fullArgs = ['create', 'vite', name, '--template', answer.web]
-    const spinner = ora({ spinner: 'dots' })
-    spinner.start(['Running', leader, ...fullArgs].join(' '))
-    const p = spawn(leader, fullArgs, { cwd: path.dirname(webDest) })
-    // p.stdout.setEncoding('utf-8')
-    // p.stdout.on('data', v => {
-    //   console.log('--->', String(v))
-    // })
-    p.stderr.setEncoding('utf-8')
-    const errMessages: string[] = []
-    p.stderr.on('data', v => {
-      errMessages.push(String(v))
-    })
-    const skipCreateWeb = (err: unknown) => {
-      spinner.fail('Run create vite failed, skip current step')
-      console.error('Error detail: \n', err)
-      spinner.stop()
-      res()
-    }
-    p.on('exit', code => {
-      if (code == null || code === 0) return
-      skipCreateWeb(errMessages.join('\n'))
-    })
-    p.on('error', skipCreateWeb)
-    p.on('close', () => {
-      spinner.stop()
-      res()
-    })
-  })
-
-const updateWebPackageJson = (webDestDir: string) => {
-  const pkg = JSON.parse(
-    fs.readFileSync(join(webDestDir, 'package.json'), 'utf-8'),
-  )
-  Object.assign(pkg.dependencies, versionMap.web.dependencies)
-  // pkg.dependencies['@tealina/client'] = '^1.0.0'
-  pkg.dependencies.axios = '^1.7.7'
-  pkg.devDependencies.server = 'workspace:*'
-  pkg.devDependencies['@shared/type'] = 'workspace:*'
-  fs.writeFileSync(
-    join(webDestDir, 'package.json'),
-    JSON.stringify(pkg, null, 2),
-  )
 }
 
 const emptyDir = (dir: string) => {
@@ -315,92 +67,249 @@ const mayOverwrite = async (dest: string) => {
   emptyDir(dest)
 }
 
-const updateViteConfig = (webDest: string) => {
-  const proxyConfig = [
-    'server: {',
-    '  proxy: {',
-    "    '/api': 'http://localhost:8000'",
-    '  },',
-    '  open: true',
-    '},',
-  ].map(v => `  ${v}`)
-  const viteConfigPath = path.join(webDest, 'vite.config.ts')
-  const content = fs.readFileSync(viteConfigPath).toString().trimEnd()
-  const newContent = content
-    .split('\n')
-    .slice(0, -1)
-    .concat(proxyConfig)
-    .concat(['})', ''])
-    .join('\n')
-  fs.writeFileSync(viteConfigPath, newContent)
+export const formatDestDir = (dest: string) => dest.trim().replace(/\/+$/g, '')
+
+const logGuids = (guids: { title?: string; items: string[] }[]) => {
+  const all = [
+    '',
+    green('     Scaffold project is ready.'),
+    guids
+      .flatMap(v => [
+        v.title,
+        v.items.map((s, i) => `  ${i + 1}. ${s}`).join('\n'),
+      ])
+      .filter(v => v != null)
+      .join('\n'),
+  ]
+  console.log(all.join('\n'))
 }
 
-const createWebProject = async (ctx: ContextType) => {
-  const { projectRootDir, dest } = ctx
-  const webDest = join(dest, 'web')
-  await mayOverwrite(webDest)
-  await runCreateVite(ctx, webDest)
-  updateWebPackageJson(webDest)
-  updateViteConfig(webDest)
-  const webExtraTemplateDir = join(projectRootDir, 'template', 'web')
-  copyTemplates(webDest, webExtraTemplateDir)
-}
+// ---------------------------------------------------------------------------
+// End of the copied helpers. Everything below is this package's own.
+// ---------------------------------------------------------------------------
 
-const createCtx = async () => {
-  const argv = minimist<{
-    d?: boolean
-  }>(process.argv.slice(2), { string: ['_'], boolean: ['d'] })
-  const answer = await collectUserAnswer(argv._[0])
-  const cwd = process.cwd()
-  const root = path.resolve(cwd, answer.projectName)
-  const projectRootDir = path.resolve(fileURLToPath(import.meta.url), '../../')
-  const pkgManager = pkgFromUserAgent(process.env.npm_config_user_agent)
+export const isServerTemplate = (v: string): v is ServerTemplate =>
+  (kServerTemplates as readonly string[]).includes(v)
+
+const collectUserAnswer = async (
+  argProjectName: string | undefined,
+  presetServer: string | undefined,
+) => {
+  if (presetServer != null && !isServerTemplate(presetServer)) {
+    throw new Error(
+      `Unknown --template "${presetServer}". Expected one of: ${kServerTemplates.join(', ')}`,
+    )
+  }
+  // Only ask what the flags did not already answer, so `--template x <name>` is
+  // fully non-interactive (that is what the e2e test relies on).
+  const questions = [
+    ...(argProjectName
+      ? []
+      : [
+          {
+            message: reset('Project name:'),
+            name: 'projectName',
+            type: 'text' as const,
+            initial: 'tealina-app',
+          },
+        ]),
+    ...(presetServer
+      ? []
+      : [
+          {
+            message: reset('Select a server template:'),
+            name: 'server',
+            type: 'select' as const,
+            choices: [
+              { title: 'Express', value: 'express' },
+              { title: 'Fastify', value: 'fastify' },
+              { title: 'Koa', value: 'koa' },
+            ],
+          },
+        ]),
+  ]
+  const answers = (await prompts(questions, {
+    onCancel: () => {
+      throw 'Canceled'
+    },
+  })) as { projectName?: string; server?: ServerTemplate }
+
+  const rawName = answers.projectName ?? argProjectName
+  if (rawName == null) throw 'Canceled'
+  const server = answers.server ?? presetServer
+  if (server == null || !isServerTemplate(server)) throw 'Canceled'
   return {
-    answer,
-    root,
-    dest: path.join(root, 'packages'),
-    projectRootDir,
-    pkgManager,
-    runtime: getRuntime(pkgManager),
-    leader: getRunLeader(pkgManager),
+    projectName: formatDestDir(rawName),
+    server,
   }
 }
 
-function getRuntime(pkgManager: string) {
-  if (pkgManager.startsWith('bun')) {
-    return 'bun'
-  }
-  if (pkgManager.startsWith('deno')) {
-    return 'deno'
-  }
-  return 'node'
+/** npm package names are lowercase and free of leading dots/underscores. */
+const toPkgName = (raw: string) => {
+  const name = raw
+    .toLowerCase()
+    .replace(/[^a-z0-9-._~]+/g, '-')
+    .replace(/^[-._~]+|[-._~]+$/g, '')
+  return name.length > 0 ? name : 'tealina-project'
+}
+
+/**
+ * The root scripts are written here rather than shipped in `template/root`: `create`
+ * owns the whole `scripts` block, so a script that lived in the file would be lost.
+ *
+ * The two library packages are compiled once before the watchers start: the server
+ * imports their `dist/`.
+ *
+ * `pnpm -r` covers three backend packages, and covers `packages/web` as well when the
+ * optional frontend is present. `check`/`fmt`/`lint` are Vite+'s Oxc toolchain; the root
+ * `vite.config.ts` holds the settings they share.
+ */
+const rootScripts = {
+  dev: 'pnpm -F core build && pnpm -F api-v1 build && pnpm -r --parallel dev',
+  build: 'pnpm -r build',
+  start: 'pnpm -F server start',
+  check: 'vp check',
+  fmt: 'vp fmt',
+  lint: 'vp lint',
 }
 
 const createRoot = (ctx: ContextType) => {
-  const pkgDest = path.join(ctx.root, 'packages')
-  fs.mkdirSync(pkgDest, { recursive: true })
-  const webExtraTemplateDir = join(
-    ctx.projectRootDir,
-    'template',
-    'runtime',
-    ctx.runtime,
-  )
-  copyTemplates(ctx.root, webExtraTemplateDir)
-  copyDir(join(ctx.projectRootDir, 'template', 'pkg'), pkgDest)
+  fs.mkdirSync(ctx.dest, { recursive: true })
+  copyDir(join(ctx.projectRootDir, 'template', 'root'), ctx.root)
+  const pkgPath = join(ctx.root, 'package.json')
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+  pkg.name = toPkgName(path.basename(ctx.root))
+  pkg.scripts = rootScripts
+  fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
 }
 
-export const createScaffold = async (runtime?: 'node' | 'bun' | 'deno') => {
+/** The three packages that make up the backend, in dependency order. */
+const kBackendPkgs: readonly Pkg[] = ['core', 'api-v1', 'server']
+
+const createBackendProject = async (ctx: ContextType) => {
+  for (const pkgName of kBackendPkgs) {
+    await mayOverwrite(join(ctx.backend, pkgName))
+  }
+  for (const { src, dest, pkg } of backendFiles(ctx.answer.server)) {
+    const filePath = join(ctx.backend, pkg, dest)
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.copyFileSync(join(templateRootDir, src), filePath)
+  }
+}
+
+/**
+ * The optional merge playbook.
+ *
+ * It is not copied with `template/root`, which is written wholesale, and it is not part of
+ * the project's runtime: it describes how to move two or three of these packages into a
+ * repository that already exists, so it is only useful when the user says they intend
+ * that. `--integrate` is that statement.
+ */
+const createIntegrationDoc = (ctx: ContextType) => {
+  if (!ctx.integrate) return
+  fs.copyFileSync(
+    join(templateRootDir, 'integration', 'INTEGRATION.md'),
+    join(ctx.root, 'INTEGRATION.md'),
+  )
+}
+
+const createWebProject = async (ctx: ContextType) => {
+  const destWebDir = join(ctx.dest, 'web')
+  await mayOverwrite(destWebDir)
+  for (const { src, dest } of webFiles()) {
+    const filePath = join(destWebDir, dest)
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.copyFileSync(join(templateRootDir, src), filePath)
+  }
+}
+
+/**
+ * The scaffold writes files and stops. Installing and generating the document are the
+ * project's first commands, not the scaffolder's: they belong to the directory the user
+ * chose, run with the package manager that project will use, and are visible in its own
+ * history rather than happening inside a command that also deleted files.
+ */
+const showGuide = (ctx: ContextType) => {
+  const { projectName } = ctx.answer
+  logGuids([
+    {
+      title: blue('Done. Now run:'),
+      items: [
+        `cd ${projectName}`,
+        'pnpm install',
+        'pnpm -F api-v1 gdoc',
+        'pnpm dev',
+      ],
+    },
+    ...(ctx.web
+      ? [
+          {
+            title: blue('The frontend is the Vite dev server:'),
+            items: [
+              'http://localhost:5173',
+              'it proxies the api to http://localhost:8000 — retarget that in ' +
+                'packages/web/vite.config.ts if `PORT` is not 8000',
+            ],
+          },
+        ]
+      : []),
+    ...(ctx.integrate
+      ? [
+          {
+            title: blue('An AI merge playbook is in the project root:'),
+            items: [
+              'INTEGRATION.md — hand it to the agent that will move these packages ' +
+                'into an existing project',
+            ],
+          },
+        ]
+      : []),
+  ])
+  // One line, said once, because the alternative to `--web` is a reader concluding there
+  // is no frontend story at all rather than that this one is opt-in.
+  if (!ctx.web) {
+    console.log(
+      `\n${blue('--web')} adds a minimal frontend that reads the API types rather than restating them.`,
+    )
+  }
+}
+
+type ContextType = Awaited<ReturnType<typeof createCtx>>
+
+const createCtx = async () => {
+  const argv = minimist<{
+    template?: string
+    web?: boolean
+    integrate?: boolean
+  }>(process.argv.slice(2), {
+    string: ['_', 'template'],
+    boolean: ['web', 'integrate'],
+  })
+  const answer = await collectUserAnswer(argv._[0], argv.template)
+  const root = path.resolve(process.cwd(), answer.projectName)
+  const projectRootDir = path.resolve(fileURLToPath(import.meta.url), '../../')
+  return {
+    answer,
+    root,
+    // The backend is three packages; the optional frontend is the only thing in
+    // `packages/`.
+    backend: join(root, 'backend'),
+    dest: join(root, 'packages'),
+    projectRootDir,
+    // A flag rather than an answer beside `server`: nothing asks this question. `--web`
+    // is the only way to say it.
+    web: argv.web === true,
+    // Same shape: the project is complete without the merge playbook, and nothing in it
+    // changes when the playbook is present.
+    integrate: argv.integrate === true,
+  }
+}
+
+export const createScaffold = async () => {
   const ctx = await createCtx()
-  if (runtime) {
-    //test case
-    ctx.runtime = runtime
-    const pkgManager = pkgFromUserAgent(runtime)
-    ctx.leader = getRunLeader(pkgManager)
-  }
   createRoot(ctx)
-  await createServerProject(ctx)
-  if (ctx.answer.web !== 'none') {
-    await createWebProject(ctx)
-  }
+  await createBackendProject(ctx)
+  if (ctx.web) await createWebProject(ctx)
+  createIntegrationDoc(ctx)
   showGuide(ctx)
 }

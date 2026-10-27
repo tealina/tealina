@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { Snapshot } from '../../src/utils/effectFiles.js'
 import { cleanDir, parseCommandArgs, tempDirFactory } from './helper.js'
 
@@ -13,7 +13,7 @@ describe('test capi edgecase', () => {
     const { cli } = parseCommandArgs('', dirInfo)
 
     await cli.runMatchedCommand().catch((e: any) => {
-      expect(String(e)).includes('Route is required')
+      expect(String(e)).includes('needs a route')
     })
   })
 
@@ -41,9 +41,9 @@ describe('test capi edgecase', () => {
       'get/some --no-with-test',
       dirInfo,
     )
-    expect(parsedResult.options.withTest).false
+    expect(parsedResult.options.withTest).toBe(false)
     const result: Snapshot[] = await cli.runMatchedCommand()
-    expect(result.some(v => v.group == 'test')).false
+    expect(result.some(v => v.group == 'test')).toBe(false)
   })
 
   test('error cache on real run', async () => {

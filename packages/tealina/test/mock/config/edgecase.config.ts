@@ -2,13 +2,15 @@ import { defineConfig } from '../../../src/index.js'
 
 export default defineConfig({
   template: {
-    handlers: [{ alias: 'c', generateFn: x => '', name: '' }],
+    handlers: [{ alias: 'c', generateFn: () => '', name: '' }],
     test: {
-      genSuite: ctx =>
+      genSuite: _ctx =>
         ['import {describe} from "vitest"', 'describe.skip(()=>{})'].join('\n'),
-      genHelper: ctx => 'const me = "test helper"',
+      genHelper: _ctx => 'const me = "test helper"',
     },
   },
   testDir: '',
   typesDir: '',
+  apiDir: 'src/api',
+  apiBaseURL: '/api',
 })

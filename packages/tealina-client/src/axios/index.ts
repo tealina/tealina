@@ -3,6 +3,7 @@ import type {
   ApiClientShape,
   ApiRecordShape,
   ClientRequestContext,
+  ShapeWitness,
   ToReq,
 } from '../core/types'
 import type {
@@ -42,9 +43,9 @@ const makeHandler =
  * import { createRawAxiosRPC } from '@tealina/client
  * import { axios } from 'axios'
  * import type { AxiosRequestConfig } from 'axios'
- * import type { ApiTypesRecord } from 'server/api/v1'
+ * import type { ApiTypesForClient } from 'api-v1/api'
  *
- * const client = createAxiosReq<ApiTypesRecord, AxiosRequestConfig>(c =>
+ * const client = createAxiosReq<ApiTypesForClient, AxiosRequestConfig>(c =>
  *  axios.request(c).then(v => v.data),
  * )
  * ```
@@ -54,6 +55,7 @@ export const createAxiosReq = <
   C extends ShapeOfAxiosReq,
 >(
   requester: (config: C) => unknown,
+  _shape?: ShapeWitness<T>,
 ) => createReq<ToReq<T, C>, C>(makeHandler(requester))
 
 /**
@@ -64,9 +66,9 @@ export const createAxiosReq = <
  * import { createRawAxiosRPC } from '@tealina/client'
  * import { axios } from 'axios'
  * import type { AxiosRequestConfig, AxiosResponse } from 'axios'
- * import type { ApiTypesRecord } from 'server/api/v1'
+ * import type { ApiTypesForClient } from 'api-v1/api'
  *
- * const client = createRawAxiosReq<ApiTypesRecord, AxiosRequestConfig,AxiosResponse>(axios.request)
+ * const client = createRawAxiosReq<ApiTypesForClient, AxiosRequestConfig,AxiosResponse>(axios.request)
  * ```
  */
 export const createRawAxiosReq = <
@@ -75,6 +77,7 @@ export const createRawAxiosReq = <
   R extends ShapeOfAxiosRes,
 >(
   requester: (config: C) => unknown,
+  _shape?: ShapeWitness<T>,
 ) => createReq<MakeRawAxiosReqType<T, C, R>, C>(makeHandler(requester))
 
 /**
@@ -85,9 +88,9 @@ export const createRawAxiosReq = <
  * import { createAxiosRPC } from '@tealina/client'
  * import { axios } from 'axios'
  * import type { AxiosRequestConfig } from 'axios'
- * import type { ApiTypesRecord } from 'server/api/v1'
+ * import type { ApiTypesForClient } from 'api-v1/api'
  *
- * const client = createAxiosRPC<ApiTypesRecord, AxiosRequestConfig>(
+ * const client = createAxiosRPC<ApiTypesForClient, AxiosRequestConfig>(
  *  c => axios.request(c).then(v => v.data)
  * )
  * ```
@@ -95,7 +98,7 @@ export const createRawAxiosReq = <
 export function createAxiosRPC<
   T extends ApiRecordShape,
   C extends ShapeOfAxiosReq,
->(requester: (config: C) => Promise<unknown>) {
+>(requester: (config: C) => Promise<unknown>, _shape?: ShapeWitness<T>) {
   return createRPC<ToRPC<T, C>, C>(makeHandler(requester))
 }
 
@@ -107,15 +110,15 @@ export function createAxiosRPC<
  * import { createRawAxiosRPC } from '@tealina/client'
  * import { axios } from 'axios'
  * import type { AxiosRequestConfig, AxiosResponse } from 'axios'
- * import type { ApiTypesRecord } from 'server/api/v1'
+ * import type { ApiTypesForClient } from 'api-v1/api'
  *
- * const client = createRawAxiosRPC<ApiTypesRecord, AxiosRequestConfig, AxiosResponse>(axios.request)
+ * const client = createRawAxiosRPC<ApiTypesForClient, AxiosRequestConfig, AxiosResponse>(axios.request)
  * ```
  */
 export function createRawAxiosRPC<
   T extends ApiRecordShape,
   C extends ShapeOfAxiosReq,
   R extends ShapeOfAxiosRes,
->(requester: (config: C) => Promise<unknown>) {
+>(requester: (config: C) => Promise<unknown>, _shape?: ShapeWitness<T>) {
   return createRPC<ToRawRPC<T, C, R>, C>(makeHandler(requester))
 }

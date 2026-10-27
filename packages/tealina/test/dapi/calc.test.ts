@@ -1,9 +1,9 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import {
   Seeds,
   getApiFilePath,
   getTestFilePath,
-  getTestHeplerPath,
+  getTestHelperPath,
   parseByAlias,
   parseByRoute,
 } from '../../src/commands/capi.js'
@@ -14,10 +14,11 @@ import { FuncTemplates } from '../mock/config/funcCRUD.js'
 import { RestfulCRUD } from '../mock/config/restfulCRUD.js'
 
 describe('test dapi calculation part', function () {
-  const dirInfo: DirInfo = {
+  const dirInfo: DirInfo & { sourceExt: string } = {
     apiDir: '',
     testDir: '',
     typesDir: '',
+    sourceExt: '.ts',
   }
   const typeFileInfo = {
     filePath: '',
@@ -25,14 +26,15 @@ describe('test dapi calculation part', function () {
   }
   const restCtx = {
     testHelperInfo: {
-      filePath: getTestHeplerPath(dirInfo),
+      filePath: getTestHelperPath(dirInfo),
       isExists: false,
     },
     testTemplate: {
-      genHelper: (x: any) => 'test helper',
-      genSuite: (x: any) => 'test suite',
+      genHelper: (_x: any) => 'test helper',
+      genSuite: (_x: any) => 'test suite',
     },
     suffix: '.js',
+    sourceExt: '.ts',
   }
   const withFileSummary = (v: Seeds) => ({
     ...v,
@@ -48,10 +50,10 @@ describe('test dapi calculation part', function () {
       seeds,
       kindIndexContentMap: new Map([]),
       topIndexContent: [
-        "  'post': import('./post/index.js'),",
-        "  'get': import('./get/index.js'),",
-        "  'put': import('./put/index.js'),",
-        "  'delete': import('./delete/index.js'),",
+        "  post: import('./post/index.js'),",
+        "  get: import('./get/index.js'),",
+        "  put: import('./put/index.js'),",
+        "  delete: import('./delete/index.js'),",
       ],
       typeFileInfo,
       options: { ...dirInfo, withTest: true } as any,
@@ -78,7 +80,9 @@ describe('test dapi calculation part', function () {
     const [topIndex] = snapshots
     expect(topIndex.action).eq('update')
     const allMatched = newFiles.every(n => snapshots.some(s => s.filePath == n))
-    expect(allMatched, 'should delete all files when api dir is empty').true
+    expect(allMatched, 'should delete all files when api dir is empty').toBe(
+      true,
+    )
   })
 
   test(': role cr, remove partial', () => {
@@ -88,9 +92,9 @@ describe('test dapi calculation part', function () {
         [
           'post',
           [
-            "  '/role/create': import('./role/create.js'),",
-            "  '/role/getList': import('./role/getList.js'),",
-            "  '/other/action': import('./other/action.js'),",
+            "  'role/create': import('./role/create.js'),",
+            "  'role/getList': import('./role/getList.js'),",
+            "  'other/action': import('./other/action.js'),",
           ],
         ],
       ]),
@@ -102,7 +106,7 @@ describe('test dapi calculation part', function () {
     const [postIndex, ...deletions] = snapshots
     expect(postIndex.action).eq('update')
     const allActionIsDeleted = deletions.every(s => s.action == 'delete')
-    expect(allActionIsDeleted).true
+    expect(allActionIsDeleted).toBe(true)
   })
 
   test('(no suffix) : role cr, remove partial', () => {
@@ -112,9 +116,9 @@ describe('test dapi calculation part', function () {
         [
           'post',
           [
-            "  '/role/create': import('./role/create'),",
-            "  '/role/getList': import('./role/getList'),",
-            "  '/other/action': import('./other/action'),",
+            "  'role/create': import('./role/create'),",
+            "  'role/getList': import('./role/getList'),",
+            "  'other/action': import('./other/action'),",
           ],
         ],
       ]),
@@ -127,7 +131,7 @@ describe('test dapi calculation part', function () {
     const [postIndex, ...deletions] = snapshots
     expect(postIndex.action).eq('update')
     const allActionIsDeleted = deletions.every(s => s.action == 'delete')
-    expect(allActionIsDeleted).true
+    expect(allActionIsDeleted).toBe(true)
   })
 
   test(': student -t crud, with expicity -t option', () => {
@@ -158,7 +162,7 @@ describe('test dapi calculation part', function () {
     const [topIndexSnapshot, ...deletions] = snapshots
     expect(topIndexSnapshot.action).eq('update')
     const allActionIsDeleted = deletions.every(s => s.action == 'delete')
-    expect(allActionIsDeleted).true
+    expect(allActionIsDeleted).toBe(true)
   })
 
   test(': put/user/[id], remove last one in "put" dir', () => {
@@ -166,21 +170,21 @@ describe('test dapi calculation part', function () {
     const snapshots = calcSnapshots({
       seeds: [parseByRoute(route, RestfulCRUD)].map(withFileSummary),
       kindIndexContentMap: new Map([
-        ['get', ["  '/user': import('./user.js'),"]],
-        ['put', ["  '/user/:id': import('./user/[id].js'),"]],
-        ['post', ["  '/user': import('./user.js'),"]],
+        ['get', ["  'user': import('./user.js'),"]],
+        ['put', ["  'user/:id': import('./user/[id].js'),"]],
+        ['post', ["  'user': import('./user.js'),"]],
       ]),
       topIndexContent: [
-        "  'get': import('./get/index.js'),",
-        "  'put': import('./put/index.js'),",
-        "  'post': import('./post/index.js'),",
+        "  get: import('./get/index.js'),",
+        "  put: import('./put/index.js'),",
+        "  post: import('./post/index.js'),",
       ],
       typeFileInfo,
       options: { ...dirInfo, withTest: true } as any,
       ...restCtx,
     })
     const [apiIndex, putIndex, apiHandler] = snapshots
-    expect(snapshots.some(v => v.group == 'test')).true
+    expect(snapshots.some(v => v.group == 'test')).toBe(true)
     expect(apiIndex.action).eq('update')
     expect(putIndex.action).eq('delete')
     expect(apiHandler.action).eq('delete')
@@ -203,20 +207,20 @@ describe('test dapi calculation part', function () {
     const snapshots = calcSnapshots({
       seeds: [parseByRoute(route, RestfulCRUD)].map(withOtherFileSummary),
       kindIndexContentMap: new Map([
-        ['get', ["  '/user': import('./user.js'),"]],
-        ['put', ["  '/user/:id': import('./user/[id].js'),"]],
-        ['post', ["  '/user': import('./user.js'),"]],
+        ['get', ["  'user': import('./user.js'),"]],
+        ['put', ["  'user/:id': import('./user/[id].js'),"]],
+        ['post', ["  'user': import('./user.js'),"]],
       ]),
       topIndexContent: [
-        "  'get': import('./get/index.js'),",
-        "  'put': import('./put/index.js'),",
-        "  'post': import('./post/index.js'),",
+        "  get: import('./get/index.js'),",
+        "  put: import('./put/index.js'),",
+        "  post: import('./post/index.js'),",
       ],
       typeFileInfo,
       options: { ...dirInfo, withTest: false } as any,
       ...restCtx,
     })
-    expect(snapshots.some(v => v.group == 'test')).false
+    expect(snapshots.some(v => v.group == 'test')).toBe(false)
     const [apiIndex, putIndex, apiHandler] = snapshots
     expect(apiIndex.action).eq('update')
     expect(putIndex.action).eq('delete')
@@ -226,7 +230,7 @@ describe('test dapi calculation part', function () {
 })
 
 test('--by-model not acceptable', () => {
-  cli.parse(['', 'tealina', 'dapi', '--by-model'], {
+  cli.parse(['', 'tealina', 'delete', 'post/user', '--by-model'], {
     run: false,
   })
   let hasErr = false
@@ -236,5 +240,5 @@ test('--by-model not acceptable', () => {
     hasErr = true
     expect(String(error)).includes('Unknown option `--byModel`')
   }
-  expect(hasErr).true
+  expect(hasErr).toBe(true)
 })

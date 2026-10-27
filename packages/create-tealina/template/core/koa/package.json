@@ -1,0 +1,36 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "type": "module",
+  "exports": {
+    "./handler": {
+      "types": "./types/handler.d.ts"
+    },
+    "./common": {
+      "types": "./types/common.d.ts"
+    },
+    "./access": {
+      "types": "./src/access/index.ts",
+      "import": "./dist/access/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsc --project tsconfig.build.json --watch --preserveWatchOutput",
+    "build": "tsc --project tsconfig.build.json"
+  },
+  "dependencies": {
+    "koa": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tealina": "^2.2.2",
+    "typescript": "~6.0.3",
+    "@types/koa": "^3.0.0"
+  },
+  "license": "ISC"
+}

@@ -1,7 +1,7 @@
 import { unique } from 'fp-lite'
 import fs from 'node:fs'
 import path from 'node:path'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test'
 import { AlignOption, syncApiByFile } from '../../src/commands/sapi.js'
 import { getApiTypeFilePath } from '../../src/utils/withTypeFile.js'
 
@@ -36,6 +36,7 @@ describe('test sapi in mock dir', function () {
     apiDir,
     typesDir: apiTypesDir,
     suffix: '.js',
+    sourceExt: '.ts',
   }
 
   beforeAll(() => {
@@ -43,8 +44,10 @@ describe('test sapi in mock dir', function () {
     fs.mkdirSync(apiTypesDir, { recursive: true })
   })
 
-  afterAll(x => {
-    if (x.tasks.every(v => v.result?.state != 'fail')) {
+  // the 2nd argument is the suite task since vitest 4.1
+  // oxlint-disable-next-line no-empty-pattern -- vitest requires a destructured first argument
+  afterAll(({}, suite) => {
+    if (suite.tasks.every(v => v.result?.state != 'fail')) {
       fs.rmSync(tempDir, { recursive: true })
     }
   })
@@ -77,11 +80,68 @@ describe('test sapi in mock dir', function () {
     fs.rmSync(validApi)
   })
 
+  it('--check reports drift without writing, then passes once aligned', async () => {
+    const route = path.join(apiDir, 'get', 'health.ts')
+    ensureWrite(route, 'export default null')
+    const barrel = path.join(apiDir, 'get', 'index.ts')
+    const readBarrel = () =>
+      pathExistsSync(barrel) ? fs.readFileSync(barrel, 'utf8') : null
+    const before = readBarrel()
+    const originalExit = process.exitCode
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    try {
+      const drifted = await syncApiByFile({ ...ctx, check: true, json: true })
+      expect(drifted.length).gte(1)
+      expect(process.exitCode).eq(1)
+      expect(readBarrel()).eq(before)
+      const drift = JSON.parse(String(log.mock.lastCall?.[0]))
+      expect(drift).contains({ ok: false })
+      expect(drift.changed[0].file).eq(barrel)
+
+      log.mockClear()
+      process.exitCode = originalExit
+      await syncApiByFile(ctx)
+      const clean = await syncApiByFile({ ...ctx, check: true, json: true })
+      expect(clean).toEqual([])
+      expect(process.exitCode).eq(originalExit)
+      expect(JSON.parse(String(log.mock.lastCall?.[0]))).toEqual({
+        ok: true,
+        changed: [],
+      })
+    } finally {
+      log.mockRestore()
+      process.exitCode = originalExit
+    }
+  })
+
+  it('--json reports what a normal run wrote', async () => {
+    const route = path.join(apiDir, 'get', 'json-mode.ts')
+    ensureWrite(route, 'export default null')
+    const barrel = path.join(apiDir, 'get', 'index.ts')
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    try {
+      const applied = await syncApiByFile({ ...ctx, json: true })
+      const body = JSON.parse(String(log.mock.lastCall?.[0]))
+      expect(body).contains({ ok: true })
+      expect(body.changed).toEqual(
+        applied.map(v => ({ action: v.action, file: v.filePath })),
+      )
+      expect(body.changed.some((v: { file: string }) => v.file === barrel)).eq(
+        true,
+      )
+    } finally {
+      log.mockRestore()
+      fs.rmSync(route)
+    }
+  })
+
   it('should error when use invalid kind', async () => {
     const invalidDir = path.join(ctx.apiDir, 'dummy')
     fs.mkdirSync(invalidDir, { recursive: true })
     const err = await syncApiByFile(ctx).catch(e => e)
-    expect(err).not.null
+    expect(err).not.toBeNull()
     fs.rmSync(invalidDir, { recursive: true })
   })
 })

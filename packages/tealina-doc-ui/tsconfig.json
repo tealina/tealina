@@ -7,6 +7,9 @@
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "declaration": true,
+    // TS 6 起 `types` 默认为空，`@types/node` 不再自动进程序；`src/index.ts` 要读
+    // `node:fs/promises`、`node:path`、`node:url`。
+    "types": ["node"],
     "outDir": "dist",
   },
 }

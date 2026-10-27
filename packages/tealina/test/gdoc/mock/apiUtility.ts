@@ -1,4 +1,4 @@
-import type { DocDataKeys, RemapToExampleType } from '@tealina/utility-types'
+import type { RemapToExampleType } from '@tealina/utility-types'
 export type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
 export type ModelId = {
@@ -33,27 +33,29 @@ interface RawPayload {
   query?: Record<string, unknown>
 }
 
-type LastElement<T> = T extends ReadonlyArray<any>
-  ? T extends readonly [...any, infer U]
-    ? U
+type LastElement<T> =
+  T extends ReadonlyArray<any>
+    ? T extends readonly [...any, infer U]
+      ? U
+      : T
     : T
-  : T
 
-type ExtractRestfulAPI<T> = LastElement<T> extends ApiHandler<
-  infer Payload,
-  infer Response,
-  infer Headers
->
-  ? Simplify<Payload & { response: Response; headers: Headers }>
-  : never
+type ExtractRestfulAPI<T> =
+  LastElement<T> extends ApiHandler<
+    infer Payload,
+    infer Response,
+    infer Headers
+  >
+    ? Simplify<Payload & { response: Response; headers: Headers }>
+    : never
 
-type b = Simplify<{ b: number } & { c: string }>
+type _b = Simplify<{ b: number } & { c: string }>
 
 export interface ApiHandler<
-  T extends RawPayload = {},
-  Tresponse = null,
-  Theaders extends Record<string, any> = Simplify<AuthHeaders>,
-  Tlocals extends Record<string, any> = BaseLocals,
+  _T extends RawPayload = {},
+  _Tresponse = null,
+  _Theaders extends Record<string, any> = Simplify<AuthHeaders>,
+  _Tlocals extends Record<string, any> = BaseLocals,
 > {
   (req: any, res: any, next: any): any
 }
@@ -75,13 +77,9 @@ export type ResolveApiType<T extends Record<string, Promise<any>>> = {
   [K in keyof T]: ExtractRestfulAPI<Awaited<T[K]>['default']>
 }
 
-export type MakeExampleType<T> = T extends ApiHandler<
-  infer P,
-  infer R,
-  any,
-  any
->
-  ? RemapToExampleType<P & { response: R }>
-  : never
+export type MakeExampleType<T> =
+  T extends ApiHandler<infer P, infer R, any, any>
+    ? RemapToExampleType<P & { response: R }>
+    : never
 
-type A = MakeExampleType<FuncAPI<{ query: { page: number } }>>
+type _A = MakeExampleType<FuncAPI<{ query: { page: number } }>>

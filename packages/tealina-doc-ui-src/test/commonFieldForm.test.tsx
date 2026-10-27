@@ -1,6 +1,6 @@
 import type { CommonFieldsType } from '@tealina/doc-ui'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { commonFieldsAtom } from '../src/atoms/jsonSourceAtom'
 import { ComonFields } from '../src/components/features/playground/CommonFields'
 import { kConfigKey } from '../src/constans/configKeys'
@@ -17,7 +17,7 @@ describe('test common field setting', () => {
         take: { type: 'number', default: 6 },
       },
     }
-    const handleSave = () => { }
+    const handleSave = () => {}
     const screen = render(
       <TestProvider initialValues={[[commonFieldsAtom, mockCommonField]]}>
         <ComonFields onSaved={handleSave} />
@@ -37,7 +37,7 @@ describe('test common field setting', () => {
       window.sessionStorage.getItem(kConfigKey.FILEDS_VALUES)
     })
     const result = window.sessionStorage.getItem(kConfigKey.FILEDS_VALUES)
-    expect(result).not.null
+    expect(result).not.toBeNull()
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     expect(JSON.parse(result!)).toMatchObject({
       headers: {

@@ -5,7 +5,7 @@ export const RestfulCRUD: ApiTemplateType[] = [
     alias: 'c',
     name: '',
     method: 'post',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'Restful POST create api'
     },
   },
@@ -13,7 +13,7 @@ export const RestfulCRUD: ApiTemplateType[] = [
     alias: 'r',
     name: '',
     method: 'get',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'Restful GET api'
     },
   },
@@ -21,7 +21,7 @@ export const RestfulCRUD: ApiTemplateType[] = [
     alias: 'u',
     method: 'put',
     name: '[id]',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'Restful PUT api'
     },
   },
@@ -29,7 +29,7 @@ export const RestfulCRUD: ApiTemplateType[] = [
     alias: 'd',
     method: 'delete',
     name: '[id]',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'Restful DELETE api'
     },
   },
@@ -37,7 +37,7 @@ export const RestfulCRUD: ApiTemplateType[] = [
     alias: '*',
     method: '*',
     name: '',
-    generateFn(ctx) {
+    generateFn(_ctx) {
       return 'basic api handler'
     },
   },

@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { test, expect } from 'vite-plus/test'
 import { assembleHTML, getAssetsPath } from '../src/index.js'
 
 test('should has access files', () => {

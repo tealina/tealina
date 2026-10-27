@@ -29,6 +29,7 @@ const getTopIndexSnapshot = (
   xs: { kind: string }[],
   topIndexContent: string[],
   suffix: string,
+  sourceExt: string,
 ): Snapshot =>
   pipe(
     xs,
@@ -39,7 +40,7 @@ const getTopIndexSnapshot = (
       return {
         group: 'api',
         action: 'update',
-        filePath: 'index.ts',
+        filePath: `index${sourceExt}`,
         code: genWithWrapper(remains),
       }
     },
@@ -51,13 +52,13 @@ interface KindSummary {
 }
 
 const toIndexSnapshot =
-  (kindIndexMap: Map<string, string[]>, suffix: string) =>
+  (kindIndexMap: Map<string, string[]>, suffix: string, sourceExt: string) =>
   (v: KindSummary): (Snapshot & { kind: string }) | null => {
     const imps = v.namePathsArray.map(pathArr => genIndexProp(suffix)(pathArr))
     const { kind } = v
     const contents = kindIndexMap.get(kind) ?? []
     const remains = contents.filter(v => !imps.includes(v))
-    const filePath = join(kind, 'index.ts')
+    const filePath = join(kind, `index${sourceExt}`)
     return isEmpty(remains)
       ? { group: 'api', action: 'delete', filePath, kind }
       : {
@@ -70,17 +71,17 @@ const toIndexSnapshot =
   }
 
 const calcByKinds =
-  ({ kindIndexContentMap, topIndexContent, suffix }: FullContext) =>
+  ({ kindIndexContentMap, topIndexContent, suffix, sourceExt }: FullContext) =>
   (kinds: KindSummary[]) => {
     const kindIndexSnapshots = pipe(
       kinds,
-      map(toIndexSnapshot(kindIndexContentMap, suffix)),
+      map(toIndexSnapshot(kindIndexContentMap, suffix, sourceExt)),
       filter(notNull),
     )
     const deletedKinds = kindIndexSnapshots.filter(v => v.action === 'delete')
     if (deletedKinds.length < 1) return kindIndexSnapshots
     return [
-      getTopIndexSnapshot(deletedKinds, topIndexContent, suffix),
+      getTopIndexSnapshot(deletedKinds, topIndexContent, suffix, sourceExt),
       kindIndexSnapshots,
     ]
   }
@@ -94,10 +95,14 @@ const getRelativeFilesSnapshots = (ctx: FullContext): Snapshot[] =>
     map(completePath(ctx.options)),
   )
 
-const toApiFileSnapshot = (update: Seeds, apiDir: string): Snapshot => ({
+const toApiFileSnapshot = (
+  update: Seeds,
+  apiDir: string,
+  sourceExt: string,
+): Snapshot => ({
   group: 'api',
   action: 'delete',
-  filePath: `${join(apiDir, update.kind, ...update.namePaths)}.ts`,
+  filePath: `${join(apiDir, update.kind, ...update.namePaths)}${sourceExt}`,
 })
 
 const toTestApiSnapshot = (
@@ -116,14 +121,14 @@ const toTestApiSnapshot = (
 })
 
 const mayWithTestFile = ({
-  options: { withTest, testDir, apiDir },
+  options: { withTest, testDir, apiDir, sourceExt },
 }: FullContext) =>
   withTest && testDir != null
     ? (s: Seeds) => [
-        toApiFileSnapshot(s, apiDir),
+        toApiFileSnapshot(s, apiDir, sourceExt),
         toTestApiSnapshot(s, apiDir, testDir),
       ]
-    : (s: Seeds) => [toApiFileSnapshot(s, apiDir)]
+    : (s: Seeds) => [toApiFileSnapshot(s, apiDir, sourceExt)]
 
 const calcSnapshots = (ctx: FullContext): Snapshot[] =>
   pipe(

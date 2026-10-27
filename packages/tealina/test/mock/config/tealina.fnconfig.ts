@@ -5,11 +5,13 @@ export default defineConfig({
   template: {
     handlers: FuncTemplates,
     test: {
-      genSuite: ctx =>
+      genSuite: _ctx =>
         ['import {describe} from "vitest"', 'describe.skip(()=>{})'].join('\n'),
-      genHelper: ctx => 'const me = "test hepler"',
+      genHelper: _ctx => 'const me = "test hepler"',
     },
   },
   testDir: '',
   typesDir: '',
+  apiDir: 'src/api',
+  apiBaseURL: '/api',
 })

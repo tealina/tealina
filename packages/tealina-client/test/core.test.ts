@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest'
+import { expect, test, vi } from 'vite-plus/test'
 import type { MockApi } from './MockApi'
 import { createReq, createRPC } from '../src/core'
 

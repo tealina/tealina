@@ -1,13 +1,15 @@
-import type { TealinaConifg } from '../../../src'
+import type { TealinaConfig } from '../../../src'
 
-const defineConfig = (x: TealinaConifg) => x
+const defineConfig = (x: TealinaConfig) => x
 export default defineConfig({
   template: {
     handlers: [],
   },
   typesDir: '../types/pure.d.ts',
+  apiDir: 'src/api',
+  apiBaseURL: '/api',
   gdoc: {
-    customOutputs: [prop => ({ content: '', filePath: '' })],
+    customOutputs: [() => ({ content: '', filePath: '' })],
   },
   gtype: {
     output: '',

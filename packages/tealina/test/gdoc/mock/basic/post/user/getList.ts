@@ -9,5 +9,5 @@ const handler: FuncAPI<FindManyArgs, PageResult<User>> = () => {}
 /**
  * interrupt parser
  */
-const mock = () => {}
+const _mock = () => {}
 export default handler

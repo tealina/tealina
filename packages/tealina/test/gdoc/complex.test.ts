@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { ArrayType, DocKind, RefType, TupleType } from '@tealina/doc-types'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { parseDeclarationFile } from '../../src/utils/parseDeclarationFile.js'
 
 describe('test genereta api documentation api/post/createUser', () => {
@@ -16,7 +16,7 @@ describe('test genereta api documentation api/post/createUser', () => {
     // enumRefs,
   } = result
   test('is correct', () => {
-    expect(post != null).true
+    expect(post != null).toBe(true)
   })
 
   test('constraint', () => {
@@ -28,12 +28,12 @@ describe('test genereta api documentation api/post/createUser', () => {
     const findManyArgsEntity = entity.props.find(
       v => v.name == 'where' && v.isOptional,
     )
-    expect(findManyArgsEntity != null).true
+    expect(findManyArgsEntity != null).toBe(true)
     expect(findManyArgsEntity!.kind).eq(DocKind.EntityRef)
     const refId = (findManyArgsEntity as RefType).id
     expect(entityRefs).have.property(refId + '')
     const where = entityRefs[refId]
-    expect(where.props).not.empty
+    expect(where.props).not.toHaveLength(0)
     expect(where.props.every(v => v.kind != DocKind.Never))
   })
 

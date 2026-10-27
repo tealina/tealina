@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { type2text } from '../../src/transformer/type2text'
 import type {
   ArrayType,
@@ -67,7 +67,6 @@ describe('test render fn type2text', () => {
     }
     const input: UnionType = {
       kind: DocKind.Union,
-      id: 1,
       types: [firstNode, secondNode],
     }
     const result = type2text(input, emptyContext)

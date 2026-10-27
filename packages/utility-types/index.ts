@@ -34,18 +34,18 @@ export type WithHeaders<
   Response,
 > = WithExtra<{ headers: Headers; response: Response }>
 
-export type ExtractResponse<T> = T extends WithExtra<infer R>
-  ? R['response']
-  : T
+export type ExtractResponse<T> =
+  T extends WithExtra<infer R> ? R['response'] : T
 
-export type Extract2xxResponse<T> = T extends WithExtra<{
-  statusCode: number
-  response?: any
-}>
-  ? `${T['statusCode']}` extends `2${number}${number}`
-    ? T['response']
-    : never
-  : T
+export type Extract2xxResponse<T> =
+  T extends WithExtra<{
+    statusCode: number
+    response?: any
+  }>
+    ? `${T['statusCode']}` extends `2${number}${number}`
+      ? T['response']
+      : never
+    : T
 
 declare const emptyObjectSymbol: unique symbol
 export type EmptyObject = { [emptyObjectSymbol]?: never }
@@ -54,11 +54,12 @@ export type Simplify<T> = {
   [KeyType in keyof T]: T[KeyType]
 } & {}
 
-export type LastElement<T> = T extends ReadonlyArray<unknown>
-  ? T extends readonly [...unknown[], infer U]
-    ? U
+export type LastElement<T> =
+  T extends ReadonlyArray<unknown>
+    ? T extends readonly [...unknown[], infer U]
+      ? U
+      : T
     : T
-  : T
 
 export type MaybeProperty<P, T extends string> = P extends null
   ? {}
@@ -111,6 +112,5 @@ export type MultiTarget<T extends Record<TargetKeys, unknown>> = T & {
   [MultiTargetSymbol]: true
 }
 
-export type PickTarget<T, K extends TargetKeys> = T extends MultiTarget<infer M>
-  ? M[K]
-  : T
+export type PickTarget<T, K extends TargetKeys> =
+  T extends MultiTarget<infer M> ? M[K] : T

@@ -15,7 +15,7 @@ import type {
 } from '@tealina/doc-types'
 import { DocKind } from '@tealina/doc-types'
 
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vite-plus/test'
 import { LightColors } from '../../src/atoms/themeAtom'
 import { type2cell } from '../../src/transformer/type2cell'
 
@@ -58,7 +58,10 @@ describe('test render fn type2cell', () => {
     }
     const CellText = type2cell(input, emptyContext)
     const layout = render(CellText)
-    expect(layout.getByText('File')).toHaveStyle({ color: TypeColors.any })
+    //The type name is a link, so only the wrapper it inherits from is coloured
+    expect(layout.getByText('File').parentElement).toHaveStyle({
+      color: TypeColors.any,
+    })
   })
 
   test('Record', () => {
@@ -94,7 +97,6 @@ describe('test render fn type2cell', () => {
     }
     const input: UnionType = {
       kind: DocKind.Union,
-      id: 1,
       types: [firstNode, secondNode],
     }
     const CellText = type2cell(input, emptyContext)

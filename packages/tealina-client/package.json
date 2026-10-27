@@ -2,6 +2,23 @@
   "name": "@tealina/client",
   "version": "1.0.3",
   "description": "Parse tealina-server type for client.",
+  "keywords": [
+    "api-client",
+    "rpc-api-client",
+    "tealina",
+    "type-safe-client"
+  ],
+  "license": "MIT",
+  "author": "Neo Yeo",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tealina/tealina.git",
+    "directory": "packages/tealina-client"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.js",
   "exports": {
     ".": {
@@ -22,24 +39,16 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && tsup",
-    "test": "vitest --run"
+    "build": "rm -rf dist && vp pack",
+    "test": "vp test --run"
   },
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "tealina",
-    "type-safe-client",
-    "rpc-api-client",
-    "api-client"
-  ],
-  "author": "Neo Yeo",
-  "license": "MIT",
   "dependencies": {
     "@tealina/utility-types": "workspace:*"
   },
   "devDependencies": {
     "axios": "^1.7.7"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
