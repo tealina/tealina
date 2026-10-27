@@ -1,6 +1,6 @@
 {
   "name": "tealina",
-  "version": "2.2.2",
+  "version": "3.0.0",
   "description": "A CLI for build end-to-end typesafety APIs, and code, types, document generation",
   "license": "MIT",
   "author": "Neo Yeo",

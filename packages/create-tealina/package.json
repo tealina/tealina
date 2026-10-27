@@ -1,6 +1,6 @@
 {
   "name": "create-tealina",
-  "version": "2.2.6",
+  "version": "3.0.0",
   "description": "tealina scaffold: typed routes, api docs, end-to-end types",
   "keywords": [
     "documentation generation",

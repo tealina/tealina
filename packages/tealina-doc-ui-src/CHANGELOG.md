@@ -1,5 +1,13 @@
 # @tealina/doc-ui-src
 
+## 2.1.0
+
+### Patch Changes
+
+- Updated dependencies [0f3fd92]
+- Updated dependencies [0f3fd92]
+  - @tealina/doc-types@1.1.0
+
 ## 2.0.1
 
 ## 2.0.0-beta.1
