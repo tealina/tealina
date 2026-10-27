@@ -18,6 +18,13 @@
     "./auth": {
       "types": "./src/auth/token.ts",
       "import": "./dist/auth/token.js"
+    },
+    "./pure": {
+      "types": "./types/pure.d.ts"
+    },
+    "./services": {
+      "types": "./src/services/index.ts",
+      "import": "./dist/services/index.js"
     }
   },
   "engines": {

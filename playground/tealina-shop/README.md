@@ -35,7 +35,7 @@ if you change `PORT` in `backend/server/.env`, change `packages/web/vite.config.
 | `leo@example.com` | `demo123` | CUSTOMER |
 
 The sign-in dialog has a button for each one that fills the form. Passwords are deliberately
-written in `backend/api-v1/src/store/seed.ts`; this is a demo, not a template for auth.
+written in `backend/core/src/services/seed.ts`; this is a demo, not a template for auth.
 
 ## Things to try
 
@@ -81,8 +81,8 @@ written in `backend/api-v1/src/store/seed.ts`; this is a demo, not a template fo
 ## Endpoint map
 
 `src/api/<method>/<path>.ts` is the route. `openApi` handlers are public; `authedApi`
-handlers require a bearer token, and an admin check lives inside the handler where it
-belongs to the data.
+handlers require a bearer token, and an admin check lives in the service that owns the
+data.
 
 | Method and path | Access | What it does |
 | --- | --- | --- |
@@ -126,7 +126,9 @@ document and the frontend:
 
 ```ts
 type ApiType = AuthedHandler<{ body: CheckoutPayload }, WithStatusCode<201, OrderView>>
-const handler: ApiType = async (req, res) => { /* ... */ }
+const handler: ApiType = async (req, res) => {
+  res.status(201).send(createOrder(res.locals, req.body.items, req.body.note))
+}
 export default authedApi(handler)
 ```
 
@@ -134,9 +136,17 @@ export default authedApi(handler)
 mismatch. `backend/core/src/access/verifyToken.ts` validates the shop's signed token and
 puts `userId` and `role` on `res.locals`.
 
-**Types from the schema.** `backend/api-v1/prisma/schema.prisma` is the data model;
-`gtype` turns it into `types/pure.d.ts`, and `tealina.config.ts` maps `DateTime` to
-`string` for the wire:
+**Business code.** The handler file is the contract: its type, JSDoc and `examples` are
+what the router, the document and the frontend read. The work itself lives in
+`backend/core/src/services/` — the in-memory store, validation, authorization and the
+operations each endpoint performs. A handler reads the request, calls one service and
+sends the result; the service receives `res.locals` and decides whether the caller may do
+what they asked.
+
+**Types from the schema.** `backend/core/prisma/schema.prisma` is the data model; `gtype`
+turns it into `backend/core/types/pure.d.ts`, and `tealina.config.ts` maps `DateTime` to
+`string` for the wire. The command runs from `api-v1`, where the Tealina config lives, and
+writes into `core`:
 
 ```bash
 pnpm -F api-v1 gtype
@@ -182,11 +192,12 @@ on display.
 | `pnpm -F api-v1 delete <method> <path>` | remove a handler and its barrel entry |
 | `pnpm -F api-v1 align` | regenerate the route barrels |
 | `pnpm -F api-v1 gdoc` | regenerate the API document |
-| `pnpm -F api-v1 gtype` | regenerate `types/pure.d.ts` from the Prisma schema |
+| `pnpm -F api-v1 gtype` | regenerate `core/types/pure.d.ts` from `core/prisma/schema.prisma` |
 | `pnpm -F web dev` | storefront only, http://localhost:5173 |
 
 Generated files — `src/api/**/index.*`, `docs/api.json`, `docs/openapi.json`,
-`types/pure.d.ts` — belong to those commands; edit the handler or the schema instead.
+`backend/core/types/pure.d.ts` — belong to those commands; edit the handler, the service
+or the schema instead.
 
 The token secret is `AUTH_SECRET` with a demo fallback. Orders, accounts and reviews live
 in memory: `Ctrl+C` and `pnpm dev` again gives you a fresh shop.

@@ -1,9 +1,7 @@
 import type { AuthedHandler } from 'core/handler'
 import { authedApi } from 'core/access'
+import { addComment, type CommentView } from 'core/services'
 import type { WithStatusCode } from 'tealina/utility-types'
-import type { CommentView } from '../../../../model.js'
-import { parseId } from '../../../../http.js'
-import { addComment } from '../../../../store/index.js'
 
 export interface CommentPayload {
   /** 1 to 5 stars. */
@@ -21,9 +19,7 @@ type ApiType = AuthedHandler<
  * Post a review. Sign in first; the author is taken from the token, not the body.
  */
 const handler: ApiType = async (req, res) => {
-  const productId = parseId(req.params.id)
-  const comment = addComment(productId, Number(res.locals.userId), req.body)
-  res.status(201).send(comment)
+  res.status(201).send(addComment(res.locals, req.params.id, req.body))
 }
 
 export default authedApi(handler)

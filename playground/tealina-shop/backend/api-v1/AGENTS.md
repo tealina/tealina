@@ -24,6 +24,10 @@ lives in the `core` package. The generated stubs import it from `core/handler` a
 - A handler file's default export is `openApi(handler)` for a public route or
   `authedApi(handler)` for a route that requires an `Authorization` header. A new
   endpoint is private until it says otherwise.
+- Business logic does not belong here. A handler reads the request, calls one function
+  from `core/services` and writes the response; validation, authorization and the
+  in-memory store live in that package. Keep the handler's type annotation, JSDoc and
+  `examples` — those are the document.
 - Annotate the handler's type above the `const`: `OpenHandler<Payload, Response>` or
   `AuthedHandler<Payload, Response>`. Use an `interface` (not an inline object type) for
   a payload shape — the document generator reads the declaration's name.

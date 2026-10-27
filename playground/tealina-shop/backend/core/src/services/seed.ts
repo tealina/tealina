@@ -1,4 +1,4 @@
-import type { ActivityEvent } from '../model.js'
+import type { ActivityEvent } from './model.js'
 import type { Pure } from '../../types/pure.js'
 
 /** A stored order is an order row plus the lines it was placed with. */

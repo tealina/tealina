@@ -1,9 +1,7 @@
 import type { AuthedHandler } from 'core/handler'
 import { authedApi } from 'core/access'
-import type { Pure } from '../../../../../types/pure.js'
-import type { OrderView } from '../../../../model.js'
-import { parseId, requireAdmin } from '../../../../http.js'
-import { updateOrderStatus } from '../../../../store/index.js'
+import type { Pure } from 'core/pure'
+import { updateOrderStatus, type OrderView } from 'core/services'
 
 export interface OrderStatusPayload {
   /** The next state. Allowed moves: PENDING→PAID, PAID→SHIPPED, SHIPPED→DELIVERED, or cancel while pending/paid. */
@@ -22,8 +20,7 @@ type ApiType = AuthedHandler<
  * final and answers 409.
  */
 const handler: ApiType = async (req, res) => {
-  requireAdmin(res.locals.role)
-  res.send(updateOrderStatus(parseId(req.params.id), req.body.status))
+  res.send(updateOrderStatus(res.locals, req.params.id, req.body.status))
 }
 
 export default authedApi(handler)

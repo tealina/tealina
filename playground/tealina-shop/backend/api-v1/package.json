@@ -25,7 +25,7 @@
     "build": "tsc --project tsconfig.build.json",
     "create": "tealina create",
     "gdoc": "tealina gdoc",
-    "gtype": "tealina gtype",
+    "gtype": "tealina gtype -i ../core/prisma/schema.prisma -o ../core/types/pure.d.ts",
     "align": "tealina align"
   },
   "dependencies": {

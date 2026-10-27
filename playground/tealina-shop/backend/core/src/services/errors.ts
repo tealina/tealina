@@ -1,8 +1,8 @@
 import type { ApiErrorBody } from './model.js'
 
 /**
- * A response the store and the handlers can throw. Express 5 forwards a rejected
- * promise to the error middleware, so a handler only has to raise it.
+ * A response the services throw. Express 5 forwards a rejected promise to the error
+ * middleware, so a handler only has to call the service.
  */
 export class HttpError extends Error {
   constructor(
@@ -15,13 +15,7 @@ export class HttpError extends Error {
   }
 }
 
-export const requireAdmin = (role: 'CUSTOMER' | 'ADMIN') => {
-  if (role !== 'ADMIN') {
-    throw new HttpError(403, 'FORBIDDEN', 'This endpoint is for admins only.')
-  }
-}
-
-/** Path ids arrive as strings; the handlers declare them as numbers. */
+/** Path ids arrive as strings; the store works with numbers. */
 export const parseId = (raw: string): number => {
   const id = Number(raw)
   if (!Number.isInteger(id) || id < 1) {

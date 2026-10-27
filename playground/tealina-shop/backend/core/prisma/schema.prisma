@@ -1,7 +1,7 @@
-// The demo's data model. Nothing connects to a database at runtime — the api keeps
-// its state in memory so `pnpm dev` works with no setup. This file is the source the
-// `gtype` command reads, and its output (`types/pure.d.ts`) is what the handlers and
-// the web client are typed against.
+// The demo's data model. Nothing connects to a database at runtime — the core package
+// keeps its state in memory so `pnpm dev` works with no setup. This file is the source
+// the `gtype` command reads, and its output (`types/pure.d.ts`) is what the services,
+// the handlers and the web client are typed against.
 //
 //   pnpm -F api-v1 gtype
 
@@ -32,7 +32,7 @@ model User {
   name      String
   /// Sign-in address; unique in the demo store
   email     String
-  /// Demo only: the seed passwords are written in `src/store/seed.ts`
+  /// Demo only: the seed passwords are written in `src/services/seed.ts`
   password  String
   role      Role     @default(CUSTOMER)
   id        Int      @id @default(autoincrement())

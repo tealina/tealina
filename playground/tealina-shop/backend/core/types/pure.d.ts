@@ -5,7 +5,7 @@ export namespace Pure {
     name: string
     /**  Sign-in address; unique in the demo store */
     email: string
-    /**  Demo only: the seed passwords are written in `src/store/seed.ts` */
+    /**  Demo only: the seed passwords are written in `src/services/seed.ts` */
     password: string
     /** @default {CUSTOMER} */
     role: Role
@@ -19,7 +19,7 @@ export namespace Pure {
     name: string
     /**  Sign-in address; unique in the demo store */
     email: string
-    /**  Demo only: the seed passwords are written in `src/store/seed.ts` */
+    /**  Demo only: the seed passwords are written in `src/services/seed.ts` */
     password: string
     /** @default {CUSTOMER} */
     role?: Role
@@ -33,7 +33,7 @@ export namespace Pure {
     name?: string
     /**  Sign-in address; unique in the demo store */
     email?: string
-    /**  Demo only: the seed passwords are written in `src/store/seed.ts` */
+    /**  Demo only: the seed passwords are written in `src/services/seed.ts` */
     password?: string
     /** @default {CUSTOMER} */
     role?: Role

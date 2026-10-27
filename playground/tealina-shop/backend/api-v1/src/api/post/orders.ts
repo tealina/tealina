@@ -1,8 +1,7 @@
 import type { AuthedHandler, MakeExamplesType } from 'core/handler'
 import { authedApi } from 'core/access'
+import { createOrder, type CheckoutItem, type OrderView } from 'core/services'
 import type { WithStatusCode } from 'tealina/utility-types'
-import type { OrderView } from '../../model.js'
-import { createOrder, type CheckoutItem } from '../../store/index.js'
 
 export interface CheckoutPayload {
   /** Product ids and quantities; a repeated product is merged. */
@@ -21,12 +20,7 @@ type ApiType = AuthedHandler<
  * for more than the shelf holds fails the whole order.
  */
 const handler: ApiType = async (req, res) => {
-  const order = createOrder(
-    Number(res.locals.userId),
-    req.body.items,
-    req.body.note,
-  )
-  res.status(201).send(order)
+  res.status(201).send(createOrder(res.locals, req.body.items, req.body.note))
 }
 
 export default authedApi(handler)

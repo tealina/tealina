@@ -7,8 +7,12 @@ core  ->  api-v1  ->  server
 ```
 
 - `core/types/` is the contract layer. `core/src/access/` is the guard.
-- `api-v1/src/api/` is the route table. Each handler's type annotation is the source of
-  truth for the router, `api-v1/docs/api.json` and `api-v1/types/api.d.ts`.
+- `core/src/services/` is the business layer: the in-memory store, validation,
+  authorization and the operations the endpoints perform. `core/prisma/schema.prisma`
+  is the data model `gtype` reads; `core/types/pure.d.ts` is its generated output.
+- Each file under `api-v1/src/api/` is a route. Its handler type annotation is the source of
+  truth for the router, `api-v1/docs/api.json` and `api-v1/types/api.d.ts`. The body only
+  reads the request, calls a service from `core/services` and writes the response.
 - `server/src/` is host glue: it calls `mount(app)` from `api-v1/mount` and adds static
   assets. It holds no routes.
 

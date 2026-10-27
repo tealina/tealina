@@ -1,7 +1,7 @@
 import type { EmptyObj, OpenHandler } from 'core/handler'
 import { openApi } from 'core/access'
-import type { Pure } from '../../../types/pure.js'
-import { listCategories } from '../../store/index.js'
+import type { Pure } from 'core/pure'
+import { listCategories } from 'core/services'
 
 type ApiType = OpenHandler<EmptyObj, Pure.Category[]>
 

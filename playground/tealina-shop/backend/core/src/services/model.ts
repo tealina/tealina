@@ -1,12 +1,9 @@
-import type { Pure } from '../types/pure.js'
+import type { Pure } from '../../types/pure.js'
 
 /**
- * The shapes the handlers answer with. They live outside `src/api` because `align`
- * treats every directory under the api directory as an HTTP method.
- *
- * `Pure.*` are the entities `gtype` read off `prisma/schema.prisma`; the `*View` types
- * add the joins a page needs, so the frontend never has to make a second call to learn
- * a category name or an author's name.
+ * The shapes the services answer with. `Pure.*` are the entities `gtype` read off
+ * `prisma/schema.prisma`; the `*View` types add the joins a page needs, so the frontend
+ * never has to make a second call to learn a category name or an author's name.
  */
 export type PublicUser = Pick<
   Pure.User,
@@ -26,6 +23,14 @@ export type ProductList = {
   page: number
   pageSize: number
   totalPages: number
+}
+
+export type ProductQuery = {
+  keyword?: string
+  categoryId?: number
+  sort?: 'newest' | 'price-asc' | 'price-desc' | 'rating'
+  page?: number
+  pageSize?: number
 }
 
 export type CommentView = Pure.Comment & {
@@ -69,7 +74,18 @@ export type LoginResult = {
   user: PublicUser
 }
 
-/** Every error response body the handlers send. */
+export interface Health {
+  /** Always "ok" while the process is answering. */
+  status: 'ok'
+  service: string
+  /** ISO timestamp of the response. */
+  time: string
+}
+
+/** One line of a checkout: a product and how many of it. */
+export type CheckoutItem = { productId: number; quantity: number }
+
+/** Every error response body the services throw. */
 export type ApiErrorBody = {
   code:
     | 'VALIDATION_ERROR'

@@ -1,10 +1,8 @@
 import type { AuthedHandler, MakeExamplesType } from 'core/handler'
 import { authedApi } from 'core/access'
+import type { Pure } from 'core/pure'
+import { createProduct, type ProductView } from 'core/services'
 import type { WithStatusCode } from 'tealina/utility-types'
-import type { Pure } from '../../../types/pure.js'
-import type { ProductView } from '../../model.js'
-import { requireAdmin } from '../../http.js'
-import { createProduct } from '../../store/index.js'
 
 type ApiType = AuthedHandler<
   { body: Pure.ProductCreateInput },
@@ -18,8 +16,7 @@ type ApiType = AuthedHandler<
  * leaving out `slug` derives one from the name.
  */
 const handler: ApiType = async (req, res) => {
-  requireAdmin(res.locals.role)
-  res.status(201).send(createProduct(req.body))
+  res.status(201).send(createProduct(res.locals, req.body))
 }
 
 export default authedApi(handler)

@@ -1,7 +1,6 @@
 import type { OpenHandler, MakeExamplesType } from 'core/handler'
 import { openApi } from 'core/access'
-import type { ProductList } from '../../model.js'
-import { listProducts } from '../../store/index.js'
+import { listProducts, type ProductList } from 'core/services'
 
 export interface ProductsQuery {
   /** Case-insensitive match on the name, description or category. */
