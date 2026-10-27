@@ -69,7 +69,9 @@ does not have, so a Node 20 build fails at the first step. `.nvmrc`, CI, `engine
    `template/core/`, `template/api-v1/`, `template/server/` or `template/web/` but not named
    there never ships. The three backend packages each get their own destination root —
    `backend/core`, `backend/api-v1`, `backend/server`. `template/root/` is the exception: it is
-   copied wholesale, so anything placed there ships as-is.
+   copied wholesale, so anything placed there ships as-is. `template/integration/` is the
+   other: it holds one file, `INTEGRATION.md`, copied to the project root only when
+   `--integrate` is passed; nothing else there ships.
 5. **The contract layer is `types/handler.d.ts` + one `types/alias.d.ts` per framework.** Change
    them only when you intend to change the convention for every handler in every generated
    project. `alias.d.ts` is the only framework seam. Express's alias repeats its call signature
@@ -98,8 +100,9 @@ TEALINA_E2E=1 pnpm -F create-tealina test            # real install + server + r
 The scaffold has one entry point and one template:
 
 - `create` builds a new monorepo: three backend packages (`core`, `api-v1`, `server`), the
-  contract layer, the docs, and optionally a Vite frontend (`--web`). `--template` and
-  `--no-install` make it non-interactive.
+  contract layer, the docs, and optionally a Vite frontend (`--web`). `--template` makes it
+  non-interactive. It writes files only: installing and generating the document are the
+  project's first commands, printed at the end.
 - The backend packages depend on each other in one direction: `core → api-v1 → server`.
   `pnpm -r build` is topological, so a package that imports a sibling builds after it.
 
@@ -110,6 +113,10 @@ stub. The recipe is in `packages/create-tealina/README.md`.
 
 ## Documentation
 
+- `docs/` is also a VitePress site (Chinese, user-facing). It is an **independent pnpm
+  project** with its own `package.json`, `pnpm-workspace.yaml` and lockfile; do not add it to
+  the root workspace. Use `pnpm docs:dev` / `pnpm docs:build`. Root `vp install` does not
+  install it, and `docs/**` is excluded from root lint/type check.
 - `docs/architecture.md` — current architecture, by subsystem.
 - `docs/architecture-notes.md` — judgement: couplings, what not to change casually, what CI
   does not cover.

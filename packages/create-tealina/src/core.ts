@@ -1,6 +1,5 @@
 import chalk from 'chalk'
 import minimist from 'minimist'
-import { spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -69,11 +68,6 @@ const mayOverwrite = async (dest: string) => {
 }
 
 export const formatDestDir = (dest: string) => dest.trim().replace(/\/+$/g, '')
-
-const pkgFromUserAgent = (userAgent = '') => {
-  const pkgSpec = userAgent.split(' ')[0].split('/')[0]
-  return pkgSpec.length < 1 ? 'npm' : pkgSpec
-}
 
 const logGuids = (guids: { title?: string; items: string[] }[]) => {
   const all = [
@@ -203,6 +197,22 @@ const createBackendProject = async (ctx: ContextType) => {
   }
 }
 
+/**
+ * The optional merge playbook.
+ *
+ * It is not copied with `template/root`, which is written wholesale, and it is not part of
+ * the project's runtime: it describes how to move two or three of these packages into a
+ * repository that already exists, so it is only useful when the user says they intend
+ * that. `--integrate` is that statement.
+ */
+const createIntegrationDoc = (ctx: ContextType) => {
+  if (!ctx.integrate) return
+  fs.copyFileSync(
+    join(templateRootDir, 'integration', 'INTEGRATION.md'),
+    join(ctx.root, 'INTEGRATION.md'),
+  )
+}
+
 const createWebProject = async (ctx: ContextType) => {
   const destWebDir = join(ctx.dest, 'web')
   await mayOverwrite(destWebDir)
@@ -213,58 +223,21 @@ const createWebProject = async (ctx: ContextType) => {
   }
 }
 
-const hasCommand = (command: string) => {
-  const res = spawnSync(command, ['--version'], {
-    stdio: 'ignore',
-    shell: process.platform === 'win32',
-  })
-  return res.error == null && res.status === 0
-}
-
 /**
- * Runs a command in the scaffolded project and reports the outcome without ever
- * throwing — a failure here should leave the user with a usable project and a clear
- * next step, not a stack trace.
+ * The scaffold writes files and stops. Installing and generating the document are the
+ * project's first commands, not the scaffolder's: they belong to the directory the user
+ * chose, run with the package manager that project will use, and are visible in its own
+ * history rather than happening inside a command that also deleted files.
  */
-const runStep = (command: string, args: string[], cwd: string) =>
-  new Promise<boolean>(resolve => {
-    console.log(`\n${blue('>')} ${[command, ...args].join(' ')}`)
-    const child = spawn(command, args, { cwd, stdio: 'inherit' })
-    const failed = (reason: string) => {
-      console.log(`${chalk.yellow('!')} ${reason}`)
-      resolve(false)
-    }
-    child.on('error', () => failed(`${command} could not be started`))
-    child.on('close', code =>
-      code === 0
-        ? resolve(true)
-        : failed(`${[command, ...args].join(' ')} exited with code ${code}`),
-    )
-  })
-
-const installAndGenerate = async (ctx: ContextType) => {
-  if (ctx.skipInstall) return false
-  if (!hasCommand('pnpm')) {
-    console.log(
-      `\n${chalk.yellow('!')} pnpm was not found on your PATH, so dependencies were not installed.`,
-    )
-    return false
-  }
-  const installed = await runStep('pnpm', ['install'], ctx.root)
-  if (!installed) return false
-  // The version's document json is read from disk; without this the page has a source that
-  // answers with an error.
-  return runStep('pnpm', ['-F', 'api-v1', 'gdoc'], ctx.root)
-}
-
-const showGuide = (ctx: ContextType, ready: boolean) => {
+const showGuide = (ctx: ContextType) => {
   const { projectName } = ctx.answer
   logGuids([
     {
       title: blue('Done. Now run:'),
       items: [
         `cd ${projectName}`,
-        ...(ready ? [] : ['pnpm install', 'pnpm -F api-v1 gdoc']),
+        'pnpm install',
+        'pnpm -F api-v1 gdoc',
         'pnpm dev',
       ],
     },
@@ -276,6 +249,17 @@ const showGuide = (ctx: ContextType, ready: boolean) => {
               'http://localhost:5173',
               'it proxies the api to http://localhost:8000 — retarget that in ' +
                 'packages/web/vite.config.ts if `PORT` is not 8000',
+            ],
+          },
+        ]
+      : []),
+    ...(ctx.integrate
+      ? [
+          {
+            title: blue('An AI merge playbook is in the project root:'),
+            items: [
+              'INTEGRATION.md — hand it to the agent that will move these packages ' +
+                'into an existing project',
             ],
           },
         ]
@@ -295,22 +279,12 @@ type ContextType = Awaited<ReturnType<typeof createCtx>>
 const createCtx = async () => {
   const argv = minimist<{
     template?: string
-    install?: boolean
-    'no-install'?: boolean
     web?: boolean
+    integrate?: boolean
   }>(process.argv.slice(2), {
     string: ['_', 'template'],
-    boolean: ['no-install', 'web'],
+    boolean: ['web', 'integrate'],
   })
-  // minimist still collects flags it was not told about. Refuse the removed language
-  // flags rather than silently scaffolding TypeScript for a caller that asked for
-  // another language.
-  const removed = argv as typeof argv & { js?: unknown; ts?: unknown }
-  if (removed.js != null || removed.ts != null) {
-    throw new Error(
-      'TypeScript is the only scaffold language; --js and --ts were removed.',
-    )
-  }
   const answer = await collectUserAnswer(argv._[0], argv.template)
   const root = path.resolve(process.cwd(), answer.projectName)
   const projectRootDir = path.resolve(fileURLToPath(import.meta.url), '../../')
@@ -322,12 +296,12 @@ const createCtx = async () => {
     backend: join(root, 'backend'),
     dest: join(root, 'packages'),
     projectRootDir,
-    pkgManager: pkgFromUserAgent(process.env.npm_config_user_agent),
-    // minimist rewrites `--no-install` into `install: false`, so read both spellings.
-    skipInstall: argv.install === false || argv['no-install'] === true,
-    // A flag beside `skipInstall` rather than an answer beside `server`: nothing asks
-    // this question. `--web` is the only way to say it.
+    // A flag rather than an answer beside `server`: nothing asks this question. `--web`
+    // is the only way to say it.
     web: argv.web === true,
+    // Same shape: the project is complete without the merge playbook, and nothing in it
+    // changes when the playbook is present.
+    integrate: argv.integrate === true,
   }
 }
 
@@ -336,6 +310,6 @@ export const createScaffold = async () => {
   createRoot(ctx)
   await createBackendProject(ctx)
   if (ctx.web) await createWebProject(ctx)
-  const ready = await installAndGenerate(ctx)
-  showGuide(ctx, ready)
+  createIntegrationDoc(ctx)
+  showGuide(ctx)
 }

@@ -33,7 +33,7 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 
 `packages/tealina/package.json` 有 `peerDependencies: typescript >=5.6.2 <7`——CLI 依赖 TS
 做声明文件解析，这是它敢做端到端类型的原因。上界卡在 7 是因为 `gdoc` 直接驱动 Compiler
-API，而 7.0 是 Go 原生重写。
+API，而 TypeScript 7 是 Go 原生重写：截至 7.0.2，官方状态仍是该 API 尚未提供（not ready）。
 
 **`@tealina/server` 只有两个导出**，这是它最值得注意的地方——所有复杂度都在类型层，
 运行时极薄：
@@ -52,10 +52,10 @@ API，而 7.0 是 Go 原生重写。
 注意 `EmptyObj`、`HTTPMethods`、`CustomHandlerType`、`Simplify` **都不在 `@tealina/server`
 里**——它们是生成项目里 `types/handler.d.ts` 的内容，或来自 `@tealina/utility-types`。
 
-## 3. 核心机制：目录即路由表
+## 3. 核心机制：文件即路由
 
-这是整个项目最要紧的一个设计。**api 目录的目录结构本身就是路由表**，没有单独的路由注册
-文件。
+这是整个项目最要紧的一个设计。**api 目录下的每个处理函数文件本身就是一条路由**，没有单独的
+路由注册文件。
 
 - `src/utils/codeGen.ts` 的 `toRoutePath`：把路径段里的 `[id]` 转成 `:id`
   （Express/Koa/Fastify 通用的 path param 语法）。
@@ -379,8 +379,8 @@ Oxlint 检查并在其上做类型检查，`pnpm fmt` / `pnpm lint` 各跑一半
 
 文件清单由 `src/template-manifest.ts` 列出，不遍历目录：一个文件只有被 manifest 点名才会
 被写出，`test/template-manifest.test.ts` 会抓住「模板里有、manifest 没点名」的文件。
-`create` 拼好项目后安装、跑 `api-v1` 的 `gdoc`；`--template`、`--web`、`--no-install`
-让整个运行可以完全非交互。
+`create` 只写文件：安装与 `api-v1` 的 `gdoc` 是项目自己的首批命令，脚手架结束前会打印它们。
+`--template`、`--web`、`--integrate` 让整个运行可以完全非交互。
 
 三个框架各一棵树，每个包各有一套。结构由 `test/template-parity.test.ts` 约束：所有框架的
 `src/api/` 与 `src/access/` 布局一致、artifact 名字固定、包间依赖只有一个方向。内容可以

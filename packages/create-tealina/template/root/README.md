@@ -1,8 +1,8 @@
 # tealina project
 
-A typed Node API server where the **directory layout is the route table** and each
-**handler's type annotation is the single source of truth** — the router, the API
-documentation and the frontend's client types are all derived from it.
+A typed Node API server where **each handler file is a route** and each **handler's type
+annotation is the single source of truth** — the router, the API documentation and the
+frontend's client types are all derived from it.
 
 The backend is three workspace packages with one job each:
 
@@ -18,8 +18,10 @@ rather than restating them.
 ## Quick start
 
 ```bash
+pnpm install
+pnpm -F api-v1 gdoc   # writes docs/api.json, which the documentation page reads
 pnpm dev
-pnpm check     # format, lint and type-check (Vite+)
+pnpm check            # format, lint and type-check (Vite+)
 ```
 
 - Service: http://localhost:8000

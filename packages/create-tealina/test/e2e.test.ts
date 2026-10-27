@@ -199,12 +199,24 @@ describeE2E('scaffolded project, end to end', () => {
       fs.rmSync(projectDir, { recursive: true, force: true })
       fs.mkdirSync(tempRoot, { recursive: true })
 
-      // 1. scaffold, without the interactive prompts
+      // 1. scaffold, without the interactive prompts. `--integrate` is passed to one
+      //    framework only: the flag is asserted where it is on, and its absence asserted
+      //    where it is off, without paying for it three times.
       must(
         tsxBin,
-        [cliEntry, projectDir, '--template', fw, '--no-install'],
+        [
+          cliEntry,
+          projectDir,
+          '--template',
+          fw,
+          ...(fw === 'express' ? ['--integrate'] : []),
+        ],
         pkgDir,
       )
+      expect(
+        fs.existsSync(path.join(projectDir, 'INTEGRATION.md')),
+        '--integrate did not write INTEGRATION.md',
+      ).toBe(fw === 'express')
       const workspaceFile = path.join(projectDir, 'pnpm-workspace.yaml')
       expect(fs.existsSync(workspaceFile)).toBe(true)
       expect(
@@ -378,11 +390,7 @@ describeE2E('two api versions share one documentation page', () => {
     fs.rmSync(projectDir, { recursive: true, force: true })
     fs.mkdirSync(tempRoot, { recursive: true })
 
-    must(
-      tsxBin,
-      [cliEntry, projectDir, '--template', 'express', '--no-install'],
-      pkgDir,
-    )
+    must(tsxBin, [cliEntry, projectDir, '--template', 'express'], pkgDir)
     appendWorkspaceOverrides(
       path.join(projectDir, 'pnpm-workspace.yaml'),
       projectDir,
@@ -502,7 +510,7 @@ describeE2E('scaffolded project with a frontend, end to end', () => {
     // 1. scaffold, with the frontend
     must(
       tsxBin,
-      [cliEntry, projectDir, '--template', 'express', '--no-install', '--web'],
+      [cliEntry, projectDir, '--template', 'express', '--web'],
       pkgDir,
     )
     const page = path.join(webDir, 'src/main.ts')

@@ -97,7 +97,7 @@
 
 ## 6. 对项目所处阶段的判断
 
-设计已经定型：目录即路由表、带斜杠的扁平路由 key、`@tealina/doc-types` 不再被 re-export、
+设计已经定型：文件即路由、带斜杠的扁平路由 key、`@tealina/doc-types` 不再被 re-export、
 `create-tealina` 只有一个 `create` 入口、后端按 `core → api-v1 → server` 分成三个包、
 模板由 manifest 和 parity 测试约束。当前是**稳定期**：三套框架模板的打磨、面向代理的可检查
 反馈（`--check` / `--json` / 退出码 / 生成物标记头），几乎没有新功能。

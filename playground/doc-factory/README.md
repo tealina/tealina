@@ -1,6 +1,6 @@
 # tealina project
 
-A typed Node API server where the **directory layout is the route table** and each
+A typed Node API server where **each handler file is a route** and each
 **handler's type annotation is the single source of truth** — the router, the API
 documentation and the frontend's client types are all derived from it.
 

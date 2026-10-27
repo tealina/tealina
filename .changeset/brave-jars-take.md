@@ -17,9 +17,10 @@ version is therefore a new package (`backend/api-v2`) rather than a new folder, 
 dependency direction is a tree: `core → api-v1 → server`.
 
 `--web` adds a minimal Vite frontend in `packages/web` that reads the contract through
-`api-v1/api`, and `--no-install` stops after writing the files. A `template-manifest.ts` names every file the scaffold writes
-instead of walking directories. After installing, the scaffold runs `api-v1`'s `gdoc`, so
-the document the API doc page reads exists the first time you open it.
+`api-v1/api`. A `template-manifest.ts` names every file the scaffold writes instead of
+walking directories. The scaffold writes files and stops: `pnpm install` and `api-v1`'s
+`gdoc` are printed as the project's first commands, and the document the API doc page
+reads exists once they have run.
 
 There is no `init` subcommand. The three-package layout is the unit the convention now
 comes in, and installing it into a server you already have is a refactor the CLI cannot do

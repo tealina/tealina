@@ -43,3 +43,8 @@ jobs:
       # 不用递归的 `vp run -r test`：它比这里多出来的只有 tealina-doc-types 那条
       # `tsc --noEmit`，而那个文件本来就在 vp check 的类型检查范围内。
       - run: vp test
+
+      # docs/ 是独立 pnpm 项目，根 `vp install` 不安装它。VitePress 构建时
+      # 默认在死链上报错，所以这一步同时检查了站内链接。
+      - run: pnpm --dir docs install --frozen-lockfile
+      - run: pnpm --dir docs run build

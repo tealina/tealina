@@ -1,8 +1,8 @@
 # AGENTS.md
 
-This package owns one api version: the route tree under `src/api/` **is** the route
-table, and each handler's type annotation is the single source of truth for the router,
-the API document, and the frontend's client types.
+This package owns one api version: each file under `src/api/` **is** a route, and each
+handler's type annotation is the single source of truth for the router, the API document,
+and the frontend's client types.
 
 The contract layer itself — `OpenHandler`, `AuthedHandler`, and the framework aliases —
 lives in the `core` package. The generated stubs import it from `core/handler` and
@@ -29,10 +29,15 @@ lives in the `core` package. The generated stubs import it from `core/handler` a
   a payload shape — the document generator reads the declaration's name.
 - A handler kept in `.js` during a migration carries the same type as a JSDoc
   `@type {import('core/handler').OpenHandler<…>}` (or `AuthedHandler<…>`) on its `const`,
-  with an `@typedef` above it for the payload shape. There are no global aliases. The
+  with an `@typedef` above it for the payload shape. The scaffold declares no global
+  aliases; add them once in `src/global.d.ts` if you prefer shorter annotations. The
   package needs `allowJs`/`checkJs` and `sourceExt: '.js'` in `tealina.config`; the
   scaffold's README has the full recipe.
 - JSDoc comments become API documentation; `//` comments do not.
+- A handler file is a thin API boundary: keep validation, database work and transactions in a
+  service module (for example `api-v1/src/services`, or `core/src/services` with a `./services`
+  export) and call it from the handler. Export `examples` (`MakeExamplesType<ApiType>`) when
+  the document should ship request examples.
 - Regenerate the API document with `pnpm gdoc` after changing a handler.
 - `src/mount`, `src/router` and `src/doc` are this package's host seam. `mount` returns a
   `docSource` describing the json this version publishes; the host collects one source per

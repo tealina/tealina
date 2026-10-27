@@ -12,6 +12,9 @@
     "preinstall": "npx only-allow pnpm",
     "prepare": "vp config --no-agent",
     "dev:ui": "node scripts/dev-ui.mjs",
+    "docs:dev": "pnpm --dir docs run dev",
+    "docs:build": "pnpm --dir docs run build",
+    "docs:preview": "pnpm --dir docs run preview",
     "cproj": "node packages/create-tealina/dist/index.mjs",
     "up-temp-versions": "node scripts/update-version-in-template.mjs"
   },

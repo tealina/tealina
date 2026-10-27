@@ -14,6 +14,9 @@
   constraints that fail silently.
 - [Generated project instructions](./packages/create-tealina/template/common/api-v1/AGENTS.md):
   the file a scaffolded API package receives.
+- [Integration playbook](./packages/create-tealina/template/integration/INTEGRATION.md):
+  the `--integrate` file for merging a scaffold into an existing project.
+- [Integration guide](https://tealina.dev/guide/integration): the same ground in Chinese.
 
 ## Understand
 

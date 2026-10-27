@@ -11,3 +11,8 @@ coverage
 # ignore those can be generate
 temp-*
 packages/tealina-doc-ui/static
+
+# docs site (independent pnpm project)
+docs/.vitepress/dist
+docs/.vitepress/cache
+docs/.vitepress/.temp

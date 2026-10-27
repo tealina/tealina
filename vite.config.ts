@@ -66,6 +66,10 @@ export default defineConfig({
       'temp-*/**', // linter.includes: ["!temp-*"]
       'packages/create-tealina/template/**',
       'playground/**',
+      // docs/ 是独立的 pnpm 项目，根 `vp install` 不装它的依赖，类型检查会报
+      // TS2307；同时避免 prefer-vite-plus-imports 把 config.mts 里的 `vite`
+      // 改写成 `vite-plus`——VitePress 需要真正的 Vite 5。
+      'docs/**',
     ],
     plugins: ['react', 'jsx-a11y'], // oxlint 默认关闭这两个插件
     options: { typeAware: true, typeCheck: true },

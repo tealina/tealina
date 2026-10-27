@@ -1,0 +1,8 @@
+# `docs/` is its own pnpm project, not a member of the repository workspace:
+# VitePress brings its own Vite, and the root catalog aliases `vite` to Vite+.
+packages: []
+
+# Vite 5 depends on esbuild, and pnpm 10+ does not run dependency build scripts by
+# default. Without this, `vitepress dev` cannot start.
+allowBuilds:
+  esbuild: true
