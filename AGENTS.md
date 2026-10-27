@@ -46,9 +46,11 @@ Run tests through `vp test` or the package script, not bare `npx vitest run`:
 are skipped locally unless `TEALINA_E2E=1`; on CI they run automatically because GitHub Actions
 sets `CI`.
 
-**Node ≥ 22** is required. `vite-plus-core`'s tsdown uses `Promise.withResolvers`, which Node 20
-does not have, so a Node 20 build fails at the first step. `.nvmrc`, CI, `engines`, each package's
-`target: 'node22'`, and `@types/node` all agree on this floor.
+**Node ≥ 22** is the floor. `vite-plus-core`'s tsdown uses `Promise.withResolvers`, which Node 20
+does not have, so a Node 20 build fails at the first step. `engines.node`, each package's
+`target: 'node22'`, and `@types/node` describe that floor; `.nvmrc` and CI run the default
+**Node 24**. The package manager is pinned by `packageManager: pnpm@12.5.1`, and `engines.pnpm`
+requires the 12.x line.
 
 ## Hard constraints
 

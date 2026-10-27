@@ -21,9 +21,9 @@ jobs:
       # 版本要写精确版本号：官方文档明确说 `v1` 这个 tag 不再更新（停在 v1.15.0）。
       - uses: voidzero-dev/setup-vp@v1.20.0
         with:
-          # 与各包 engines.node ">=22"、pack 的 target 'node22' 对齐；
-          # 工具链自身（tsdown）也按 Node 22 构建。
-          node-version: '22'
+          # 默认工具链是 Node 24（与 .nvmrc 一致）。各包 engines.node ">=22" 与
+          # pack 的 target 'node22' 是支持下限，不跟着默认版本上调。
+          node-version: '24'
           cache: true
           # 关掉 action 自带的 install（它默认带，且不带 --frozen-lockfile），
           # 否则它会先把 lockfile 改掉，下一行的 --frozen-lockfile 就形同虚设。

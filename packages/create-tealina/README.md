@@ -53,7 +53,8 @@ run must point at a new or empty directory.
 
 ### Requirements
 
-Node ≥ 22, and pnpm ≥ 11 for `pnpm install` — the generated `pnpm-workspace.yaml` uses
+Node ≥ 22 (the default is Node 24, recorded in `.nvmrc`), and pnpm 12.x for `pnpm install` —
+the generated `package.json` declares `engines.pnpm`, and `pnpm-workspace.yaml` uses
 `allowBuilds`, which older pnpm ignores. The scaffold never installs for you; it prints the
 first commands and leaves them to the project.
 

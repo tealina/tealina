@@ -5,11 +5,12 @@ Tealina 把一个目录树和一个处理函数的类型注解，变成路由、
 
 ## 环境要求
 
-- **Node ≥ 22**。仓库和生成的项目都以它作为下限。
+- **Node ≥ 22**。这是仓库与生成项目的支持下限；两者的默认版本是 24（见 `.nvmrc`）。
 - **TypeScript 5.6.2 至 6.x**。CLI 通过 TypeScript Compiler API 读取声明文件；TypeScript 7
   是 Go 原生重写，当前最新版 7.0.2 仍未提供该 API，因此暂不支持。等上游提供后再放宽版本上界。
-- **pnpm ≥ 11**（用于 `pnpm install`）：生成的 `pnpm-workspace.yaml` 使用 `allowBuilds`，
-  更早的 pnpm 会忽略它。脚手架本身不安装依赖，只打印首次运行的命令。
+- **pnpm 12.x**（用于 `pnpm install`）：生成的 `package.json` 声明 `engines.pnpm`，且
+  `pnpm-workspace.yaml` 使用 `allowBuilds`，更早的 pnpm 会忽略它。脚手架本身不安装依赖，
+  只打印首次运行的命令。
 
 脚手架不包含数据库层，也不依赖 Prisma。
 

@@ -4,6 +4,11 @@
   "description": "A CLI for build end-to-end typesafety APIs, and code, types, document generation",
   "license": "MIT",
   "author": "Neo Yeo",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tealina/tealina.git",
+    "directory": "packages/tealina"
+  },
   "bin": {
     "tealina": "index.js"
   },

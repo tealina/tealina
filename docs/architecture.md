@@ -28,8 +28,8 @@ pnpm monorepo（`pnpm-workspace.yaml` 只 glob `packages/*`，排除 `temp/**` �
 | `create-tealina` | 脚手架（bin-only，`npm create tealina`）。无数据库层、无 Prisma、无 shared-types、只 node。一个 `create` 入口，默认产出 `backend/` 下的三个包（`core` / `api-v1` / `server`）与可选的 `packages/web` |
 
 所有 Node 侧包要求 **Node ≥ 22**：`vite-plus-core` 的 tsdown 使用
-`Promise.withResolvers`，Node 20 上构建第一步就失败。根 `engines`、CI、各包
-`target: 'node22'`、`@types/node` 与 `.nvmrc` 都对齐到这个下限。
+`Promise.withResolvers`，Node 20 上构建第一步就失败。各包 `engines.node`、
+`target: 'node22'` 与 `@types/node` 描述的是这个下限；`.nvmrc` 与 CI 跑默认的 Node 24。
 
 `packages/tealina/package.json` 有 `peerDependencies: typescript >=5.6.2 <7`——CLI 依赖 TS
 做声明文件解析，这是它敢做端到端类型的原因。上界卡在 7 是因为 `gdoc` 直接驱动 Compiler
@@ -318,10 +318,11 @@ type Snapshot = {
 
 - **库包统一用 `vp pack`（tsdown），配置写在各自 `vite.config.ts` 的 `pack` 块里**——
   没有 `build.config.ts`，也没有单独的 `tsdown.config.ts`。`target` 一律 `node22`（唯一的
-  例外是浏览器侧的 `tealina-client`，它是 `es6`），与各包 `engines.node: ">=22"`、以及 CI
-  的 `node-version: 22` 对应。根 `@types/node` 是 `^22.0.0`，只此一处声明，其余包靠提升
-  共用——`types` 要描述*最低支持*的运行时。产物后缀靠 `fixedExtension`：要 `.mjs` 就用
-  默认，要 `.js` 必须显式 `false`（`main` 写死了 `.js` 的那几个包都设了）。
+  例外是浏览器侧的 `tealina-client`，它是 `es6`），与各包 `engines.node: ">=22"` 一样描述
+  支持下限；CI 与 `.nvmrc` 跑默认的 Node 24，不参与这条对齐。根 `@types/node` 是 `^22.0.0`，
+  只此一处声明，其余包靠提升共用——`types` 要描述*最低支持*的运行时。产物后缀靠
+  `fixedExtension`：要 `.mjs` 就用默认，要 `.js` 必须显式 `false`（`main` 写死了 `.js` 的
+  那几个包都设了）。
 - **tealina 用 `unbundle`**：`src/` 1:1 镜像到 `dist/`，**不打包**。所以
   `dist/commands/sapi.mjs` 这类深路径可被寻址。`unbundle` 不能关：bin shim（`index.js`）
   直接 import `dist/utils/catchError.mjs` 和 `dist/commands/index.mjs`，改成打包就断了。

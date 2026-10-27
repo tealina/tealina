@@ -27,11 +27,12 @@ pnpm create tealina my-app --template fastify --web
 
 ### 环境要求
 
-- Node ≥ 22。
+- Node ≥ 22（默认 24，生成项目的 `.nvmrc` 记录的就是它）。
 - TypeScript `>=5.6.2 <7`。生成的 `tealina` 命令需要 TypeScript Compiler API；TypeScript 7
   当前最新版 7.0.2 尚未提供该 API，暂不支持。
-- pnpm ≥ 11，用于 `pnpm install`——生成的 `pnpm-workspace.yaml` 使用 `allowBuilds`，更早的
-  pnpm 会忽略它。脚手架本身不安装依赖，只打印首次运行的命令。
+- pnpm 12.x，用于 `pnpm install`——生成的 `package.json` 声明 `engines.pnpm`，且
+  `pnpm-workspace.yaml` 使用 `allowBuilds`，更早的 pnpm 会忽略它。脚手架本身不安装依赖，
+  只打印首次运行的命令。
 
 ## 生成内容
 

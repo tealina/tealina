@@ -62,4 +62,5 @@ rather than a new folder.
   output is stale without writing anything. Add `--json` for a single `{ ok, changed }`
   object on stdout (errors go to stderr).
 - [llms.txt](./llms.txt) lists the entry points in the format agents expect.
-- Node ≥ 22 is required.
+- Node ≥ 22 is required; this repository and every generated project default to Node 24
+  (`.nvmrc`). pnpm 12.x is required.

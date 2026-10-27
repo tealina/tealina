@@ -7,6 +7,11 @@
   ],
   "license": "MIT",
   "author": "Neo Yeo",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tealina/tealina.git",
+    "directory": "packages/tealina-doc-types"
+  },
   "files": [
     "dist"
   ],

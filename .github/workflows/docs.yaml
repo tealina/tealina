@@ -37,11 +37,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 与 ci.yaml 同一套工具链：Node 22 + packageManager 指定的 pnpm。
+      # 与 ci.yaml 同一套工具链：默认 Node 24 + packageManager 指定的 pnpm。
       # run-install 关掉，因为这里只需要 docs/ 这一个独立项目的依赖。
       - uses: voidzero-dev/setup-vp@v1.20.0
         with:
-          node-version: '22'
+          node-version: '24'
           cache: true
           run-install: false
 

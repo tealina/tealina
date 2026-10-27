@@ -59,6 +59,21 @@ E2E installs real packages, so it is the only check that exercises the published
 workflow run it. If you must publish locally, confirm with the user first: it is outward-facing
 and effectively irreversible.
 
+### Publishing credentials
+
+The workflow uses npm Trusted Publishing (OIDC), not a token. `id-token: write` lets pnpm
+exchange the GitHub run identity for a short-lived npm credential; provenance is attached
+automatically for a public package from a public repository.
+
+Three things must stay true outside the diff:
+
+- Every publishable manifest carries `repository.url`, and it must match the GitHub URL exactly
+  (case included). npm rejects a publish without it with E422.
+- Each package on npmjs.com has a trusted publisher entry naming this repository and the exact
+  workflow filename `publish.yaml`. Configurations created after 2026-09-03 allow **stage
+  publish** by default; plain `npm publish` must be enabled explicitly.
+- No `NPM_TOKEN` in the workflow env. Do not add it back.
+
 ## After the release
 
 - `config` in `.changeset` stays; the generated `CHANGELOG.md` files are committed.
